@@ -198,6 +198,54 @@ struct SplashScreenView: View {
                                     value: magneticPulse
                                 )
                             
+                            // Deep orange circle
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(hex: "FF4500").opacity(0.6),
+                                            Color(hex: "FF8C00").opacity(0.4),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 7
+                                )
+                                .frame(width: 340, height: 340)
+                                .blur(radius: 4)
+                                .opacity(0.9)
+                                .scaleEffect(magneticPulse * 1.1)
+                                .animation(
+                                    Animation.easeInOut(duration: 3.1)
+                                        .repeatForever(autoreverses: true),
+                                    value: magneticPulse
+                                )
+                            
+                            // Bright orange circle
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(hex: "FF8C00").opacity(0.7),
+                                            Color(hex: "FFA500").opacity(0.5),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 6
+                                )
+                                .frame(width: 300, height: 300)
+                                .blur(radius: 3)
+                                .opacity(0.95)
+                                .scaleEffect(magneticPulse * 1.15)
+                                .animation(
+                                    Animation.easeInOut(duration: 3.0)
+                                        .repeatForever(autoreverses: true),
+                                    value: magneticPulse
+                                )
+                            
                             // Deep red circle
                             Circle()
                                 .stroke(

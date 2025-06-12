@@ -76,8 +76,10 @@ struct SplashScreenView: View {
                     magneticPulse: magneticPulse
                 )
 
-                VStack(spacing: 0) {
-                    Spacer()
+                // Starfield (twinkling stars around the logo)
+                StarfieldView()
+
+                VStack(spacing: 40) {
                     
                     // Title with cosmic glow
                     Text("Zodiaccurate")
@@ -85,12 +87,9 @@ struct SplashScreenView: View {
                         .foregroundColor(Color.white)
                         .shadow(color: Color(hex: "D4AF37").opacity(0.8), radius: 15, x: 0, y: 0)
                         .shadow(color: Color(hex: "8A2BE2").opacity(0.6), radius: 25, x: 0, y: 0)
-                        .padding(.top, 40)
+                        .padding(.top, 200)
                         .offset(y: titleOffset)
                         .opacity(opacity)
-
-                    Spacer()
-                        .frame(height: 60)
 
                     // Central Magnetic Logo (Center of Universe)
                     ZStack {
@@ -381,7 +380,7 @@ struct SplashScreenView: View {
                     .padding(.vertical, 20)
 
                     Spacer()
-                        .frame(height: 80)
+                        .frame(height: 0)
 
                     // Tagline with cosmic styling
                     HStack(spacing: 0) {
@@ -503,11 +502,12 @@ struct SplashScreenView: View {
         withAnimation(.linear(duration: 65).repeatForever(autoreverses: false)) {
             celestialBody6Angle = -360
         }
-        withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
-            stardust1Angle = 360
+        // Stardust rings: smooth, subtle, non-looping
+        withAnimation(.easeInOut(duration: Double.random(in: 12...20))) {
+            stardust1Angle = Double.random(in: 60...120)
         }
-        withAnimation(.linear(duration: 12).repeatForever(autoreverses: false)) {
-            stardust2Angle = -360
+        withAnimation(.easeInOut(duration: Double.random(in: 14...22))) {
+            stardust2Angle = -Double.random(in: 60...120)
         }
         
         // Tap hint
@@ -570,13 +570,6 @@ struct CelestialSystemView: View {
                 body4Angle: body4Angle,
                 body5Angle: body5Angle,
                 body6Angle: body6Angle,
-                cosmosOffset: cosmosOffset
-            )
-            
-            // Stardust rings
-            StardustRings(
-                stardust1Angle: stardust1Angle,
-                stardust2Angle: stardust2Angle,
                 cosmosOffset: cosmosOffset
             )
         }
@@ -673,33 +666,6 @@ struct CelestialGroup2: View {
     }
 }
 
-// Stardust rings group
-struct StardustRings: View {
-    let stardust1Angle: Double
-    let stardust2Angle: Double
-    let cosmosOffset: CGSize
-    
-    var body: some View {
-        Group {
-            StardustRing(
-                color: Color(hex: "D4AF37"),
-                radius: 140,
-                angle: stardust1Angle,
-                particleCount: 15,
-                cosmosOffset: cosmosOffset
-            )
-            
-            StardustRing(
-                color: Color(hex: "FF1493"),
-                radius: 320,
-                angle: stardust2Angle,
-                particleCount: 20,
-                cosmosOffset: cosmosOffset
-            )
-        }
-    }
-}
-
 // Individual Celestial Body
 struct CelestialBody: View {
     let color: Color
@@ -709,7 +675,7 @@ struct CelestialBody: View {
     let blur: CGFloat
     let opacity: Double
     let cosmosOffset: CGSize
-    
+
     var body: some View {
         Circle()
             .fill(
@@ -734,58 +700,60 @@ struct CelestialBody: View {
     }
 }
 
-// Stardust Ring
-struct StardustRing: View {
-    let color: Color
-    let radius: CGFloat
-    let angle: Double
-    let particleCount: Int
-    let cosmosOffset: CGSize
-    
+// Starfield (twinkling stars around the logo)
+struct StarfieldView: View {
+    let starCount: Int = 40
+    let radius: CGFloat = 220
+    @State private var stars: [StarData] = []
+
+    struct StarData: Identifiable {
+        let id = UUID()
+        let angle: Double
+        let distance: CGFloat
+        let size: CGFloat
+        let baseOpacity: Double
+        let twinkleSpeed: Double
+        let twinklePhase: Double
+    }
+
     var body: some View {
         ZStack {
-            ForEach(0..<min(particleCount, 10), id: \.self) { index in
-                StardustParticle(
-                    color: color,
-                    radius: radius,
-                    angle: angle,
-                    index: index,
-                    totalCount: particleCount,
-                    cosmosOffset: cosmosOffset
-                )
+            ForEach(stars) { star in
+                TwinklingStar(star: star)
+            }
+        }
+        .onAppear {
+            if stars.isEmpty {
+                stars = (0..<starCount).map { _ in
+                    StarData(
+                        angle: Double.random(in: 0..<360),
+                        distance: CGFloat.random(in: radius * 0.5...radius),
+                        size: CGFloat.random(in: 2...5),
+                        baseOpacity: Double.random(in: 0.5...1.0),
+                        twinkleSpeed: Double.random(in: 1.5...4.0),
+                        twinklePhase: Double.random(in: 0...2 * .pi)
+                    )
+                }
             }
         }
     }
 }
 
-// Individual Stardust Particle
-struct StardustParticle: View {
-    let color: Color
-    let radius: CGFloat
-    let angle: Double
-    let index: Int
-    let totalCount: Int
-    let cosmosOffset: CGSize
-    
-    private var particleAngle: Double {
-        angle + Double(index) * 360.0 / Double(totalCount)
-    }
-    
-    private var xOffset: CGFloat {
-        cos(particleAngle * .pi / 180) * radius + cosmosOffset.width * 0.2
-    }
-    
-    private var yOffset: CGFloat {
-        sin(particleAngle * .pi / 180) * radius + cosmosOffset.height * 0.2
-    }
-    
+struct TwinklingStar: View {
+    let star: StarfieldView.StarData
+    @State private var twinkle: Double = 1.0
+
     var body: some View {
         Circle()
-            .fill(color.opacity(0.8))
-            .frame(width: 4, height: 4)
-            .blur(radius: 2)
-            .offset(x: xOffset, y: yOffset)
-            .opacity(0.7)
+            .fill(Color.white.opacity(star.baseOpacity * twinkle))
+            .frame(width: star.size, height: star.size)
+            .offset(x: cos(star.angle * .pi / 180) * star.distance,
+                    y: sin(star.angle * .pi / 180) * star.distance)
+            .onAppear {
+                withAnimation(Animation.easeInOut(duration: star.twinkleSpeed).repeatForever(autoreverses: true).delay(star.twinklePhase)) {
+                    twinkle = Double.random(in: 0.5...1.0)
+                }
+            }
     }
 }
 

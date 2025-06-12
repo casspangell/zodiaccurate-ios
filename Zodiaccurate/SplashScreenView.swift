@@ -43,7 +43,7 @@ struct SplashScreenView: View {
 
                 // Parallax cosmos layers
                 ZStack {
-                    // Large blurred background cosmos
+                    // Large blurred background cosmos (blues)
                     Circle()
                         .fill(
                             RadialGradient(
@@ -63,7 +63,7 @@ struct SplashScreenView: View {
                         .offset(cosmosOffset)
                         .opacity(glowIntensity * 0.8)
                     
-                    // Medium layer
+                    // Medium layer (blues)
                     Circle()
                         .fill(
                             RadialGradient(
@@ -84,7 +84,7 @@ struct SplashScreenView: View {
                         .scaleEffect(middleCircleScale)
                         .animation(.easeInOut(duration: 2.0), value: middleCircleScale)
                     
-                    // Smaller glow layer
+                    // Smaller glow layer (blues)
                     Circle()
                         .fill(
                             RadialGradient(
@@ -102,6 +102,64 @@ struct SplashScreenView: View {
                         .blur(radius: 20)
                         .offset(x: cosmosOffset.width * 0.5, y: cosmosOffset.height * 0.5)
                         .opacity(glowIntensity * 1.2)
+
+                    // --- New: Deep purple and gold spheres ---
+                    // Large purple sphere
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                gradient: Gradient(stops: [
+                                    .init(color: Color.accentPurple.opacity(0.5), location: 0.0),
+                                    .init(color: Color.magenta.opacity(0.3), location: 0.5),
+                                    .init(color: Color.clear, location: 1.0)
+                                ]),
+                                center: .center,
+                                startRadius: 60,
+                                endRadius: 350
+                            )
+                        )
+                        .frame(width: 500, height: 500)
+                        .blur(radius: 70)
+                        .offset(x: -120 + cosmosOffset.width * 0.6, y: 120 + cosmosOffset.height * 0.6)
+                        .opacity(glowIntensity * 0.7)
+
+                    // Medium gold sphere
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                gradient: Gradient(stops: [
+                                    .init(color: Color.accentGold.opacity(0.6), location: 0.0),
+                                    .init(color: Color.accentGold.opacity(0.2), location: 0.7),
+                                    .init(color: Color.clear, location: 1.0)
+                                ]),
+                                center: .center,
+                                startRadius: 40,
+                                endRadius: 200
+                            )
+                        )
+                        .frame(width: 320, height: 320)
+                        .blur(radius: 40)
+                        .offset(x: 140 + cosmosOffset.width * 0.4, y: -100 + cosmosOffset.height * 0.4)
+                        .opacity(glowIntensity * 0.5)
+
+                    // Small gold-magenta sphere
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                gradient: Gradient(stops: [
+                                    .init(color: Color.accentGold.opacity(0.7), location: 0.0),
+                                    .init(color: Color.magenta.opacity(0.5), location: 0.6),
+                                    .init(color: Color.clear, location: 1.0)
+                                ]),
+                                center: .center,
+                                startRadius: 20,
+                                endRadius: 100
+                            )
+                        )
+                        .frame(width: 160, height: 160)
+                        .blur(radius: 18)
+                        .offset(x: -80 + cosmosOffset.width * 0.2, y: -160 + cosmosOffset.height * 0.2)
+                        .opacity(glowIntensity * 0.6)
                 }
 
                 // Animated stars with parallax

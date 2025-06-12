@@ -44,12 +44,12 @@ struct SplashScreenView: View {
                 .ignoresSafeArea()
 
                 // Vignette overlay for black corners/edges
-                RadialGradient(
-                    gradient: Gradient(stops: [
+                            RadialGradient(
+                                gradient: Gradient(stops: [
                         .init(color: Color.black.opacity(0.0), location: 0.6),
                         .init(color: Color.black.opacity(0.7), location: 1.0)
-                    ]),
-                    center: .center,
+                                ]),
+                                center: .center,
                     startRadius: 100,
                     endRadius: 600
                 )
@@ -409,7 +409,7 @@ struct SplashScreenView: View {
                     .offset(y: taglineOffset)
                     .opacity(taglineFadeOpacity)
                     .shadow(color: Color(hex: "D4AF37").opacity(0.4), radius: 8, x: 0, y: 0)
-
+                    
                     // Tap to continue
                     HStack(spacing: 8) {
                         Circle()
@@ -442,6 +442,11 @@ struct SplashScreenView: View {
                             .opacity(opacity)
                     }
                 )
+                GeometryReader { geo in
+                    CelestialSystemBackground()
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                        .position(x: geo.size.width / 5, y: geo.size.height / 2)
+                }
             }
             .onAppear {
                 startAnimations()
@@ -593,16 +598,17 @@ struct CelestialGroup1: View {
     let body2Angle: Double
     let body3Angle: Double
     let cosmosOffset: CGSize
-    
+    @Environment(\._celestialOrbits) private var orbits: [CGFloat]
+
     var body: some View {
         Group {
             // Large Purple Nebula
             CelestialBody(
                 color: Color(hex: "8A2BE2"),
                 size: 120,
-                orbitRadius: 180,
+                orbitRadius: orbits.indices.contains(0) ? orbits[0] : 180,
                 angle: body1Angle,
-                blur: 60,
+                blur: 120,
                 opacity: 0.6,
                 cosmosOffset: cosmosOffset
             )
@@ -611,9 +617,9 @@ struct CelestialGroup1: View {
             CelestialBody(
                 color: Color(hex: "D4AF37"),
                 size: 80,
-                orbitRadius: 240,
+                orbitRadius: orbits.indices.contains(1) ? orbits[1] : 240,
                 angle: body2Angle,
-                blur: 40,
+                blur: 80,
                 opacity: 0.8,
                 cosmosOffset: cosmosOffset
             )
@@ -622,9 +628,9 @@ struct CelestialGroup1: View {
             CelestialBody(
                 color: Color(hex: "FF1493"),
                 size: 100,
-                orbitRadius: 300,
+                orbitRadius: orbits.indices.contains(2) ? orbits[2] : 300,
                 angle: body3Angle,
-                blur: 50,
+                blur: 100,
                 opacity: 0.7,
                 cosmosOffset: cosmosOffset
             )
@@ -638,16 +644,17 @@ struct CelestialGroup2: View {
     let body5Angle: Double
     let body6Angle: Double
     let cosmosOffset: CGSize
-    
+    @Environment(\._celestialOrbits) private var orbits: [CGFloat]
+
     var body: some View {
         Group {
             // Deep Purple Gas Giant
             CelestialBody(
                 color: Color(hex: "4B0082"),
                 size: 140,
-                orbitRadius: 360,
+                orbitRadius: orbits.indices.contains(3) ? orbits[3] : 360,
                 angle: body4Angle,
-                blur: 70,
+                blur: 140,
                 opacity: 0.5,
                 cosmosOffset: cosmosOffset
             )
@@ -656,9 +663,9 @@ struct CelestialGroup2: View {
             CelestialBody(
                 color: Color(hex: "E6B8A2"),
                 size: 60,
-                orbitRadius: 420,
+                orbitRadius: orbits.indices.contains(4) ? orbits[4] : 420,
                 angle: body5Angle,
-                blur: 30,
+                blur: 60,
                 opacity: 0.9,
                 cosmosOffset: cosmosOffset
             )
@@ -667,9 +674,9 @@ struct CelestialGroup2: View {
             CelestialBody(
                 color: Color(hex: "9370DB"),
                 size: 110,
-                orbitRadius: 480,
+                orbitRadius: orbits.indices.contains(5) ? orbits[5] : 480,
                 angle: body6Angle,
-                blur: 55,
+                blur: 110,
                 opacity: 0.6,
                 cosmosOffset: cosmosOffset
             )
@@ -777,7 +784,7 @@ struct TwinklingStar: View {
 
 struct ShootingStarsLayer: View {
     @State private var shootingStars: [ShootingStarData] = []
-    let maxStars = 3
+    let maxStars = 7
     let animationDuration: Double = 1.2
 
     var body: some View {
@@ -798,7 +805,7 @@ struct ShootingStarsLayer: View {
     }
 
     private func spawnStar() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 1.5...4.5)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0.5...2.0)) {
             if shootingStars.count < maxStars {
                 let width = UIScreen.main.bounds.width
                 let height = UIScreen.main.bounds.height

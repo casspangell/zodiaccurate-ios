@@ -10,6 +10,7 @@ import SwiftUI
 struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
+    @State private var isPasswordVisible = false
 
     var body: some View {
         ZStack {
@@ -40,52 +41,118 @@ struct LoginView: View {
             .blendMode(.multiply)
             .allowsHitTesting(false)
 
-            // Celestial bodies animation (no starfield)
-            CelestialSystemBackground()
+            // Celestial bodies animation (centered, no starfield)
+            GeometryReader { geo in
+                CelestialSystemBackground()
+                    .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                    .position(x: geo.size.width / 5, y: geo.size.height / 2)
+            }
 
-            // Glass panel with login fields
-            VStack(spacing: 24) {
-                Text("Sign In")
-                    .font(.largeTitle.bold())
+            // Full-screen glass effect
+//            Color.clear
+//                .background(.ultraThinMaterial)
+//                .ignoresSafeArea()
+
+            // Login form
+            VStack(alignment: .leading, spacing: 24) {
+                Spacer().frame(height: 60)
+                Text("Welcome to\nZodiaccurate")
+                    .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
-                    .padding(.top, 16)
+                    .padding(.bottom, 4)
+                Text("Enter your email address and password")
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(Color.white.opacity(0.7))
+                    .padding(.bottom, 16)
 
-                TextField("Email", text: $email)
-                    .textFieldStyle(.plain)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Email")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                    TextField("Email", text: $email)
+                        .padding()
+                        .background(Color.white.opacity(0.08))
+                        .cornerRadius(12)
+                        .foregroundColor(.white)
+                        .autocapitalization(.none)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Password")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                    HStack {
+                        if isPasswordVisible {
+                            TextField("Password", text: $password)
+                                .autocapitalization(.none)
+                        } else {
+                            SecureField("Password", text: $password)
+                                .autocapitalization(.none)
+                        }
+                        Button(action: { isPasswordVisible.toggle() }) {
+                            Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                .foregroundColor(Color.white.opacity(0.6))
+                        }
+                    }
                     .padding()
-                    .background(Color.white.opacity(0.15))
+                    .background(Color.white.opacity(0.08))
                     .cornerRadius(12)
                     .foregroundColor(.white)
-                    .autocapitalization(.none)
+                }
 
-                SecureField("Password", text: $password)
-                    .textFieldStyle(.plain)
-                    .padding()
-                    .background(Color.white.opacity(0.15))
-                    .cornerRadius(12)
-                    .foregroundColor(.white)
+                HStack {
+                    Spacer()
+                    Button(action: {}) {
+                        Text("Forget Password?")
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundColor(Color(hex: "B39DDB"))
+                    }
+                }
 
                 Button(action: {
                     // Handle login
                 }) {
-                    Text("Log In")
-                        .fontWeight(.bold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "8A2BE2").opacity(0.8))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .mask(
+                        Text("SIGN IN")
+                            .font(.system(size: 17, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                    )
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color(hex: "4F8CFF").opacity(0.7), Color(hex: "B39DDB").opacity(0.7)]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
                 }
+                .padding(.top, 8)
+
+                Spacer()
+
+                HStack {
+                    Text("Don't have an account?")
+                        .foregroundColor(Color.white.opacity(0.5))
+                        .font(.system(size: 15, weight: .regular))
+                    Button(action: {}) {
+                        Text("Register for Free")
+                            .foregroundColor(Color(hex: "B39DDB"))
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 24)
             }
-            .padding(32)
-            .background(.ultraThinMaterial)
-            .cornerRadius(32)
-            .overlay(
-                RoundedRectangle(cornerRadius: 32)
-                    .stroke(Color.white.opacity(0.18), lineWidth: 1.5)
-            )
-            .shadow(color: Color.black.opacity(0.3), radius: 30, x: 0, y: 10)
             .padding(.horizontal, 24)
+            .frame(maxWidth: 500)
         }
     }
 }

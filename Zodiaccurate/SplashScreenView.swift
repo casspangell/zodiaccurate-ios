@@ -25,6 +25,9 @@ struct SplashScreenView: View {
     var body: some View {
         if isActive {
             ZStack {
+                // Cosmic animated background
+                CosmicBackgroundView()
+
                 // Background - Dark gradient
                 LinearGradient(
                     gradient: Gradient(colors: [
@@ -223,6 +226,10 @@ struct SplashScreenView: View {
                             .offset(x: cosmosOffset.width * 0.05, y: cosmosOffset.height * 0.05)
                     }
                     .padding(.vertical, 20)
+                    // Lens flare (animated, above main logo)
+                    LensFlareView()
+                        .frame(width: 220, height: 100)
+                        .offset(y: -60)
 
                     Spacer()
                         .frame(height: 80)
@@ -376,6 +383,103 @@ struct SplashScreenView: View {
     }
 }
 
+// Cosmic animated background view
+struct CosmicBackgroundView: View {
+    @State private var angle1: Double = 0
+    @State private var angle2: Double = 0
+    @State private var angle3: Double = 0
+    @State private var angle4: Double = 0
+    @State private var angle5: Double = 0
+
+    let timer = Timer.publish(every: 1/60, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        ZStack {
+            // Circle 1: Deep purple, large, slow orbit
+            Circle()
+                .fill(RadialGradient(
+                    gradient: Gradient(colors: [Color(hex: "490073").opacity(0.95), Color.clear]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 1
+                ))
+                .frame(width: 700, height: 700)
+                .blur(radius: 120)
+                .opacity(0.7)
+                .offset(x: CGFloat(cos(angle1)) * 180 - 80, y: CGFloat(sin(angle1)) * 160 - 120)
+            // Circle 2: Golden orange, medium, counter-orbit
+            Circle()
+                .fill(RadialGradient(
+                    gradient: Gradient(colors: [Color(hex: "E39D4D").opacity(0.85), Color.clear]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 1
+                ))
+                .frame(width: 500, height: 500)
+                .blur(radius: 80)
+                .opacity(0.6)
+                .offset(x: CGFloat(cos(angle2)) * 220 + 120, y: CGFloat(sin(angle2)) * 100 - 60)
+            // Circle 3: Blue, small, fast orbit
+            Circle()
+                .fill(RadialGradient(
+                    gradient: Gradient(colors: [Color(hex: "00324B").opacity(0.95), Color.clear]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 1
+                ))
+                .frame(width: 320, height: 320)
+                .blur(radius: 40)
+                .opacity(0.8)
+                .offset(x: CGFloat(cos(angle3)) * 140 - 60, y: CGFloat(sin(angle3)) * 260 + 100)
+            // Circle 4: Magenta, large, slow counter-orbit
+            Circle()
+                .fill(RadialGradient(
+                    gradient: Gradient(colors: [Color(hex: "D38DFC").opacity(0.8), Color.clear]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 1
+                ))
+                .frame(width: 600, height: 600)
+                .blur(radius: 100)
+                .opacity(0.5)
+                .offset(x: CGFloat(cos(angle4)) * 200 + 100, y: CGFloat(sin(angle4)) * 320 + 160)
+            // Circle 5: Gold + purple, medium, fast orbit
+            Circle()
+                .fill(RadialGradient(
+                    gradient: Gradient(colors: [Color(hex: "E39D4D").opacity(0.7), Color(hex: "490073").opacity(0.6), Color.clear]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 1
+                ))
+                .frame(width: 400, height: 400)
+                .blur(radius: 60)
+                .opacity(0.9)
+                .offset(x: CGFloat(cos(angle5)) * 200 - 160, y: CGFloat(sin(angle5)) * 120 + 80)
+            // Circle 6: Magenta-Blue gradient, dramatic
+            Circle()
+                .fill(RadialGradient(
+                    gradient: Gradient(colors: [Color(hex: "D38DFC").opacity(0.9), Color(hex: "00324B").opacity(0.7), Color.clear]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 1
+                ))
+                .frame(width: 480, height: 480)
+                .blur(radius: 90)
+                .opacity(0.7)
+                .offset(x: CGFloat(cos(angle2 + .pi/2)) * 260 - 100, y: CGFloat(sin(angle2 + .pi/2)) * 180 - 60)
+        }
+        .ignoresSafeArea()
+        .onReceive(timer) { _ in
+            // Animate each angle at a unique speed and direction
+            angle1 += .pi / (60 * 20) // 1 full orbit in ~40s
+            angle2 -= .pi / (60 * 10) // 1 full orbit in ~20s, opposite
+            angle3 += .pi / (60 * 4)  // 1 full orbit in ~8s
+            angle4 -= .pi / (60 * 30) // 1 full orbit in ~60s, opposite
+            angle5 += .pi / (60 * 7)  // 1 full orbit in ~14s
+        }
+    }
+}
+
 // Custom checkmark shape
 struct CheckmarkShape: Shape {
     func path(in rect: CGRect) -> Path {
@@ -392,6 +496,100 @@ struct CheckmarkShape: Shape {
     }
 }
 
+// Photographic lens flare view
+struct LensFlareView: View {
+    @State private var flareRotation: Double = 0
+    @State private var flarePulse: CGFloat = 1.0
+
+    var body: some View {
+        ZStack {
+            // Large faint outer ring
+            Circle()
+                .strokeBorder(
+                    RadialGradient(
+                        gradient: Gradient(colors: [Color.white.opacity(0.12), Color.clear]),
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 1
+                    ),
+                    lineWidth: 60 * flarePulse
+                )
+                .frame(width: 420 * flarePulse, height: 420 * flarePulse)
+                .blur(radius: 32)
+                .opacity(0.18)
+
+            // Main bright core
+            Circle()
+                .fill(RadialGradient(
+                    gradient: Gradient(colors: [Color.white.opacity(0.95), Color.red.opacity(0.5), Color.clear]),
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: 1
+                ))
+                .frame(width: 60 * flarePulse, height: 60 * flarePulse)
+                .blur(radius: 8)
+                .opacity(0.95)
+
+            // Red ring around core
+            Circle()
+                .strokeBorder(
+                    RadialGradient(
+                        gradient: Gradient(colors: [Color.red.opacity(0.7), Color.clear]),
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 1
+                    ),
+                    lineWidth: 10 * flarePulse
+                )
+                .frame(width: 110 * flarePulse, height: 110 * flarePulse)
+                .blur(radius: 2)
+                .opacity(0.7)
+
+            // Ghost circles along the flare axis
+            FlareGhost(offset: -80, size: 38, color: Color.yellow.opacity(0.18), blur: 8, opacity: 0.7, pulse: flarePulse)
+            FlareGhost(offset: -120, size: 28, color: Color.orange.opacity(0.22), blur: 6, opacity: 0.5, pulse: flarePulse)
+            FlareGhost(offset: 90, size: 60, color: Color.green.opacity(0.18), blur: 10, opacity: 0.5, pulse: flarePulse)
+            FlareGhost(offset: 130, size: 38, color: Color.blue.opacity(0.22), blur: 8, opacity: 0.4, pulse: flarePulse)
+            FlareGhost(offset: 170, size: 22, color: Color.cyan.opacity(0.18), blur: 4, opacity: 0.3, pulse: flarePulse)
+            FlareGhost(offset: 210, size: 90, color: Color.green.opacity(0.12), blur: 16, opacity: 0.22, pulse: flarePulse)
+        }
+        .rotationEffect(.degrees(flareRotation))
+        .animation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true), value: flarePulse)
+        .animation(.linear(duration: 24).repeatForever(autoreverses: false), value: flareRotation)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true)) {
+                flarePulse = 1.12
+            }
+            withAnimation(.linear(duration: 24).repeatForever(autoreverses: false)) {
+                flareRotation = 360
+            }
+        }
+    }
+}
+
+struct FlareGhost: View {
+    var offset: CGFloat
+    var size: CGFloat
+    var color: Color
+    var blur: CGFloat
+    var opacity: Double
+    var pulse: CGFloat
+    var body: some View {
+        Circle()
+            .fill(RadialGradient(
+                gradient: Gradient(colors: [color, Color.clear]),
+                center: .center,
+                startRadius: 0,
+                endRadius: 1
+            ))
+            .frame(width: size * pulse, height: size * pulse)
+            .blur(radius: blur)
+            .opacity(opacity)
+            .offset(x: offset * pulse, y: offset * 0.18 * pulse)
+    }
+}
+
 #Preview {
     SplashScreenView()
 }
+

@@ -1,0 +1,701 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1BA6AE178F4BDFA1F401AD77 /* Pods_ZodiaccurateTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A67C3900930BAC1AE4CC86E8 /* Pods_ZodiaccurateTests.framework */; };
+		5E1E6CD3517C7B3850EDB641 /* Pods_Zodiaccurate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 156B1F15D7756937714261A4 /* Pods_Zodiaccurate.framework */; };
+		897DCF492DFA405700E442FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 897DCF482DFA405700E442FD /* GoogleService-Info.plist */; };
+		897DCF4A2DFA405700E442FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 897DCF482DFA405700E442FD /* GoogleService-Info.plist */; };
+		897DCF4B2DFA405700E442FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 897DCF482DFA405700E442FD /* GoogleService-Info.plist */; };
+		CAABA04A9C8635FEC01712DF /* Pods_Zodiaccurate_ZodiaccurateUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6298267C9E0E5A7C474E872 /* Pods_Zodiaccurate_ZodiaccurateUITests.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		891445C82DF1F1BC00EF6FCA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 891445B02DF1F1BA00EF6FCA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 891445B72DF1F1BA00EF6FCA;
+			remoteInfo = Zodiaccurate;
+		};
+		891445D22DF1F1BC00EF6FCA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 891445B02DF1F1BA00EF6FCA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 891445B72DF1F1BA00EF6FCA;
+			remoteInfo = Zodiaccurate;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0EC0DCFFDB09D1D9DECAD8F1 /* Pods-Zodiaccurate.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Zodiaccurate.debug.xcconfig"; path = "Target Support Files/Pods-Zodiaccurate/Pods-Zodiaccurate.debug.xcconfig"; sourceTree = "<group>"; };
+		156B1F15D7756937714261A4 /* Pods_Zodiaccurate.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Zodiaccurate.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BDBD8A6D539F0AC9863955E /* Pods-ZodiaccurateTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZodiaccurateTests.debug.xcconfig"; path = "Target Support Files/Pods-ZodiaccurateTests/Pods-ZodiaccurateTests.debug.xcconfig"; sourceTree = "<group>"; };
+		3435F70EC330F21625D6D247 /* Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig"; path = "Target Support Files/Pods-Zodiaccurate-ZodiaccurateUITests/Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		5213996B5A66CBD804A7A2B3 /* Pods-Zodiaccurate.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Zodiaccurate.release.xcconfig"; path = "Target Support Files/Pods-Zodiaccurate/Pods-Zodiaccurate.release.xcconfig"; sourceTree = "<group>"; };
+		71CDF15C2915865D7195ADD8 /* Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig"; path = "Target Support Files/Pods-Zodiaccurate-ZodiaccurateUITests/Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig"; sourceTree = "<group>"; };
+		891445B82DF1F1BA00EF6FCA /* Zodiaccurate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zodiaccurate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		891445C72DF1F1BC00EF6FCA /* ZodiaccurateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZodiaccurateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		891445D12DF1F1BC00EF6FCA /* ZodiaccurateUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZodiaccurateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		897DCF482DFA405700E442FD /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		A67C3900930BAC1AE4CC86E8 /* Pods_ZodiaccurateTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ZodiaccurateTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6298267C9E0E5A7C474E872 /* Pods_Zodiaccurate_ZodiaccurateUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Zodiaccurate_ZodiaccurateUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CFE28129BB30327F021B58B0 /* Pods-ZodiaccurateTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ZodiaccurateTests.release.xcconfig"; path = "Target Support Files/Pods-ZodiaccurateTests/Pods-ZodiaccurateTests.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		897DCF5C2DFA4B2000E442FD /* Exceptions for "Zodiaccurate" folder in "Zodiaccurate" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 891445B72DF1F1BA00EF6FCA /* Zodiaccurate */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		891445BA2DF1F1BA00EF6FCA /* Zodiaccurate */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				897DCF5C2DFA4B2000E442FD /* Exceptions for "Zodiaccurate" folder in "Zodiaccurate" target */,
+			);
+			path = Zodiaccurate;
+			sourceTree = "<group>";
+		};
+		891445CA2DF1F1BC00EF6FCA /* ZodiaccurateTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ZodiaccurateTests;
+			sourceTree = "<group>";
+		};
+		891445D42DF1F1BC00EF6FCA /* ZodiaccurateUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ZodiaccurateUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		891445B52DF1F1BA00EF6FCA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5E1E6CD3517C7B3850EDB641 /* Pods_Zodiaccurate.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		891445C42DF1F1BC00EF6FCA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BA6AE178F4BDFA1F401AD77 /* Pods_ZodiaccurateTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		891445CE2DF1F1BC00EF6FCA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAABA04A9C8635FEC01712DF /* Pods_Zodiaccurate_ZodiaccurateUITests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		069ED7112868F1CB619DA2B4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				156B1F15D7756937714261A4 /* Pods_Zodiaccurate.framework */,
+				B6298267C9E0E5A7C474E872 /* Pods_Zodiaccurate_ZodiaccurateUITests.framework */,
+				A67C3900930BAC1AE4CC86E8 /* Pods_ZodiaccurateTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		450E715A7E9A3166C4859AF3 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				0EC0DCFFDB09D1D9DECAD8F1 /* Pods-Zodiaccurate.debug.xcconfig */,
+				5213996B5A66CBD804A7A2B3 /* Pods-Zodiaccurate.release.xcconfig */,
+				3435F70EC330F21625D6D247 /* Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig */,
+				71CDF15C2915865D7195ADD8 /* Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig */,
+				2BDBD8A6D539F0AC9863955E /* Pods-ZodiaccurateTests.debug.xcconfig */,
+				CFE28129BB30327F021B58B0 /* Pods-ZodiaccurateTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		891445AF2DF1F1BA00EF6FCA = {
+			isa = PBXGroup;
+			children = (
+				891445BA2DF1F1BA00EF6FCA /* Zodiaccurate */,
+				891445CA2DF1F1BC00EF6FCA /* ZodiaccurateTests */,
+				891445D42DF1F1BC00EF6FCA /* ZodiaccurateUITests */,
+				891445B92DF1F1BA00EF6FCA /* Products */,
+				450E715A7E9A3166C4859AF3 /* Pods */,
+				069ED7112868F1CB619DA2B4 /* Frameworks */,
+				897DCF482DFA405700E442FD /* GoogleService-Info.plist */,
+			);
+			sourceTree = "<group>";
+		};
+		891445B92DF1F1BA00EF6FCA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				891445B82DF1F1BA00EF6FCA /* Zodiaccurate.app */,
+				891445C72DF1F1BC00EF6FCA /* ZodiaccurateTests.xctest */,
+				891445D12DF1F1BC00EF6FCA /* ZodiaccurateUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		891445B72DF1F1BA00EF6FCA /* Zodiaccurate */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 891445DB2DF1F1BC00EF6FCA /* Build configuration list for PBXNativeTarget "Zodiaccurate" */;
+			buildPhases = (
+				EDA9001E64E68C595B22BE7B /* [CP] Check Pods Manifest.lock */,
+				891445B42DF1F1BA00EF6FCA /* Sources */,
+				891445B52DF1F1BA00EF6FCA /* Frameworks */,
+				891445B62DF1F1BA00EF6FCA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				891445BA2DF1F1BA00EF6FCA /* Zodiaccurate */,
+			);
+			name = Zodiaccurate;
+			productName = Zodiaccurate;
+			productReference = 891445B82DF1F1BA00EF6FCA /* Zodiaccurate.app */;
+			productType = "com.apple.product-type.application";
+		};
+		891445C62DF1F1BC00EF6FCA /* ZodiaccurateTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 891445DE2DF1F1BC00EF6FCA /* Build configuration list for PBXNativeTarget "ZodiaccurateTests" */;
+			buildPhases = (
+				6142CC5F8273547F33A42724 /* [CP] Check Pods Manifest.lock */,
+				891445C32DF1F1BC00EF6FCA /* Sources */,
+				891445C42DF1F1BC00EF6FCA /* Frameworks */,
+				891445C52DF1F1BC00EF6FCA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				891445C92DF1F1BC00EF6FCA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				891445CA2DF1F1BC00EF6FCA /* ZodiaccurateTests */,
+			);
+			name = ZodiaccurateTests;
+			productName = ZodiaccurateTests;
+			productReference = 891445C72DF1F1BC00EF6FCA /* ZodiaccurateTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		891445D02DF1F1BC00EF6FCA /* ZodiaccurateUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 891445E12DF1F1BC00EF6FCA /* Build configuration list for PBXNativeTarget "ZodiaccurateUITests" */;
+			buildPhases = (
+				EAC9665F90357559C02333F2 /* [CP] Check Pods Manifest.lock */,
+				891445CD2DF1F1BC00EF6FCA /* Sources */,
+				891445CE2DF1F1BC00EF6FCA /* Frameworks */,
+				891445CF2DF1F1BC00EF6FCA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				891445D32DF1F1BC00EF6FCA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				891445D42DF1F1BC00EF6FCA /* ZodiaccurateUITests */,
+			);
+			name = ZodiaccurateUITests;
+			productName = ZodiaccurateUITests;
+			productReference = 891445D12DF1F1BC00EF6FCA /* ZodiaccurateUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		891445B02DF1F1BA00EF6FCA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 1630;
+				TargetAttributes = {
+					891445B72DF1F1BA00EF6FCA = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					891445C62DF1F1BC00EF6FCA = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 891445B72DF1F1BA00EF6FCA;
+					};
+					891445D02DF1F1BC00EF6FCA = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 891445B72DF1F1BA00EF6FCA;
+					};
+				};
+			};
+			buildConfigurationList = 891445B32DF1F1BA00EF6FCA /* Build configuration list for PBXProject "Zodiaccurate" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 891445AF2DF1F1BA00EF6FCA;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 891445B92DF1F1BA00EF6FCA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				891445B72DF1F1BA00EF6FCA /* Zodiaccurate */,
+				891445C62DF1F1BC00EF6FCA /* ZodiaccurateTests */,
+				891445D02DF1F1BC00EF6FCA /* ZodiaccurateUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		891445B62DF1F1BA00EF6FCA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				897DCF492DFA405700E442FD /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		891445C52DF1F1BC00EF6FCA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				897DCF4B2DFA405700E442FD /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		891445CF2DF1F1BC00EF6FCA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				897DCF4A2DFA405700E442FD /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		6142CC5F8273547F33A42724 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ZodiaccurateTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EAC9665F90357559C02333F2 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Zodiaccurate-ZodiaccurateUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EDA9001E64E68C595B22BE7B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Zodiaccurate-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		891445B42DF1F1BA00EF6FCA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		891445C32DF1F1BC00EF6FCA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		891445CD2DF1F1BC00EF6FCA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		891445C92DF1F1BC00EF6FCA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 891445B72DF1F1BA00EF6FCA /* Zodiaccurate */;
+			targetProxy = 891445C82DF1F1BC00EF6FCA /* PBXContainerItemProxy */;
+		};
+		891445D32DF1F1BC00EF6FCA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 891445B72DF1F1BA00EF6FCA /* Zodiaccurate */;
+			targetProxy = 891445D22DF1F1BC00EF6FCA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		891445D92DF1F1BC00EF6FCA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		891445DA2DF1F1BC00EF6FCA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		891445DC2DF1F1BC00EF6FCA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0EC0DCFFDB09D1D9DECAD8F1 /* Pods-Zodiaccurate.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(PROJECT_DIR)/Pods";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Zodiaccurate/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.Zodiaccurate;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		891445DD2DF1F1BC00EF6FCA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5213996B5A66CBD804A7A2B3 /* Pods-Zodiaccurate.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				"FRAMEWORK_SEARCH_PATHS[arch=*]" = "$(PROJECT_DIR)/Pods";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Zodiaccurate/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.Zodiaccurate;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		891445DF2DF1F1BC00EF6FCA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2BDBD8A6D539F0AC9863955E /* Pods-ZodiaccurateTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.ZodiaccurateTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zodiaccurate.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Zodiaccurate";
+			};
+			name = Debug;
+		};
+		891445E02DF1F1BC00EF6FCA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CFE28129BB30327F021B58B0 /* Pods-ZodiaccurateTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.ZodiaccurateTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Zodiaccurate.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Zodiaccurate";
+			};
+			name = Release;
+		};
+		891445E22DF1F1BC00EF6FCA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3435F70EC330F21625D6D247 /* Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.ZodiaccurateUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Zodiaccurate;
+			};
+			name = Debug;
+		};
+		891445E32DF1F1BC00EF6FCA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 71CDF15C2915865D7195ADD8 /* Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.app.ZodiaccurateUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Zodiaccurate;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		891445B32DF1F1BA00EF6FCA /* Build configuration list for PBXProject "Zodiaccurate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				891445D92DF1F1BC00EF6FCA /* Debug */,
+				891445DA2DF1F1BC00EF6FCA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		891445DB2DF1F1BC00EF6FCA /* Build configuration list for PBXNativeTarget "Zodiaccurate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				891445DC2DF1F1BC00EF6FCA /* Debug */,
+				891445DD2DF1F1BC00EF6FCA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		891445DE2DF1F1BC00EF6FCA /* Build configuration list for PBXNativeTarget "ZodiaccurateTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				891445DF2DF1F1BC00EF6FCA /* Debug */,
+				891445E02DF1F1BC00EF6FCA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		891445E12DF1F1BC00EF6FCA /* Build configuration list for PBXNativeTarget "ZodiaccurateUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				891445E22DF1F1BC00EF6FCA /* Debug */,
+				891445E32DF1F1BC00EF6FCA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 891445B02DF1F1BA00EF6FCA /* Project object */;
+}

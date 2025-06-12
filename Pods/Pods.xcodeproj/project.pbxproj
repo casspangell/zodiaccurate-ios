@@ -1,0 +1,769 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06FD5449B2A25AFC0163D575C6BF47F9 /* Pods-ZodiaccurateTests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = AD706386D507B7D9DF5AC384025EB7F8 /* Pods-ZodiaccurateTests-dummy.m */; };
+		0FAB58C90685D00815C9DB1CB64FB8BD /* Pods-Zodiaccurate-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 0626E80B796DDFB7A7D12C7ACC490763 /* Pods-Zodiaccurate-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		4117F7CFE0FEADDC141F9EE1051B8543 /* Pods-Zodiaccurate-ZodiaccurateUITests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = B49239EA34279F080913F714CE092502 /* Pods-Zodiaccurate-ZodiaccurateUITests-dummy.m */; };
+		4846D3FB38C8DFD6CE9481E3C51AC948 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */; };
+		5E4AD0857756AD297E15822471C1FD8A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */; };
+		606F580615DACFE2E72BF655FB94E699 /* Pods-Zodiaccurate-ZodiaccurateUITests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = E2712AB50B721E1D343DE82EF3AC2BA4 /* Pods-Zodiaccurate-ZodiaccurateUITests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AE1965FEC76D2E57D41F27F26EDE7127 /* Pods-Zodiaccurate-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 05CA7315E8040CD5FA16078A025E0339 /* Pods-Zodiaccurate-dummy.m */; };
+		BBCA0CCCE3191E6B48FD9DAEDCF7F80D /* Pods-ZodiaccurateTests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 09360932C12635444C7E4483407B73BE /* Pods-ZodiaccurateTests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		C4C608505FA30CDD71CD01346D53C3C8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		65677941A4AD977744C4C92CC5232D15 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A43DBDC5D580E0E64D4AC25B434D338F;
+			remoteInfo = "Pods-Zodiaccurate";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		028D8C1E463DCF6CAC599E47945F0120 /* Pods-Zodiaccurate */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-Zodiaccurate"; path = Pods_Zodiaccurate.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		05CA7315E8040CD5FA16078A025E0339 /* Pods-Zodiaccurate-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-Zodiaccurate-dummy.m"; sourceTree = "<group>"; };
+		0626E80B796DDFB7A7D12C7ACC490763 /* Pods-Zodiaccurate-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-Zodiaccurate-umbrella.h"; sourceTree = "<group>"; };
+		067F2A39BA90D6E234650A2EF7A396E2 /* Pods-Zodiaccurate.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Zodiaccurate.release.xcconfig"; sourceTree = "<group>"; };
+		09360932C12635444C7E4483407B73BE /* Pods-ZodiaccurateTests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-ZodiaccurateTests-umbrella.h"; sourceTree = "<group>"; };
+		237F95774CF112C5BE9A536F31B45858 /* Pods-Zodiaccurate-ZodiaccurateUITests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Zodiaccurate-ZodiaccurateUITests-acknowledgements.plist"; sourceTree = "<group>"; };
+		25615369A7172392BF65E219D816A5DB /* Pods-ZodiaccurateTests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-ZodiaccurateTests.modulemap"; sourceTree = "<group>"; };
+		288F06B32EB8DBABD067ACB5DA32068D /* Pods-Zodiaccurate-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Zodiaccurate-Info.plist"; sourceTree = "<group>"; };
+		384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		39B52ABB9E775CE5E9BFC01B1787CF68 /* Pods-Zodiaccurate.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-Zodiaccurate.modulemap"; sourceTree = "<group>"; };
+		3CC97F491B3256371433E6A5AFC21639 /* Pods-Zodiaccurate-ZodiaccurateUITests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-Zodiaccurate-ZodiaccurateUITests.modulemap"; sourceTree = "<group>"; };
+		3D251967FF84A2099221B49A02D57269 /* Pods-Zodiaccurate.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Zodiaccurate.debug.xcconfig"; sourceTree = "<group>"; };
+		774BB3651B91357D61C9A79B3D3304D0 /* Pods-ZodiaccurateTests-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-ZodiaccurateTests-Info.plist"; sourceTree = "<group>"; };
+		91BC69B12D183554B54B96A45DFAD84F /* Pods-ZodiaccurateTests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-ZodiaccurateTests-acknowledgements.markdown"; sourceTree = "<group>"; };
+		94AE1B9DEC14973F322BDC6CD5A47B28 /* Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig"; sourceTree = "<group>"; };
+		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		AD706386D507B7D9DF5AC384025EB7F8 /* Pods-ZodiaccurateTests-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-ZodiaccurateTests-dummy.m"; sourceTree = "<group>"; };
+		B0120696B7533A5D4BF68DC6191181C7 /* Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		B49239EA34279F080913F714CE092502 /* Pods-Zodiaccurate-ZodiaccurateUITests-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-Zodiaccurate-ZodiaccurateUITests-dummy.m"; sourceTree = "<group>"; };
+		CB965A3414C5DECC7C4BE47DCF2117DA /* Pods-ZodiaccurateTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-ZodiaccurateTests.release.xcconfig"; sourceTree = "<group>"; };
+		D1BAECF6D2F5D2D3E9A988B79995D906 /* Pods-Zodiaccurate-ZodiaccurateUITests */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-Zodiaccurate-ZodiaccurateUITests"; path = Pods_Zodiaccurate_ZodiaccurateUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1DC37A362473441D61ACA4B1DA97748 /* Pods-ZodiaccurateTests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-ZodiaccurateTests-acknowledgements.plist"; sourceTree = "<group>"; };
+		E2712AB50B721E1D343DE82EF3AC2BA4 /* Pods-Zodiaccurate-ZodiaccurateUITests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-Zodiaccurate-ZodiaccurateUITests-umbrella.h"; sourceTree = "<group>"; };
+		E32716BDBFD8D4915B0BDC2B7418986C /* Pods-Zodiaccurate-ZodiaccurateUITests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-Zodiaccurate-ZodiaccurateUITests-acknowledgements.markdown"; sourceTree = "<group>"; };
+		E5AF7C5F26DF6788798454AA2A276AD2 /* Pods-Zodiaccurate-ZodiaccurateUITests-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Zodiaccurate-ZodiaccurateUITests-Info.plist"; sourceTree = "<group>"; };
+		E8A5BAB003EB0087E051475FF7509114 /* Pods-ZodiaccurateTests */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-ZodiaccurateTests"; path = Pods_ZodiaccurateTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA42F434E4E5E824DE1E86DFE487F090 /* Pods-Zodiaccurate-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Zodiaccurate-acknowledgements.plist"; sourceTree = "<group>"; };
+		ECA612B1695CE62C5D847BDAB887EC1D /* Pods-ZodiaccurateTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-ZodiaccurateTests.debug.xcconfig"; sourceTree = "<group>"; };
+		F09E2C5D421E823E8A7C13B2B82A3662 /* Pods-Zodiaccurate-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-Zodiaccurate-acknowledgements.markdown"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1C2FF6FBA72EC99D614D40771BB00E6A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4846D3FB38C8DFD6CE9481E3C51AC948 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF81F4C70CAC4A821EB5112DFAECA20B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5E4AD0857756AD297E15822471C1FD8A /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E698878B34F372025D6205DADEDDC670 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4C608505FA30CDD71CD01346D53C3C8 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0C51D0EF627B24EA6C50015C64F2C869 /* Pods-ZodiaccurateTests */ = {
+			isa = PBXGroup;
+			children = (
+				25615369A7172392BF65E219D816A5DB /* Pods-ZodiaccurateTests.modulemap */,
+				91BC69B12D183554B54B96A45DFAD84F /* Pods-ZodiaccurateTests-acknowledgements.markdown */,
+				D1DC37A362473441D61ACA4B1DA97748 /* Pods-ZodiaccurateTests-acknowledgements.plist */,
+				AD706386D507B7D9DF5AC384025EB7F8 /* Pods-ZodiaccurateTests-dummy.m */,
+				774BB3651B91357D61C9A79B3D3304D0 /* Pods-ZodiaccurateTests-Info.plist */,
+				09360932C12635444C7E4483407B73BE /* Pods-ZodiaccurateTests-umbrella.h */,
+				ECA612B1695CE62C5D847BDAB887EC1D /* Pods-ZodiaccurateTests.debug.xcconfig */,
+				CB965A3414C5DECC7C4BE47DCF2117DA /* Pods-ZodiaccurateTests.release.xcconfig */,
+			);
+			name = "Pods-ZodiaccurateTests";
+			path = "Target Support Files/Pods-ZodiaccurateTests";
+			sourceTree = "<group>";
+		};
+		5263F6F18C04FC2445545DB0B7DDE300 /* Targets Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				C40562BB989CDCCE47354B2C10594F3F /* Pods-Zodiaccurate */,
+				844CE17F4C7D24A573EC25ECF5963201 /* Pods-Zodiaccurate-ZodiaccurateUITests */,
+				0C51D0EF627B24EA6C50015C64F2C869 /* Pods-ZodiaccurateTests */,
+			);
+			name = "Targets Support Files";
+			sourceTree = "<group>";
+		};
+		55BC2BCC63E26A5C102968AA17C4C9C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				028D8C1E463DCF6CAC599E47945F0120 /* Pods-Zodiaccurate */,
+				D1BAECF6D2F5D2D3E9A988B79995D906 /* Pods-Zodiaccurate-ZodiaccurateUITests */,
+				E8A5BAB003EB0087E051475FF7509114 /* Pods-ZodiaccurateTests */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		844CE17F4C7D24A573EC25ECF5963201 /* Pods-Zodiaccurate-ZodiaccurateUITests */ = {
+			isa = PBXGroup;
+			children = (
+				3CC97F491B3256371433E6A5AFC21639 /* Pods-Zodiaccurate-ZodiaccurateUITests.modulemap */,
+				E32716BDBFD8D4915B0BDC2B7418986C /* Pods-Zodiaccurate-ZodiaccurateUITests-acknowledgements.markdown */,
+				237F95774CF112C5BE9A536F31B45858 /* Pods-Zodiaccurate-ZodiaccurateUITests-acknowledgements.plist */,
+				B49239EA34279F080913F714CE092502 /* Pods-Zodiaccurate-ZodiaccurateUITests-dummy.m */,
+				E5AF7C5F26DF6788798454AA2A276AD2 /* Pods-Zodiaccurate-ZodiaccurateUITests-Info.plist */,
+				E2712AB50B721E1D343DE82EF3AC2BA4 /* Pods-Zodiaccurate-ZodiaccurateUITests-umbrella.h */,
+				B0120696B7533A5D4BF68DC6191181C7 /* Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig */,
+				94AE1B9DEC14973F322BDC6CD5A47B28 /* Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig */,
+			);
+			name = "Pods-Zodiaccurate-ZodiaccurateUITests";
+			path = "Target Support Files/Pods-Zodiaccurate-ZodiaccurateUITests";
+			sourceTree = "<group>";
+		};
+		C40562BB989CDCCE47354B2C10594F3F /* Pods-Zodiaccurate */ = {
+			isa = PBXGroup;
+			children = (
+				39B52ABB9E775CE5E9BFC01B1787CF68 /* Pods-Zodiaccurate.modulemap */,
+				F09E2C5D421E823E8A7C13B2B82A3662 /* Pods-Zodiaccurate-acknowledgements.markdown */,
+				EA42F434E4E5E824DE1E86DFE487F090 /* Pods-Zodiaccurate-acknowledgements.plist */,
+				05CA7315E8040CD5FA16078A025E0339 /* Pods-Zodiaccurate-dummy.m */,
+				288F06B32EB8DBABD067ACB5DA32068D /* Pods-Zodiaccurate-Info.plist */,
+				0626E80B796DDFB7A7D12C7ACC490763 /* Pods-Zodiaccurate-umbrella.h */,
+				3D251967FF84A2099221B49A02D57269 /* Pods-Zodiaccurate.debug.xcconfig */,
+				067F2A39BA90D6E234650A2EF7A396E2 /* Pods-Zodiaccurate.release.xcconfig */,
+			);
+			name = "Pods-Zodiaccurate";
+			path = "Target Support Files/Pods-Zodiaccurate";
+			sourceTree = "<group>";
+		};
+		CF1408CF629C7361332E53B88F7BD30C = {
+			isa = PBXGroup;
+			children = (
+				9D940727FF8FB9C785EB98E56350EF41 /* Podfile */,
+				D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */,
+				55BC2BCC63E26A5C102968AA17C4C9C8 /* Products */,
+				5263F6F18C04FC2445545DB0B7DDE300 /* Targets Support Files */,
+			);
+			sourceTree = "<group>";
+		};
+		D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E4801F62A6B08CD9B5410329F1A18FDE /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E4801F62A6B08CD9B5410329F1A18FDE /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		1F8F2D42113FEFF8F049C65EEE1BCB75 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0FAB58C90685D00815C9DB1CB64FB8BD /* Pods-Zodiaccurate-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B61E6CA1992298D72237C86430005284 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				606F580615DACFE2E72BF655FB94E699 /* Pods-Zodiaccurate-ZodiaccurateUITests-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4DBE9E48CB50D89EAE9CB277809D27E /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBCA0CCCE3191E6B48FD9DAEDCF7F80D /* Pods-ZodiaccurateTests-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		84B137EF924190740A7F49A754A59528 /* Pods-ZodiaccurateTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 306430678A09810F58A899F3169EECFD /* Build configuration list for PBXNativeTarget "Pods-ZodiaccurateTests" */;
+			buildPhases = (
+				C4DBE9E48CB50D89EAE9CB277809D27E /* Headers */,
+				1AB3EEC941B1F9DE7389393C77B8006A /* Sources */,
+				DF81F4C70CAC4A821EB5112DFAECA20B /* Frameworks */,
+				F2CFF4BB56C19D58AA60429DBE709E4B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9DE06EC1AD2DBD4BAA5E01C78B0BCE78 /* PBXTargetDependency */,
+			);
+			name = "Pods-ZodiaccurateTests";
+			productName = Pods_ZodiaccurateTests;
+			productReference = E8A5BAB003EB0087E051475FF7509114 /* Pods-ZodiaccurateTests */;
+			productType = "com.apple.product-type.framework";
+		};
+		A43DBDC5D580E0E64D4AC25B434D338F /* Pods-Zodiaccurate */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6B6980DB76A5AC2DF699F5264574A891 /* Build configuration list for PBXNativeTarget "Pods-Zodiaccurate" */;
+			buildPhases = (
+				1F8F2D42113FEFF8F049C65EEE1BCB75 /* Headers */,
+				FC431AB4AC2A34E87C2C7C0AD3D543F1 /* Sources */,
+				1C2FF6FBA72EC99D614D40771BB00E6A /* Frameworks */,
+				0A3A074F1848E34842D3ADB618884A14 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Pods-Zodiaccurate";
+			productName = Pods_Zodiaccurate;
+			productReference = 028D8C1E463DCF6CAC599E47945F0120 /* Pods-Zodiaccurate */;
+			productType = "com.apple.product-type.framework";
+		};
+		BAAB4E46AB530F9E202032D56386E7B8 /* Pods-Zodiaccurate-ZodiaccurateUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B4F1232A671139D2B9E6C96C4C8456AE /* Build configuration list for PBXNativeTarget "Pods-Zodiaccurate-ZodiaccurateUITests" */;
+			buildPhases = (
+				B61E6CA1992298D72237C86430005284 /* Headers */,
+				9EC15949CCBA45998468094555E1CD9A /* Sources */,
+				E698878B34F372025D6205DADEDDC670 /* Frameworks */,
+				77AC82021B9EC8A1C7476A4EF960F748 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Pods-Zodiaccurate-ZodiaccurateUITests";
+			productName = Pods_Zodiaccurate_ZodiaccurateUITests;
+			productReference = D1BAECF6D2F5D2D3E9A988B79995D906 /* Pods-Zodiaccurate-ZodiaccurateUITests */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BFDFE7DC352907FC980B868725387E98 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = 4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CF1408CF629C7361332E53B88F7BD30C;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 55BC2BCC63E26A5C102968AA17C4C9C8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A43DBDC5D580E0E64D4AC25B434D338F /* Pods-Zodiaccurate */,
+				BAAB4E46AB530F9E202032D56386E7B8 /* Pods-Zodiaccurate-ZodiaccurateUITests */,
+				84B137EF924190740A7F49A754A59528 /* Pods-ZodiaccurateTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0A3A074F1848E34842D3ADB618884A14 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		77AC82021B9EC8A1C7476A4EF960F748 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2CFF4BB56C19D58AA60429DBE709E4B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1AB3EEC941B1F9DE7389393C77B8006A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				06FD5449B2A25AFC0163D575C6BF47F9 /* Pods-ZodiaccurateTests-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9EC15949CCBA45998468094555E1CD9A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4117F7CFE0FEADDC141F9EE1051B8543 /* Pods-Zodiaccurate-ZodiaccurateUITests-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FC431AB4AC2A34E87C2C7C0AD3D543F1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE1965FEC76D2E57D41F27F26EDE7127 /* Pods-Zodiaccurate-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9DE06EC1AD2DBD4BAA5E01C78B0BCE78 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Pods-Zodiaccurate";
+			target = A43DBDC5D580E0E64D4AC25B434D338F /* Pods-Zodiaccurate */;
+			targetProxy = 65677941A4AD977744C4C92CC5232D15 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		40F804EEFB180858A3BC9451958E51BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3D251967FF84A2099221B49A02D57269 /* Pods-Zodiaccurate.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-Zodiaccurate/Pods-Zodiaccurate-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-Zodiaccurate/Pods-Zodiaccurate.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		47F744523676BADD2509FE90CDBE4952 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 94AE1B9DEC14973F322BDC6CD5A47B28 /* Pods-Zodiaccurate-ZodiaccurateUITests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-Zodiaccurate-ZodiaccurateUITests/Pods-Zodiaccurate-ZodiaccurateUITests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-Zodiaccurate-ZodiaccurateUITests/Pods-Zodiaccurate-ZodiaccurateUITests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		5115357B12E8A74CCA67F1FB2D0E8AC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CB965A3414C5DECC7C4BE47DCF2117DA /* Pods-ZodiaccurateTests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-ZodiaccurateTests/Pods-ZodiaccurateTests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-ZodiaccurateTests/Pods-ZodiaccurateTests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		673808F30629850B165AF4AADF3121E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B0120696B7533A5D4BF68DC6191181C7 /* Pods-Zodiaccurate-ZodiaccurateUITests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-Zodiaccurate-ZodiaccurateUITests/Pods-Zodiaccurate-ZodiaccurateUITests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-Zodiaccurate-ZodiaccurateUITests/Pods-Zodiaccurate-ZodiaccurateUITests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		B678AC81EDAD1788900800F4CA6A0FA9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = ECA612B1695CE62C5D847BDAB887EC1D /* Pods-ZodiaccurateTests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-ZodiaccurateTests/Pods-ZodiaccurateTests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-ZodiaccurateTests/Pods-ZodiaccurateTests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		B86D71A5E7AB53EB2C08DEA39FBD2050 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"POD_CONFIGURATION_RELEASE=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_INSTALLED_PRODUCT = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				SYMROOT = "${SRCROOT}/../build";
+			};
+			name = Release;
+		};
+		BBDA392354594EF3B4A74287663E7351 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 067F2A39BA90D6E234650A2EF7A396E2 /* Pods-Zodiaccurate.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				INFOPLIST_FILE = "Target Support Files/Pods-Zodiaccurate/Pods-Zodiaccurate-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-Zodiaccurate/Pods-Zodiaccurate.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		BD5E84F7B72D348654A4D58B6BA51118 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"POD_CONFIGURATION_DEBUG=1",
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_INSTALLED_PRODUCT = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				SYMROOT = "${SRCROOT}/../build";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		306430678A09810F58A899F3169EECFD /* Build configuration list for PBXNativeTarget "Pods-ZodiaccurateTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B678AC81EDAD1788900800F4CA6A0FA9 /* Debug */,
+				5115357B12E8A74CCA67F1FB2D0E8AC5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD5E84F7B72D348654A4D58B6BA51118 /* Debug */,
+				B86D71A5E7AB53EB2C08DEA39FBD2050 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6B6980DB76A5AC2DF699F5264574A891 /* Build configuration list for PBXNativeTarget "Pods-Zodiaccurate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				40F804EEFB180858A3BC9451958E51BF /* Debug */,
+				BBDA392354594EF3B4A74287663E7351 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B4F1232A671139D2B9E6C96C4C8456AE /* Build configuration list for PBXNativeTarget "Pods-Zodiaccurate-ZodiaccurateUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				673808F30629850B165AF4AADF3121E2 /* Debug */,
+				47F744523676BADD2509FE90CDBE4952 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+}

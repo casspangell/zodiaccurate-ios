@@ -1,0 +1,6 @@
+framework module Pods_ZodiaccurateTests {
+  umbrella header "Pods-ZodiaccurateTests-umbrella.h"
+
+  export *
+  module * { export * }
+}

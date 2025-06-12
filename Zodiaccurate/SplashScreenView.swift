@@ -714,6 +714,8 @@ struct StarfieldView: View {
         let baseOpacity: Double
         let twinkleSpeed: Double
         let twinklePhase: Double
+        let twinkleMin: Double
+        let twinkleMax: Double
     }
 
     var body: some View {
@@ -725,13 +727,18 @@ struct StarfieldView: View {
         .onAppear {
             if stars.isEmpty {
                 stars = (0..<starCount).map { _ in
-                    StarData(
+                    let baseOpacity = Double.random(in: 0.5...1.0)
+                    let twinkleMin = Double.random(in: 0.8...0.92)
+                    let twinkleMax = Double.random(in: 0.96...1.0)
+                    return StarData(
                         angle: Double.random(in: 0..<360),
                         distance: CGFloat.random(in: radius * 0.5...radius),
                         size: CGFloat.random(in: 2...5),
-                        baseOpacity: Double.random(in: 0.5...1.0),
-                        twinkleSpeed: Double.random(in: 1.5...4.0),
-                        twinklePhase: Double.random(in: 0...2 * .pi)
+                        baseOpacity: baseOpacity,
+                        twinkleSpeed: Double.random(in: 3.0...7.0),
+                        twinklePhase: Double.random(in: 0...2 * .pi),
+                        twinkleMin: twinkleMin,
+                        twinkleMax: twinkleMax
                     )
                 }
             }
@@ -751,7 +758,7 @@ struct TwinklingStar: View {
                     y: sin(star.angle * .pi / 180) * star.distance)
             .onAppear {
                 withAnimation(Animation.easeInOut(duration: star.twinkleSpeed).repeatForever(autoreverses: true).delay(star.twinklePhase)) {
-                    twinkle = Double.random(in: 0.5...1.0)
+                    twinkle = Double.random(in: star.twinkleMin...star.twinkleMax)
                 }
             }
     }

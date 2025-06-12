@@ -10,6 +10,7 @@ struct SplashScreenView: View {
     @State private var taglineOffset: CGFloat = 50
     @State private var tapHintOpacity: Double = 0.0
     @State private var magneticPulse: CGFloat = 1.0
+    @State private var taglineFadeOpacity: Double = 0.0
     
     // Celestial body orbital states
     @State private var celestialBody1Angle: Double = 0
@@ -40,6 +41,20 @@ struct SplashScreenView: View {
                     endRadius: 600
                 )
                 .ignoresSafeArea()
+
+                // Vignette overlay for black corners/edges
+                RadialGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color.black.opacity(0.0), location: 0.6),
+                        .init(color: Color.black.opacity(0.7), location: 1.0)
+                    ]),
+                    center: .center,
+                    startRadius: 100,
+                    endRadius: 600
+                )
+                .ignoresSafeArea()
+                .blendMode(.multiply)
+                .allowsHitTesting(false)
 
                 // Distant starfield
                 ForEach(0..<50, id: \.self) { index in
@@ -79,19 +94,8 @@ struct SplashScreenView: View {
                 // Starfield (twinkling stars around the logo)
                 StarfieldView()
 
-                VStack(spacing: 40) {
-                    
-                    // Title with cosmic glow
-                    Text("Zodiaccurate")
-                        .dmSansSemibold56Tracking()
-                        .foregroundColor(Color.white)
-                        .shadow(color: Color(hex: "D4AF37").opacity(0.8), radius: 15, x: 0, y: 0)
-                        .shadow(color: Color(hex: "8A2BE2").opacity(0.6), radius: 25, x: 0, y: 0)
-                        .padding(.top, 200)
-                        .offset(y: titleOffset)
-                        .opacity(opacity)
-
-                    // Central Magnetic Logo (Center of Universe)
+                // Centered logo and aura system
+                GeometryReader { geo in
                     ZStack {
                         // Magnetic field visualization
                         ForEach(0..<8, id: \.self) { index in
@@ -122,7 +126,6 @@ struct SplashScreenView: View {
                                     value: magneticPulse
                                 )
                         }
-                        
                         // Deep azure blue circles
                         ZStack {
                             // Outermost blue circle
@@ -148,7 +151,6 @@ struct SplashScreenView: View {
                                         .repeatForever(autoreverses: true),
                                     value: magneticPulse
                                 )
-                            
                             // Middle blue circle
                             Circle()
                                 .stroke(
@@ -172,7 +174,6 @@ struct SplashScreenView: View {
                                         .repeatForever(autoreverses: true),
                                     value: magneticPulse
                                 )
-                            
                             // Deep pink circle
                             Circle()
                                 .stroke(
@@ -196,7 +197,6 @@ struct SplashScreenView: View {
                                         .repeatForever(autoreverses: true),
                                     value: magneticPulse
                                 )
-                            
                             // Deep orange circle
                             Circle()
                                 .stroke(
@@ -220,7 +220,6 @@ struct SplashScreenView: View {
                                         .repeatForever(autoreverses: true),
                                     value: magneticPulse
                                 )
-                            
                             // Bright orange circle
                             Circle()
                                 .stroke(
@@ -244,7 +243,6 @@ struct SplashScreenView: View {
                                         .repeatForever(autoreverses: true),
                                     value: magneticPulse
                                 )
-                            
                             // Deep red circle
                             Circle()
                                 .stroke(
@@ -268,7 +266,6 @@ struct SplashScreenView: View {
                                         .repeatForever(autoreverses: true),
                                     value: magneticPulse
                                 )
-                            
                             // Innermost blue circle
                             Circle()
                                 .stroke(
@@ -293,7 +290,6 @@ struct SplashScreenView: View {
                                     value: magneticPulse
                                 )
                         }
-                        
                         // Central gravitational glow
                         Circle()
                             .fill(
@@ -314,7 +310,6 @@ struct SplashScreenView: View {
                             .blur(radius: 30)
                             .scaleEffect(magneticPulse)
                             .opacity(0.95)
-
                         // Main logo circle
                         Circle()
                             .fill(
@@ -341,7 +336,6 @@ struct SplashScreenView: View {
                                             )
                                             .shadow(color: Color(hex: "D4AF37"), radius: 2)
                                     }
-                                    
                                     // Connecting constellation lines
                                     Path { path in
                                         for i in 0..<12 {
@@ -368,7 +362,6 @@ struct SplashScreenView: View {
                             .shadow(color: Color(hex: "8A2BE2").opacity(0.6), radius: 30, x: 0, y: 0)
                             .scaleEffect(logoScale)
                             .rotationEffect(.degrees(logoRotation))
-                        
                         // Logo image overlay
                         Image("logo")
                             .resizable()
@@ -377,12 +370,14 @@ struct SplashScreenView: View {
                             .scaleEffect(logoScale)
                             .shadow(color: Color.white.opacity(0.8), radius: 10)
                     }
-                    .padding(.vertical, 20)
+                    .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                }
 
+                VStack(spacing: 40) {
                     Spacer()
-                        .frame(height: 0)
 
-                    // Tagline with cosmic styling
+                    // Tagline with cosmic styling (now near the bottom)
                     HStack(spacing: 0) {
                         VStack(alignment: .trailing, spacing: 4) {
                             Text("Life is easier WHEN YOU CAN")
@@ -411,18 +406,15 @@ struct SplashScreenView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .offset(y: taglineOffset)
-                    .opacity(opacity)
+                    .opacity(taglineFadeOpacity)
                     .shadow(color: Color(hex: "D4AF37").opacity(0.4), radius: 8, x: 0, y: 0)
 
-                    Spacer()
-                    
                     // Tap to continue
                     HStack(spacing: 8) {
                         Circle()
                             .stroke(Color.gray.opacity(0.6), lineWidth: 2)
                             .frame(width: 18, height: 18)
                             .scaleEffect(tapHintOpacity > 0.5 ? 1.1 : 1.0)
-                        
                         Text("Tap anywhere to continue")
                             .font(.dmSansMedium13_4)
                             .foregroundColor(Color.gray.opacity(0.7))
@@ -436,6 +428,19 @@ struct SplashScreenView: View {
                     )
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Overlay the title 1/4 down the screen
+                .overlay(
+                    GeometryReader { geo in
+                        Text("Zodiaccurate")
+                            .dmSansSemibold56Tracking()
+                            .foregroundColor(Color.white)
+                            .shadow(color: Color(hex: "D4AF37").opacity(0.8), radius: 15, x: 0, y: 0)
+                            .shadow(color: Color(hex: "8A2BE2").opacity(0.6), radius: 25, x: 0, y: 0)
+                            .frame(width: geo.size.width)
+                            .position(x: geo.size.width / 2, y: geo.size.height * 0.15)
+                            .opacity(opacity)
+                    }
+                )
             }
             .onAppear {
                 startAnimations()
@@ -471,6 +476,11 @@ struct SplashScreenView: View {
         
         withAnimation(.spring(response: 1.4, dampingFraction: 0.8).delay(0.3)) {
             taglineOffset = 0
+        }
+        
+        // Fade in tagline
+        withAnimation(.easeIn(duration: 1.5).delay(0.3)) {
+            taglineFadeOpacity = 1.0
         }
         
         // Magnetic pulse animation

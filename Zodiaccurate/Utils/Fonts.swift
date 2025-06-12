@@ -19,6 +19,9 @@ extension Font {
     static var dmSansSemibold56Tracking: Font {
         .custom("DMSans-Semibold", size: 56)
     }
+    static func poppinsMedium(size: CGFloat) -> Font {
+        .custom("Poppins-Medium", size: size)
+    }
 }
 
 extension View {
@@ -29,5 +32,14 @@ extension View {
     func dmSansSemibold56Tracking() -> some View {
         self.font(.dmSansSemibold56)
             .tracking(56 * -0.04)
+    }
+    func poppinsMediumTracking() -> some View {
+        self.font(.poppinsMedium(size: 56))
+            .tracking(56 * 1.1)
+    }
+    func poppinsMediumButton(size: CGFloat = 12.27, letterSpacing: CGFloat = 1.1, lineHeight: CGFloat = 24.5) -> some View {
+        self.font(.poppinsMedium(size: size))
+            .kerning(letterSpacing)
+            .lineSpacing(lineHeight - size)
     }
 }

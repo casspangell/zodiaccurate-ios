@@ -108,35 +108,13 @@ struct LoginView: View {
                     Spacer()
                     Button(action: {}) {
                         Text("Forget Password?")
-                            .font(.system(size: 15, weight: .regular))
+                            .poppinsMediumButton(size: 15)
                             .foregroundColor(Color(hex: "B39DDB"))
                     }
                 }
 
-                Button(action: {
+                PrimaryGradientButton(title: "Sign In") {
                     // Handle login
-                }) {
-                    LinearGradient(
-                        gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .mask(
-                        Text("SIGN IN")
-                            .font(.system(size: 17, weight: .bold))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                    )
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color(hex: "4F8CFF").opacity(0.7), Color(hex: "B39DDB").opacity(0.7)]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(12)
                 }
                 .padding(.top, 8)
 
@@ -149,7 +127,7 @@ struct LoginView: View {
                     Button(action: {}) {
                         Text("Register for Free")
                             .foregroundColor(Color(hex: "B39DDB"))
-                            .font(.system(size: 15, weight: .semibold))
+                            .poppinsMediumButton(size: 15)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .center)

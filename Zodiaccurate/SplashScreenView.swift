@@ -95,25 +95,26 @@ struct SplashScreenView: View {
                     // Central Magnetic Logo (Center of Universe)
                     ZStack {
                         // Magnetic field visualization
-                        ForEach(0..<6, id: \.self) { index in
+                        ForEach(0..<8, id: \.self) { index in
                             Circle()
                                 .stroke(
                                     LinearGradient(
                                         colors: [
-                                            Color(hex: "D4AF37").opacity(0.3),
-                                            Color(hex: "8A2BE2").opacity(0.2),
+                                            Color(hex: "FF4500").opacity(0.4),
+                                            Color(hex: "FF8C00").opacity(0.3),
+                                            Color(hex: "D4AF37").opacity(0.2),
                                             Color.clear
                                         ],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
-                                    lineWidth: 2
+                                    lineWidth: 3
                                 )
                                 .frame(
                                     width: 220 + CGFloat(index * 40),
                                     height: 220 + CGFloat(index * 40)
                                 )
-                                .opacity(0.4 - Double(index) * 0.05)
+                                .opacity(0.5 - Double(index) * 0.05)
                                 .scaleEffect(magneticPulse)
                                 .animation(
                                     Animation.easeInOut(duration: 3.0 + Double(index) * 0.5)
@@ -123,25 +124,50 @@ struct SplashScreenView: View {
                                 )
                         }
                         
+                        // Deep azure blue circle
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color(hex: "00008B").opacity(0.4),
+                                        Color(hex: "0000CD").opacity(0.3),
+                                        Color.clear
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                ),
+                                lineWidth: 4
+                            )
+                            .frame(width: 300, height: 300)
+                            .blur(radius: 2)
+                            .opacity(0.7)
+                            .scaleEffect(magneticPulse)
+                            .animation(
+                                Animation.easeInOut(duration: 4.0)
+                                    .repeatForever(autoreverses: true),
+                                value: magneticPulse
+                            )
+                        
                         // Central gravitational glow
                         Circle()
                             .fill(
                                 RadialGradient(
                                     gradient: Gradient(stops: [
-                                        .init(color: Color(hex: "D4AF37").opacity(0.8), location: 0.0),
-                                        .init(color: Color(hex: "8A2BE2").opacity(0.6), location: 0.4),
-                                        .init(color: Color(hex: "FF1493").opacity(0.4), location: 0.7),
+                                        .init(color: Color(hex: "FF4500").opacity(0.9), location: 0.0),
+                                        .init(color: Color(hex: "FF8C00").opacity(0.7), location: 0.2),
+                                        .init(color: Color(hex: "D4AF37").opacity(0.5), location: 0.4),
+                                        .init(color: Color(hex: "8A2BE2").opacity(0.3), location: 0.6),
                                         .init(color: Color.clear, location: 1.0)
                                     ]),
                                     center: .center,
-                                    startRadius: 50,
-                                    endRadius: 200
+                                    startRadius: 60,
+                                    endRadius: 250
                                 )
                             )
-                            .frame(width: 400, height: 400)
-                            .blur(radius: 30)
+                            .frame(width: 500, height: 500)
+                            .blur(radius: 40)
                             .scaleEffect(magneticPulse)
-                            .opacity(0.8)
+                            .opacity(0.9)
 
                         // Main logo circle
                         Circle()

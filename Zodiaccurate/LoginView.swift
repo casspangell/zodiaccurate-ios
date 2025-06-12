@@ -48,6 +48,10 @@ struct LoginView: View {
                     .position(x: geo.size.width / 5, y: geo.size.height / 2)
             }
 
+            // Orange overlay above celestial background, below login form
+            Color.backgroundPrimary.opacity(0.7)
+                .ignoresSafeArea()
+
             // Full-screen glass effect
 //            Color.clear
 //                .background(.ultraThinMaterial)

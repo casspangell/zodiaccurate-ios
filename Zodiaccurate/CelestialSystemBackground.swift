@@ -46,11 +46,12 @@ struct CelestialSystemBackground: View {
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                        lineWidth: 3
+                        lineWidth: 18
                     )
                     .frame(width: 220 + base * 40, height: 220 + base * 40)
                     .opacity(0.5 - Double(index) * 0.05)
                     .scaleEffect(scale)
+                    .blur(radius: 12)
                     .animation(
                         Animation.easeInOut(duration: 3.0 + Double(index) * 0.5)
                             .repeatForever(autoreverses: true)

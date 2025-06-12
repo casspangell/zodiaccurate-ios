@@ -25,8 +25,31 @@ struct ZodiaccurateApp: App {
 
     var body: some Scene {
         WindowGroup {
-            SplashScreenView()
+            RootView()
         }
         .modelContainer(sharedModelContainer)
+    }
+}
+
+// RootView manages the dissolve transition between splash and login
+struct RootView: View {
+    @State private var showLogin = false
+
+    var body: some View {
+        ZStack {
+            if !showLogin {
+                SplashScreenView {
+                    withAnimation(.easeInOut(duration: 0.7)) {
+                        showLogin = true
+                    }
+                }
+                .transition(.opacity)
+            }
+            if showLogin {
+                LoginView()
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.7), value: showLogin)
     }
 }

@@ -11,6 +11,7 @@ struct SplashScreenView: View {
     @State private var tapHintOpacity: Double = 0.0
     @State private var magneticPulse: CGFloat = 1.0
     @State private var taglineFadeOpacity: Double = 0.0
+    var onFinish: () -> Void = {}
     
     // Celestial body orbital states
     @State private var celestialBody1Angle: Double = 0
@@ -456,7 +457,7 @@ struct SplashScreenView: View {
                     magneticPulse = 0.1
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    isActive = false
+                    onFinish()
                 }
             }
             .transition(.opacity)

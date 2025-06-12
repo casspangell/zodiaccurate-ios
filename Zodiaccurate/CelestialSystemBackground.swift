@@ -24,19 +24,25 @@ struct CelestialSystemBackground: View {
     var body: some View {
         ZStack {
             StarfieldView()
-            // Undulating magnetic spheres (replicated from SplashScreenView)
-            ForEach(0..<8, id: \ .self) { index in
+            // Undulating magnetic spheres (replicated from SplashScreenView, now with more colors)
+            let colorSets: [[Color]] = [
+                [.accentGold, .accentPurple, .accentBlue, .clear],
+                [.deepBlue, .royalBlue, .electricBlue, .clear],
+                [.magenta, .deepPink, .accentGold, .clear],
+                [.accentPurple, .accentGold, .deepBlue, .clear],
+                [.royalBlue, .magenta, .accentGold, .clear],
+                [.deepPink, .accentBlue, .accentGold, .clear],
+                [.accentGold, .deepBlue, .magenta, .clear],
+                [.accentPurple, .royalBlue, .deepPink, .clear]
+            ]
+            ForEach(0..<8, id: \.self) { index in
                 let base = CGFloat(index)
                 let scale = magneticPulse
+                let colors = colorSets[index % colorSets.count]
                 Circle()
                     .stroke(
                         LinearGradient(
-                            colors: [
-                                Color(hex: "FF4500").opacity(0.4),
-                                Color(hex: "FF8C00").opacity(0.3),
-                                Color(hex: "D4AF37").opacity(0.2),
-                                Color.clear
-                            ],
+                            colors: colors,
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),

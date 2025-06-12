@@ -28,18 +28,18 @@ struct LoginView: View {
             .ignoresSafeArea()
 
             // Vignette overlay for black corners/edges
-//            RadialGradient(
-//                gradient: Gradient(stops: [
-//                    .init(color: Color.black.opacity(0.0), location: 0.6),
-//                    .init(color: Color.black.opacity(0.7), location: 1.0)
-//                ]),
-//                center: .center,
-//                startRadius: 100,
-//                endRadius: 600
-//            )
-//            .ignoresSafeArea()
-//            .blendMode(.multiply)
-//            .allowsHitTesting(false)
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color.black.opacity(0.0), location: 0.6),
+                    .init(color: Color.black.opacity(0.7), location: 1.0)
+                ]),
+                center: .center,
+                startRadius: 100,
+                endRadius: 600
+            )
+            .ignoresSafeArea()
+            .blendMode(.multiply)
+            .allowsHitTesting(false)
 
             // Celestial bodies animation (centered, no starfield)
             GeometryReader { geo in
@@ -53,106 +53,106 @@ struct LoginView: View {
 //                .background(.ultraThinMaterial)
 //                .ignoresSafeArea()
 
-            // Login form
-//            VStack(alignment: .leading, spacing: 24) {
-//                Spacer().frame(height: 60)
-//                Text("Welcome to\nZodiaccurate")
-//                    .font(.system(size: 32, weight: .bold))
-//                    .foregroundColor(.white)
-//                    .padding(.bottom, 4)
-//                Text("Enter your email address and password")
-//                    .font(.system(size: 16, weight: .regular))
-//                    .foregroundColor(Color.white.opacity(0.7))
-//                    .padding(.bottom, 16)
-//
-//                VStack(alignment: .leading, spacing: 12) {
-//                    Text("Email")
-//                        .font(.system(size: 15, weight: .semibold))
-//                        .foregroundColor(.white)
-//                    TextField("Email", text: $email)
-//                        .padding()
-//                        .background(Color.white.opacity(0.08))
-//                        .cornerRadius(12)
-//                        .foregroundColor(.white)
-//                        .autocapitalization(.none)
-//                }
-//
-//                VStack(alignment: .leading, spacing: 12) {
-//                    Text("Password")
-//                        .font(.system(size: 15, weight: .semibold))
-//                        .foregroundColor(.white)
-//                    HStack {
-//                        if isPasswordVisible {
-//                            TextField("Password", text: $password)
-//                                .autocapitalization(.none)
-//                        } else {
-//                            SecureField("Password", text: $password)
-//                                .autocapitalization(.none)
-//                        }
-//                        Button(action: { isPasswordVisible.toggle() }) {
-//                            Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-//                                .foregroundColor(Color.white.opacity(0.6))
-//                        }
-//                    }
-//                    .padding()
-//                    .background(Color.white.opacity(0.08))
-//                    .cornerRadius(12)
-//                    .foregroundColor(.white)
-//                }
-//
-//                HStack {
-//                    Spacer()
-//                    Button(action: {}) {
-//                        Text("Forget Password?")
-//                            .font(.system(size: 15, weight: .regular))
-//                            .foregroundColor(Color(hex: "B39DDB"))
-//                    }
-//                }
-//
-//                Button(action: {
-//                    // Handle login
-//                }) {
-//                    LinearGradient(
-//                        gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
-//                        startPoint: .leading,
-//                        endPoint: .trailing
-//                    )
-//                    .mask(
-//                        Text("SIGN IN")
-//                            .font(.system(size: 17, weight: .bold))
-//                            .frame(maxWidth: .infinity)
-//                            .frame(height: 52)
-//                    )
-//                    .frame(maxWidth: .infinity)
-//                    .frame(height: 52)
-//                    .background(
-//                        LinearGradient(
-//                            gradient: Gradient(colors: [Color(hex: "4F8CFF").opacity(0.7), Color(hex: "B39DDB").opacity(0.7)]),
-//                            startPoint: .leading,
-//                            endPoint: .trailing
-//                        )
-//                    )
-//                    .cornerRadius(12)
-//                }
-//                .padding(.top, 8)
-//
-//                Spacer()
-//
-//                HStack {
-//                    Text("Don't have an account?")
-//                        .foregroundColor(Color.white.opacity(0.5))
-//                        .font(.system(size: 15, weight: .regular))
-//                    Button(action: {}) {
-//                        Text("Register for Free")
-//                            .foregroundColor(Color(hex: "B39DDB"))
-//                            .font(.system(size: 15, weight: .semibold))
-//                    }
-//                }
-//                .frame(maxWidth: .infinity, alignment: .center)
-//                .padding(.bottom, 24)
-//            }
-//            .padding(.horizontal, 24)
-//            .frame(maxWidth: 500)
+//             Login form
+            VStack(alignment: .leading, spacing: 24) {
+                Spacer().frame(height: 60)
+                Text("Welcome to\nZodiaccurate")
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.bottom, 4)
+                Text("Enter your email address and password")
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundColor(Color.white.opacity(0.7))
+                    .padding(.bottom, 16)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Email")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                    TextField("Email", text: $email)
+                        .padding()
+                        .background(Color.white.opacity(0.08))
+                        .cornerRadius(12)
+                        .foregroundColor(.white)
+                        .autocapitalization(.none)
+                }
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Password")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white)
+                    HStack {
+                        if isPasswordVisible {
+                            TextField("Password", text: $password)
+                                .autocapitalization(.none)
+                        } else {
+                            SecureField("Password", text: $password)
+                                .autocapitalization(.none)
+                        }
+                        Button(action: { isPasswordVisible.toggle() }) {
+                            Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                                .foregroundColor(Color.white.opacity(0.6))
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.08))
+                    .cornerRadius(12)
+                    .foregroundColor(.white)
+                }
+
+                HStack {
+                    Spacer()
+                    Button(action: {}) {
+                        Text("Forget Password?")
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundColor(Color(hex: "B39DDB"))
+                    }
+                }
+
+                Button(action: {
+                    // Handle login
+                }) {
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .mask(
+                        Text("SIGN IN")
+                            .font(.system(size: 17, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                    )
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color(hex: "4F8CFF").opacity(0.7), Color(hex: "B39DDB").opacity(0.7)]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                }
+                .padding(.top, 8)
+
+                Spacer()
+
+                HStack {
+                    Text("Don't have an account?")
+                        .foregroundColor(Color.white.opacity(0.5))
+                        .font(.system(size: 15, weight: .regular))
+                    Button(action: {}) {
+                        Text("Register for Free")
+                            .foregroundColor(Color(hex: "B39DDB"))
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 24)
+            }
+            .padding(.horizontal, 24)
+            .frame(maxWidth: 500)
         }
     }
 }

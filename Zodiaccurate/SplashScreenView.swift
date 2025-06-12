@@ -124,50 +124,149 @@ struct SplashScreenView: View {
                                 )
                         }
                         
-                        // Deep azure blue circle
-                        Circle()
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color(hex: "00008B").opacity(0.4),
-                                        Color(hex: "0000CD").opacity(0.3),
-                                        Color.clear
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                ),
-                                lineWidth: 4
-                            )
-                            .frame(width: 300, height: 300)
-                            .blur(radius: 2)
-                            .opacity(0.7)
-                            .scaleEffect(magneticPulse)
-                            .animation(
-                                Animation.easeInOut(duration: 4.0)
-                                    .repeatForever(autoreverses: true),
-                                value: magneticPulse
-                            )
+                        // Deep azure blue circles
+                        ZStack {
+                            // Outermost blue circle
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(hex: "00008B").opacity(0.4),
+                                            Color(hex: "0000CD").opacity(0.3),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 12
+                                )
+                                .frame(width: 460, height: 460)
+                                .blur(radius: 8)
+                                .opacity(0.7)
+                                .scaleEffect(magneticPulse)
+                                .animation(
+                                    Animation.easeInOut(duration: 4.0)
+                                        .repeatForever(autoreverses: true),
+                                    value: magneticPulse
+                                )
+                            
+                            // Middle blue circle
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(hex: "0000CD").opacity(0.5),
+                                            Color(hex: "4169E1").opacity(0.3),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 10
+                                )
+                                .frame(width: 400, height: 400)
+                                .blur(radius: 6)
+                                .opacity(0.8)
+                                .scaleEffect(magneticPulse * 1.05)
+                                .animation(
+                                    Animation.easeInOut(duration: 3.5)
+                                        .repeatForever(autoreverses: true),
+                                    value: magneticPulse
+                                )
+                            
+                            // Deep pink circle
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(hex: "FF1493").opacity(0.5),
+                                            Color(hex: "FF69B4").opacity(0.3),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 8
+                                )
+                                .frame(width: 360, height: 360)
+                                .blur(radius: 5)
+                                .opacity(0.85)
+                                .scaleEffect(magneticPulse * 1.08)
+                                .animation(
+                                    Animation.easeInOut(duration: 3.2)
+                                        .repeatForever(autoreverses: true),
+                                    value: magneticPulse
+                                )
+                            
+                            // Deep red circle
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(hex: "8B0000").opacity(0.6),
+                                            Color(hex: "DC143C").opacity(0.4),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 6
+                                )
+                                .frame(width: 320, height: 320)
+                                .blur(radius: 4)
+                                .opacity(0.9)
+                                .scaleEffect(magneticPulse * 1.12)
+                                .animation(
+                                    Animation.easeInOut(duration: 3.0)
+                                        .repeatForever(autoreverses: true),
+                                    value: magneticPulse
+                                )
+                            
+                            // Innermost blue circle
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(hex: "4169E1").opacity(0.6),
+                                            Color(hex: "1E90FF").opacity(0.4),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 8
+                                )
+                                .frame(width: 340, height: 340)
+                                .blur(radius: 4)
+                                .opacity(0.9)
+                                .scaleEffect(magneticPulse * 1.1)
+                                .animation(
+                                    Animation.easeInOut(duration: 3.0)
+                                        .repeatForever(autoreverses: true),
+                                    value: magneticPulse
+                                )
+                        }
                         
                         // Central gravitational glow
                         Circle()
                             .fill(
                                 RadialGradient(
                                     gradient: Gradient(stops: [
-                                        .init(color: Color(hex: "FF4500").opacity(0.9), location: 0.0),
-                                        .init(color: Color(hex: "FF8C00").opacity(0.7), location: 0.2),
-                                        .init(color: Color(hex: "D4AF37").opacity(0.5), location: 0.4),
-                                        .init(color: Color(hex: "8A2BE2").opacity(0.3), location: 0.6),
+                                        .init(color: Color(hex: "FF4500").opacity(0.95), location: 0.0),
+                                        .init(color: Color(hex: "FF8C00").opacity(0.8), location: 0.15),
+                                        .init(color: Color(hex: "D4AF37").opacity(0.6), location: 0.3),
+                                        .init(color: Color(hex: "8A2BE2").opacity(0.3), location: 0.5),
                                         .init(color: Color.clear, location: 1.0)
                                     ]),
                                     center: .center,
-                                    startRadius: 60,
-                                    endRadius: 250
+                                    startRadius: 40,
+                                    endRadius: 200
                                 )
                             )
                             .frame(width: 500, height: 500)
-                            .blur(radius: 40)
+                            .blur(radius: 30)
                             .scaleEffect(magneticPulse)
-                            .opacity(0.9)
+                            .opacity(0.95)
 
                         // Main logo circle
                         Circle()

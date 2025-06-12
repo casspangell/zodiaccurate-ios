@@ -15,6 +15,7 @@ extension Color {
     static let sapphire = Color(hex: "0F52BA")
     static let azure = Color(hex: "007FFF")
     static let magenta = Color(hex: "D38DFC")
+    static let deepPink = Color(hex: "FF1493")
     static let whiteCustom = Color(hex: "FFFFFF")
     static let grayCustom = Color(hex: "5A5A5A")
     static let utilsBackground = Color(hex: "#322447")

@@ -49,7 +49,7 @@ struct LoginView: View {
             }
 
             // Orange overlay above celestial background, below login form
-            Color.backgroundPrimary.opacity(0.7)
+            Color.backgroundPrimary.opacity(0.5)
                 .ignoresSafeArea()
 
             // Full-screen glass effect

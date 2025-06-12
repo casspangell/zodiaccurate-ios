@@ -25,6 +25,7 @@ struct SplashScreenView: View {
     var body: some View {
         if isActive {
             ZStack {
+
                 // Cosmic animated background
                 CosmicBackgroundView()
 
@@ -47,9 +48,9 @@ struct SplashScreenView: View {
                         .fill(
                             RadialGradient(
                                 gradient: Gradient(stops: [
-                                    .init(color: Color.accentGold.opacity(0.6), location: 0.0),
-                                    .init(color: Color.accentPurple.opacity(0.5), location: 0.4),
-                                    .init(color: Color.accentBlue.opacity(0.3), location: 0.7),
+                                    .init(color: Color.royalBlue.opacity(0.6), location: 0.0),
+                                    .init(color: Color.sapphire.opacity(0.5), location: 0.4),
+                                    .init(color: Color.midnightBlue.opacity(0.3), location: 0.7),
                                     .init(color: Color.clear, location: 1.0)
                                 ]),
                                 center: .center,
@@ -67,8 +68,8 @@ struct SplashScreenView: View {
                         .fill(
                             RadialGradient(
                                 gradient: Gradient(stops: [
-                                    .init(color: Color.accentGold.opacity(0.4), location: 0.0),
-                                    .init(color: Color.accentPurple.opacity(0.6), location: 0.5),
+                                    .init(color: Color.electricBlue.opacity(0.4), location: 0.0),
+                                    .init(color: Color.accentBlue.opacity(0.6), location: 0.5),
                                     .init(color: Color.clear, location: 1.0)
                                 ]),
                                 center: .center,
@@ -88,8 +89,8 @@ struct SplashScreenView: View {
                         .fill(
                             RadialGradient(
                                 gradient: Gradient(stops: [
-                                    .init(color: Color.accentGold.opacity(0.8), location: 0.0),
-                                    .init(color: Color.accentPurple.opacity(0.7), location: 0.6),
+                                    .init(color: Color.azure.opacity(0.8), location: 0.0),
+                                    .init(color: Color.sapphire.opacity(0.7), location: 0.6),
                                     .init(color: Color.clear, location: 1.0)
                                 ]),
                                 center: .center,
@@ -142,8 +143,8 @@ struct SplashScreenView: View {
                         Circle()
                             .fill(RadialGradient(
                                 gradient: Gradient(stops: [
-                                    .init(color: Color.accentGold.opacity(0.35), location: 0.0),
-                                    .init(color: Color.accentPurple.opacity(0.18), location: 0.7),
+                                    .init(color: Color.electricBlue.opacity(0.35), location: 0.0),
+                                    .init(color: Color.sapphire.opacity(0.18), location: 0.7),
                                     .init(color: Color.clear, location: 1.0)
                                 ]),
                                 center: .center,

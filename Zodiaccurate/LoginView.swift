@@ -16,6 +16,47 @@ struct LoginView: View {
     @State private var isRegistering = false
     @State private var showingResetPassword = false
     @State private var resetEmail = ""
+    @State private var confirmPassword = ""
+    @State private var passwordStrength: PasswordStrength = .weak
+    @State private var emailValid = true
+    @State private var passwordsMatch = true
+    
+    enum PasswordStrength: String {
+        case weak = "Weak"
+        case medium = "Medium"
+        case strong = "Strong"
+        var color: Color {
+            switch self {
+            case .weak: return .red
+            case .medium: return .yellow
+            case .strong: return .green
+            }
+        }
+    }
+    
+    func validateEmail(_ email: String) -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        return NSPredicate(format: "SELF MATCHES %@", emailRegEx).evaluate(with: email)
+    }
+    
+    func passwordStrengthLevel(_ password: String) -> PasswordStrength {
+        let length = password.count >= 8
+        let upper = password.range(of: "[A-Z]", options: .regularExpression) != nil
+        let lower = password.range(of: "[a-z]", options: .regularExpression) != nil
+        let number = password.range(of: "[0-9]", options: .regularExpression) != nil
+        let strong = length && upper && lower && number && password.count >= 12
+        if strong { return .strong }
+        if length && upper && lower && number { return .medium }
+        return .weak
+    }
+    
+    func passwordMeetsRequirements(_ password: String) -> (Bool, [Bool]) {
+        let length = password.count >= 8
+        let upper = password.range(of: "[A-Z]", options: .regularExpression) != nil
+        let lower = password.range(of: "[a-z]", options: .regularExpression) != nil
+        let number = password.range(of: "[0-9]", options: .regularExpression) != nil
+        return (length && upper && lower && number, [length, upper, lower, number])
+    }
     
     var body: some View {
         ZStack {
@@ -91,9 +132,15 @@ struct LoginView: View {
                             if isPasswordVisible {
                                 TextField("Password", text: $password)
                                     .autocapitalization(.none)
+                                    .onChange(of: password) { newValue in
+                                        passwordStrength = passwordStrengthLevel(newValue)
+                                    }
                             } else {
                                 SecureField("Password", text: $password)
                                     .autocapitalization(.none)
+                                    .onChange(of: password) { newValue in
+                                        passwordStrength = passwordStrengthLevel(newValue)
+                                    }
                             }
                             Button(action: { isPasswordVisible.toggle() }) {
                                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
@@ -104,6 +151,81 @@ struct LoginView: View {
                         .background(Color.white.opacity(0.08))
                         .cornerRadius(12)
                         .foregroundColor(.white)
+                        // Password strength indicator
+                        if isRegistering {
+                            HStack(spacing: 8) {
+                                Text("Strength: ")
+                                    .font(.system(size: 13, weight: .regular))
+                                    .foregroundColor(.white.opacity(0.7))
+                                Text(passwordStrength.rawValue)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(passwordStrength.color)
+                                Capsule()
+                                    .fill(passwordStrength.color)
+                                    .frame(width: 40, height: 6)
+                                    .animation(.easeInOut, value: passwordStrength)
+                            }
+                        }
+                        // Password requirements
+                        if isRegistering {
+                            let (_, reqs) = passwordMeetsRequirements(password)
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: reqs[0] ? "checkmark.circle.fill" : "xmark.circle")
+                                        .foregroundColor(reqs[0] ? .green : .red)
+                                    Text("At least 8 characters")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                                HStack(spacing: 6) {
+                                    Image(systemName: reqs[1] ? "checkmark.circle.fill" : "xmark.circle")
+                                        .foregroundColor(reqs[1] ? .green : .red)
+                                    Text("One uppercase letter")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                                HStack(spacing: 6) {
+                                    Image(systemName: reqs[2] ? "checkmark.circle.fill" : "xmark.circle")
+                                        .foregroundColor(reqs[2] ? .green : .red)
+                                    Text("One lowercase letter")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                                HStack(spacing: 6) {
+                                    Image(systemName: reqs[3] ? "checkmark.circle.fill" : "xmark.circle")
+                                        .foregroundColor(reqs[3] ? .green : .red)
+                                    Text("One number")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                            }
+                            .padding(.top, 2)
+                        }
+                    }
+                    // Confirm Password Field (animated)
+                    if isRegistering {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Confirm Password")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.white)
+                            HStack {
+                                SecureField("Confirm Password", text: $confirmPassword)
+                                    .autocapitalization(.none)
+                                    .onChange(of: confirmPassword) { newValue in
+                                        passwordsMatch = (password == newValue)
+                                    }
+                                if !confirmPassword.isEmpty {
+                                    Image(systemName: passwordsMatch ? "checkmark.circle.fill" : "xmark.circle")
+                                        .foregroundColor(passwordsMatch ? .green : .red)
+                                        .transition(.scale)
+                                }
+                            }
+                            .padding()
+                            .background(Color.white.opacity(0.08))
+                            .cornerRadius(12)
+                            .foregroundColor(.white)
+                        }
+                        .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
                     if !isRegistering {
@@ -130,7 +252,7 @@ struct LoginView: View {
                             }
                         }
                     }
-                    .disabled(authManager.isLoading)
+                    .disabled(authManager.isLoading || (isRegistering && (!passwordsMatch || !passwordMeetsRequirements(password).0 || !validateEmail(email))))
                     .overlay {
                         if authManager.isLoading {
                             ProgressView()
@@ -158,6 +280,7 @@ struct LoginView: View {
                         Button(action: {
                             isRegistering.toggle()
                             authManager.error = nil
+                            confirmPassword = ""
                         }) {
                             Text(isRegistering ? "Sign In" : "Register for Free")
                                 .foregroundColor(Color(hex: "B39DDB"))

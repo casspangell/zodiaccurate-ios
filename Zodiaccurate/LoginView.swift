@@ -155,7 +155,10 @@ struct LoginView: View {
                         Text(isRegistering ? "Already have an account?" : "Don't have an account?")
                             .foregroundColor(Color.white.opacity(0.5))
                             .font(.system(size: 15, weight: .regular))
-                        Button(action: { isRegistering.toggle() }) {
+                        Button(action: {
+                            isRegistering.toggle()
+                            authManager.error = nil
+                        }) {
                             Text(isRegistering ? "Sign In" : "Register for Free")
                                 .foregroundColor(Color(hex: "B39DDB"))
                                 .poppinsMediumButton(size: 15)

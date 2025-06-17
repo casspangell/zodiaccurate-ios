@@ -19,4 +19,5 @@ extension Color {
     static let whiteCustom = Color(hex: "FFFFFF")
     static let grayCustom = Color(hex: "5A5A5A")
     static let utilsBackground = Color(hex: "#322447")
+    static let accentGreen = Color(hex: "2ECC71")
 } 

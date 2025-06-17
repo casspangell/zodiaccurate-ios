@@ -20,6 +20,7 @@ struct LoginView: View {
     @State private var passwordStrength: PasswordStrength = .weak
     @State private var emailValid = true
     @State private var passwordsMatch = true
+    @State private var agreedToTerms = false
     
     enum PasswordStrength: String {
         case weak = "Weak"
@@ -132,14 +133,14 @@ struct LoginView: View {
                             if isPasswordVisible {
                                 TextField("Password", text: $password)
                                     .autocapitalization(.none)
-                                    .onChange(of: password) { newValue in
-                                        passwordStrength = passwordStrengthLevel(newValue)
+                                    .onChange(of: password) {
+                                        passwordStrength = passwordStrengthLevel(password)
                                     }
                             } else {
                                 SecureField("Password", text: $password)
                                     .autocapitalization(.none)
-                                    .onChange(of: password) { newValue in
-                                        passwordStrength = passwordStrengthLevel(newValue)
+                                    .onChange(of: password) {
+                                        passwordStrength = passwordStrengthLevel(password)
                                     }
                             }
                             Button(action: { isPasswordVisible.toggle() }) {
@@ -211,8 +212,8 @@ struct LoginView: View {
                             HStack {
                                 SecureField("Confirm Password", text: $confirmPassword)
                                     .autocapitalization(.none)
-                                    .onChange(of: confirmPassword) { newValue in
-                                        passwordsMatch = (password == newValue)
+                                    .onChange(of: confirmPassword) {
+                                        passwordsMatch = (password == confirmPassword)
                                     }
                                 if !confirmPassword.isEmpty {
                                     Image(systemName: passwordsMatch ? "checkmark.circle.fill" : "xmark.circle")
@@ -239,6 +240,47 @@ struct LoginView: View {
                         }
                     }
 
+                    // Required Checkbox for registration
+                    if isRegistering {
+                        HStack(alignment: .center, spacing: 10) {
+                            Button(action: { withAnimation { agreedToTerms.toggle() } }) {
+                                Image(systemName: agreedToTerms ? "checkmark.square.fill" : "square")
+                                    .resizable()
+                                    .frame(width: 22, height: 22)
+                                    .foregroundColor(agreedToTerms ? Color.accentGreen : Color.white.opacity(0.7))
+                                    .animation(.easeInOut, value: agreedToTerms)
+                            }
+                            HStack(spacing: 0) {
+                                Text("I agree to the ")
+                                    .foregroundColor(.white.opacity(0.85))
+                                    .poppinsMediumButton(size: 15)
+                                Text("Terms")
+                                    .foregroundColor(Color.accentGreen)
+                                    .underline()
+                                    .poppinsMediumButton(size: 15)
+                                    .onTapGesture {
+                                        if let url = URL(string: "https://zodiaccurate.com/terms-and-conditions") {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    }
+                                Text(" and ")
+                                    .foregroundColor(.white.opacity(0.85))
+                                    .poppinsMediumButton(size: 15)
+                                Text("Privacy Policy")
+                                    .foregroundColor(Color.accentGreen)
+                                    .underline()
+                                    .poppinsMediumButton(size: 15)
+                                    .onTapGesture {
+                                        if let url = URL(string: "https://zodiaccurate.com/privacy-policy") {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+
                     PrimaryGradientButton(title: isRegistering ? "Create Account" : "Sign In") {
                         Task {
                             do {
@@ -252,7 +294,7 @@ struct LoginView: View {
                             }
                         }
                     }
-                    .disabled(authManager.isLoading || (isRegistering && (!passwordsMatch || !passwordMeetsRequirements(password).0 || !validateEmail(email))))
+                    .disabled(authManager.isLoading || (isRegistering && (!passwordsMatch || !passwordMeetsRequirements(password).0 || !validateEmail(email) || !agreedToTerms)))
                     .overlay {
                         if authManager.isLoading {
                             ProgressView()
@@ -281,6 +323,7 @@ struct LoginView: View {
                             isRegistering.toggle()
                             authManager.error = nil
                             confirmPassword = ""
+                            agreedToTerms = false
                         }) {
                             Text(isRegistering ? "Sign In" : "Register for Free")
                                 .foregroundColor(Color(hex: "B39DDB"))

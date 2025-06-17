@@ -7,27 +7,28 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseCore
+import FirebaseAuth
 
 @main
 struct ZodiaccurateApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+    @StateObject private var authManager = AuthenticationManager()
+    
+    init() {
+        FirebaseApp.configure()
+    }
+    
     var body: some Scene {
         WindowGroup {
-            RootView()
+            Group {
+                if authManager.isAuthenticated {
+                    MainView()
+                } else {
+                    LoginView()
+                }
+            }
+            .environmentObject(authManager)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
 

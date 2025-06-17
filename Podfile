@@ -7,15 +7,15 @@ target 'Zodiaccurate' do
 
   # Pods for Zodiaccurate
   # Add the Firebase pod for Google Analytics
-  pod 'FirebaseAnalytics'
+  pod 'Firebase/Analytics'
 
   # For Analytics without IDFA collection capability, use this pod instead
   # pod FirebaseAnalytics/Core
 
   # Add the pods for any other Firebase products you want to use in your app
   # For example, to use Firebase Authentication and Cloud Firestore
-  pod 'FirebaseAuth'
-  pod 'FirebaseFirestore'
+  pod 'Firebase/Auth'
+  pod 'Firebase/Firestore'
 
   target 'ZodiaccurateTests' do
     inherit! :search_paths

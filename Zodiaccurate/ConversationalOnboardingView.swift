@@ -178,6 +178,7 @@ struct ConversationalOnboardingView: View {
                         .padding(.horizontal)
                         .padding(.top, -contentTopPadding)
                     }
+                    .scrollDisabled(true)
                     .scrollDismissesKeyboard(.interactively)
                     .clipped() // Prevent content from overflowing
                     .onChange(of: messages.count) { _, _ in

@@ -74,18 +74,10 @@ struct ConversationalOnboardingView: View {
                     VStack(spacing: 8) {
                         // Logo with minimal glow
                         ZStack {
-                            // Subtle glow
-                            RadialGradient(
-                                gradient: Gradient(colors: [
-                                    Color.accentGold.opacity(1.0),
-                                    Color.clear
-                                ]),
-                                center: .center,
-                                startRadius: 15,
-                                endRadius: 85
-                            )
-                            .frame(width: 150, height: 150)
-                            .blur(radius: 40)
+                            // Opaque translucent circle behind logo
+                            Circle()
+                                .fill(Color.white.opacity(0.25))
+                                .frame(width: 130, height: 130)
                             
                             // Logo image
                             Image("logo")
@@ -170,13 +162,7 @@ struct ConversationalOnboardingView: View {
                                         .foregroundColor(.white)
                                         .frame(maxWidth: .infinity)
                                         .padding()
-                                        .background(
-                                            LinearGradient(
-                                                colors: [Color.purple, Color.pink],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
+                                        .background(Color.accentGold)
                                         .cornerRadius(12)
                                     }
                                     .padding(.horizontal)
@@ -477,7 +463,7 @@ struct InputSection: View {
             
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
-                    .foregroundColor(.purple)
+                    .foregroundColor(.accentGold)
             }
             .disabled(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
@@ -557,7 +543,7 @@ struct InteractivePickerView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Color.green.opacity(0.8))
+                        .background(Color.accentGold)
                         .cornerRadius(12)
                     }
                 }
@@ -592,7 +578,7 @@ struct InteractivePickerView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Color.green.opacity(0.8))
+                        .background(Color.accentGold)
                         .cornerRadius(12)
                     }
                     

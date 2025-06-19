@@ -379,8 +379,20 @@ struct InteractivePickerView: View {
                         )
                         .datePickerStyle(.compact)
                         .colorScheme(.dark)
-                        .onChange(of: selectedDate) { oldValue, newValue in
-                            onDateSelected(newValue)
+                        
+                        Button(action: {
+                            onDateSelected(selectedDate)
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Submit")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.green.opacity(0.8))
+                            .cornerRadius(12)
                         }
                     }
                     .padding()

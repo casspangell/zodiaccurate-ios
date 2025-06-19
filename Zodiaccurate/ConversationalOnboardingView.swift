@@ -424,7 +424,7 @@ struct ChatBubble: View {
                 Spacer()
                 Text(message.text)
                     .padding()
-                    .background(Color.purple.opacity(0.8))
+                    .background(Color.sapphire.opacity(0.8))
                     .foregroundColor(.white)
                     .cornerRadius(20)
                     .frame(maxWidth: 280, alignment: .trailing)
@@ -548,7 +548,7 @@ struct InteractivePickerView: View {
                     }
                 }
                 .padding()
-                .background(Color.purple.opacity(0.8))
+                .background(Color.sapphire.opacity(0.8))
                 .foregroundColor(.white)
                 .cornerRadius(20)
                 .frame(maxWidth: 280, alignment: .trailing)
@@ -603,7 +603,7 @@ struct InteractivePickerView: View {
                     }
                 }
                 .padding()
-                .background(Color.purple.opacity(0.8))
+                .background(Color.sapphire.opacity(0.8))
                 .foregroundColor(.white)
                 .cornerRadius(20)
                 .frame(maxWidth: 280, alignment: .trailing)

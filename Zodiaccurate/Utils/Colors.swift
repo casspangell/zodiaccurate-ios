@@ -20,4 +20,9 @@ extension Color {
     static let grayCustom = Color(hex: "5A5A5A")
     static let utilsBackground = Color(hex: "#322447")
     static let accentGreen = Color(hex: "2ECC71")
-} 
+    
+    static let deepSaphire = Color(hex: "00324B")
+    static let lightSaphire = Color(hex: "6F9ED6")
+    static let darkDarkPurple = Color(hex: "1A0B2E")
+    static let evenDarkerPurple = Color(hex: "0F051A")
+}

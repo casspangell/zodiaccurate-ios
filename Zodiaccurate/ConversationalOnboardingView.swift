@@ -28,7 +28,7 @@ struct ConversationalOnboardingView: View {
     }
     
     private var contentTopSpacing: CGFloat {
-        return headerHeight * 0.8 // Push content below the profile image
+        return headerHeight * 1.0 // Push content below the profile image - increased for better positioning
     }
     
     private var contentTopPadding: CGFloat {
@@ -43,6 +43,33 @@ struct ConversationalOnboardingView: View {
             VStack(spacing: 0) {
                 // Header ZStack - positioned on top
                 ZStack {
+                    // Dark header background with gradient fade
+                    VStack(spacing: 0) {
+                        // Solid dark background for header content
+                        Rectangle()
+                            .fill(Color.deepBlue.opacity(1.0))
+                            .frame(height: headerHeight - 180)
+                        
+                        // Enhanced gradient fade at bottom for beautiful melting effect
+                        LinearGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
+                                .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
+                                .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
+                                .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
+                                .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
+                                .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
+                                .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
+                                .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
+                                .init(color: Color.clear, location: 1.0)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 100)
+                    }
+                    .allowsHitTesting(false)
+                    
                     // Fixed Header
                     VStack(spacing: 8) {
                         // Logo with minimal glow

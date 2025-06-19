@@ -32,7 +32,7 @@ struct ConversationalOnboardingView: View {
                         
                         // Header
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Cosmic Guide")
+                            Text("Zodiaccurate Guide")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.white)
                             
@@ -341,14 +341,10 @@ struct ChatBubble: View {
                     .frame(maxWidth: 280, alignment: .trailing)
             } else {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "sparkles")
-                            .font(.caption)
-                            .foregroundColor(.purple)
-                        Text("Cosmic Guide")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
+                    Image("logo")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(.purple)
                     
                     Text(message.text)
                         .padding()
@@ -392,10 +388,11 @@ struct TypingIndicator: View {
     var body: some View {
         HStack {
             HStack {
-                Image(systemName: "sparkles")
-                    .font(.caption)
+                Image("logo")
+                    .resizable()
+                    .frame(width: 20, height: 20)
                     .foregroundColor(.purple)
-                Text("Cosmic Guide is reading your energy...")
+                Text("reading your energy...")
                     .font(.caption)
                     .foregroundColor(.gray)
             }

@@ -34,15 +34,15 @@ struct ConversationalOnboardingView: View {
                         // Subtle glow
                         RadialGradient(
                             gradient: Gradient(colors: [
-                                Color.accentGold.opacity(0.15),
+                                Color.accentGold.opacity(1.0),
                                 Color.clear
                             ]),
                             center: .center,
-                            startRadius: 45,
-                            endRadius: 65
+                            startRadius: 15,
+                            endRadius: 85
                         )
                         .frame(width: 150, height: 150)
-                        .blur(radius: 8)
+                        .blur(radius: 40)
                         
                         // Logo image
                         Image("logo")

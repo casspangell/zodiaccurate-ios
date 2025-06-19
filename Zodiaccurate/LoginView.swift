@@ -22,6 +22,7 @@ struct LoginView: View {
     @State private var passwordsMatch = true
     @State private var agreedToTerms = false
     @State private var showAgreementError = false
+    @FocusState private var focusedField: Field?
     
     enum PasswordStrength: String {
         case weak = "Weak"
@@ -34,6 +35,10 @@ struct LoginView: View {
             case .strong: return .green
             }
         }
+    }
+    
+    enum Field: Hashable {
+        case email, password, confirmPassword
     }
     
     func validateEmail(_ email: String) -> Bool {
@@ -125,6 +130,17 @@ struct LoginView: View {
                                 .foregroundColor(.white)
                                 .autocapitalization(.none)
                                 .keyboardType(.emailAddress)
+                                .focused($focusedField, equals: .email)
+                                .id(Field.email)
+                                .submitLabel(.next)
+                                .onSubmit {
+                                    focusedField = .password
+                                    withAnimation { proxy.scrollTo(Field.password, anchor: .center) }
+                                }
+                                .onTapGesture {
+                                    focusedField = .email
+                                    withAnimation { proxy.scrollTo(Field.email, anchor: .center) }
+                                }
                         }
 
                         VStack(alignment: .leading, spacing: 12) {
@@ -135,12 +151,42 @@ struct LoginView: View {
                                 if isPasswordVisible {
                                     TextField("Password", text: $password)
                                         .autocapitalization(.none)
+                                        .focused($focusedField, equals: .password)
+                                        .id(Field.password)
+                                        .submitLabel(isRegistering ? .next : .go)
+                                        .onSubmit {
+                                            if isRegistering {
+                                                focusedField = .confirmPassword
+                                                withAnimation { proxy.scrollTo(Field.confirmPassword, anchor: .center) }
+                                            } else {
+                                                focusedField = nil
+                                            }
+                                        }
+                                        .onTapGesture {
+                                            focusedField = .password
+                                            withAnimation { proxy.scrollTo(Field.password, anchor: .center) }
+                                        }
                                         .onChange(of: password) {
                                             passwordStrength = passwordStrengthLevel(password)
                                         }
                                 } else {
                                     SecureField("Password", text: $password)
                                         .autocapitalization(.none)
+                                        .focused($focusedField, equals: .password)
+                                        .id(Field.password)
+                                        .submitLabel(isRegistering ? .next : .go)
+                                        .onSubmit {
+                                            if isRegistering {
+                                                focusedField = .confirmPassword
+                                                withAnimation { proxy.scrollTo(Field.confirmPassword, anchor: .center) }
+                                            } else {
+                                                focusedField = nil
+                                            }
+                                        }
+                                        .onTapGesture {
+                                            focusedField = .password
+                                            withAnimation { proxy.scrollTo(Field.password, anchor: .center) }
+                                        }
                                         .onChange(of: password) {
                                             passwordStrength = passwordStrengthLevel(password)
                                         }
@@ -214,6 +260,16 @@ struct LoginView: View {
                                 HStack {
                                     SecureField("Confirm Password", text: $confirmPassword)
                                         .autocapitalization(.none)
+                                        .focused($focusedField, equals: .confirmPassword)
+                                        .id(Field.confirmPassword)
+                                        .submitLabel(.done)
+                                        .onSubmit {
+                                            focusedField = nil
+                                        }
+                                        .onTapGesture {
+                                            focusedField = .confirmPassword
+                                            withAnimation { proxy.scrollTo(Field.confirmPassword, anchor: .center) }
+                                        }
                                         .onChange(of: confirmPassword) {
                                             passwordsMatch = (password == confirmPassword)
                                         }
@@ -379,6 +435,10 @@ struct LoginView: View {
                     .padding(.horizontal, 24)
                     .frame(maxWidth: 500)
                 }
+                .background(Color.clear.contentShape(Rectangle())
+                    .onTapGesture {
+                        focusedField = nil
+                    })
             }
         }
         .alert("Reset Password", isPresented: $showingResetPassword) {

@@ -28,23 +28,38 @@ struct ConversationalOnboardingView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        Spacer().frame(height: 60)
-                        
-                        // Profile Section
-                        VStack(spacing: 16) {
-                            // Logo image
-                            Image("logo")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 120, height: 120)
+                        VStack(spacing: 8) {
+                            // Logo with minimal glow
+                            ZStack {
+                                // Subtle glow
+                                RadialGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.accentGold.opacity(0.15),
+                                        Color.clear
+                                    ]),
+                                    center: .center,
+                                    startRadius: 45,
+                                    endRadius: 65
+                                )
+                                .frame(width: 150, height: 150)
+                                .blur(radius: 8)
+                                
+                                // Logo image
+                                Image("logo")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 140, height: 140)
+                            }
+                            .frame(height: 150)
+                            .padding(.top, 30)
                             
                             // Empty name label
                             Text("")
                                 .font(.system(size: 24, weight: .semibold))
                                 .foregroundColor(.white)
+                                .padding(.bottom, 8)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.bottom, 24)
                         
                         // Chat Content
                         ChatContentView(

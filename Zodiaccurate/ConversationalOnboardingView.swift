@@ -20,6 +20,7 @@ struct ConversationalOnboardingView: View {
     @State private var showSecondaryElements = false
     @State private var keyboardHeight: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
+    @State private var currentProfileImage = "logo"
     var onComplete: () -> Void = {}
     
     // Calculate dynamic offsets
@@ -79,7 +80,7 @@ struct ConversationalOnboardingView: View {
                                 .fill(Color.white.opacity(0.25))
                                 .frame(width: 130, height: 130)
                             
-                            Image("logo")
+                            Image(currentProfileImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 140, height: 140)
@@ -382,6 +383,7 @@ struct ConversationalOnboardingView: View {
             userData.firstName = input
         case "birthDate":
             userData.birthDate = input
+            userData.zodiacSign = determineZodiacSign(from: input)
         case "birthTime":
             userData.birthTime = input
         case "intuition":
@@ -397,6 +399,27 @@ struct ConversationalOnboardingView: View {
     
     private func personalizeMessage(_ message: String, with name: String) -> String {
         return message.replacingOccurrences(of: "{name}", with: name)
+    }
+    
+    private func determineZodiacSign(from dateString: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        
+        if let date = formatter.date(from: dateString) {
+            do {
+                let zodiacSign = try ZodiacUtility.getZodiacSign(from: date)
+                // Update the profile image to show the zodiac sign
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    currentProfileImage = zodiacSign.assetName
+                }
+                return zodiacSign.rawValue
+            } catch {
+                print("Error determining zodiac sign: \(error)")
+                return "Unknown"
+            }
+        }
+        
+        return "Unknown"
     }
 }
 
@@ -628,6 +651,7 @@ struct UserData {
     var firstName: String = ""
     var birthDate: String = ""
     var birthTime: String = ""
+    var zodiacSign: String = ""
     var responses: [(String, String)] = []
 }
 
@@ -688,9 +712,11 @@ struct ChatContentView: View {
     var body: some View {
         VStack(spacing: 16) {
             ForEach(messages) { message in
-                ChatBubble(message: message)
-                    .id(message.id)
-                    .transition(.opacity)
+                ChatBubble(
+                    message: message
+                )
+                .id(message.id)
+                .transition(.opacity)
             }
             
             if currentStep < conversationSteps.count && 

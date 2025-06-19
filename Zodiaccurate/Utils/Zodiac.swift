@@ -34,7 +34,7 @@ enum ZodiacSign: String, CaseIterable {
         case .virgo: return "Virgo"
         case .libra: return "Libra"
         case .scorpio: return "Scorpio"
-        case .sagittarius: return "Sagittarius"
+        case .sagittarius: return "Saggitarius"
         case .capricorn: return "Capricorn"
         case .aquarius: return "Aquarius"
         case .pisces: return "Pisces"

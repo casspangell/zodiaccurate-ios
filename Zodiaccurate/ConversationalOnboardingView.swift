@@ -13,6 +13,9 @@ struct ConversationalOnboardingView: View {
     @State private var currentStep = 0
     @State private var isTyping = false
     @State private var userData = UserData()
+    @State private var selectedDate = Date()
+    @State private var selectedTime = Date()
+    @State private var showInteractivePicker = false
     var onComplete: () -> Void = {}
     
     var body: some View {
@@ -49,6 +52,30 @@ struct ConversationalOnboardingView: View {
                                 .id(message.id)
                         }
                         
+                        // Show interactive picker for current step
+                        if currentStep < conversationSteps.count && 
+                           !conversationSteps[currentStep].isFinal && 
+                           showInteractivePicker {
+                            InteractivePickerView(
+                                step: conversationSteps[currentStep],
+                                selectedDate: $selectedDate,
+                                selectedTime: $selectedTime,
+                                onDateSelected: { date in
+                                    let formatter = DateFormatter()
+                                    formatter.dateStyle = .medium
+                                    handleUserInput(input: formatter.string(from: date))
+                                },
+                                onTimeSelected: { time in
+                                    let formatter = DateFormatter()
+                                    formatter.timeStyle = .short
+                                    handleUserInput(input: formatter.string(from: time))
+                                },
+                                onUnknownTime: {
+                                    handleUserInput(input: "Unknown")
+                                }
+                            )
+                        }
+                        
                         if isTyping {
                             TypingIndicator()
                         }
@@ -64,12 +91,14 @@ struct ConversationalOnboardingView: View {
                 }
             }
             
-            // Input Area
-            if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
+            // Input Area - only for text input
+            if currentStep < conversationSteps.count && 
+               !conversationSteps[currentStep].isFinal && 
+               conversationSteps[currentStep].inputType == "text" {
                 InputSection(
                     currentInput: $currentInput,
                     currentStep: conversationSteps[currentStep],
-                    onSend: handleUserInput
+                    onSend: { handleUserInput(input: currentInput) }
                 )
             } else if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
                 // Final step - show the final message and then the button
@@ -129,27 +158,28 @@ struct ConversationalOnboardingView: View {
     }
     
     private func startConversation() {
+        showInteractivePicker = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             addAIMessage(conversationSteps[0].message)
         }
     }
     
-    private func handleUserInput() {
-        guard !currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+    private func handleUserInput(input: String) {
+        guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        // Hide interactive picker when user provides input
+        showInteractivePicker = false
         
         // Add user message
         let userMessage = ChatMessage(
-            text: currentInput,
+            text: input,
             isUser: true,
             timestamp: Date()
         )
         messages.append(userMessage)
         
         // Store user data
-        storeUserData(input: currentInput, step: conversationSteps[currentStep])
-        
-        let input = currentInput
-        currentInput = ""
+        storeUserData(input: input, step: conversationSteps[currentStep])
         
         // Move to next step
         currentStep += 1
@@ -181,6 +211,15 @@ struct ConversationalOnboardingView: View {
                 timestamp: Date()
             )
             messages.append(aiMessage)
+            
+            // Show interactive picker after AI message is displayed
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if currentStep < conversationSteps.count && 
+                   (conversationSteps[currentStep].inputType == "date" || 
+                    conversationSteps[currentStep].inputType == "time") {
+                    showInteractivePicker = true
+                }
+            }
         }
     }
     
@@ -258,68 +297,20 @@ struct InputSection: View {
     let onSend: () -> Void
     
     var body: some View {
-        VStack {
-            if currentStep.inputType == "date" {
-                DatePicker(
-                    "Birth Date",
-                    selection: Binding(
-                        get: { Date() },
-                        set: { date in
-                            let formatter = DateFormatter()
-                            formatter.dateStyle = .medium
-                            currentInput = formatter.string(from: date)
-                        }
-                    ),
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.compact)
-                .colorScheme(.dark)
-                .padding()
-            } else if currentStep.inputType == "time" {
-                VStack {
-                    DatePicker(
-                        "Birth Time",
-                        selection: Binding(
-                            get: { Date() },
-                            set: { date in
-                                let formatter = DateFormatter()
-                                formatter.timeStyle = .short
-                                currentInput = formatter.string(from: date)
-                            }
-                        ),
-                        displayedComponents: .hourAndMinute
-                    )
-                    .datePickerStyle(.compact)
-                    .colorScheme(.dark)
-                    
-                    Button("I don't know my birth time") {
-                        currentInput = "Unknown"
-                        onSend()
-                    }
-                    .font(.caption)
-                    .foregroundColor(.gray)
+        HStack {
+            TextField(currentStep.placeholder, text: $currentInput)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .onSubmit {
+                    onSend()
                 }
-                .padding()
-            } else if currentStep.inputType == "none" {
-                // No input required for this step
-                EmptyView()
-            } else {
-                HStack {
-                    TextField(currentStep.placeholder, text: $currentInput)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .onSubmit {
-                            onSend()
-                        }
-                    
-                    Button(action: onSend) {
-                        Image(systemName: "paperplane.fill")
-                            .foregroundColor(.purple)
-                    }
-                    .disabled(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-                .padding()
+            
+            Button(action: onSend) {
+                Image(systemName: "paperplane.fill")
+                    .foregroundColor(.purple)
             }
+            .disabled(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
+        .padding()
     }
 }
 
@@ -358,6 +349,78 @@ struct TypingIndicator: View {
             Spacer()
         }
         .padding()
+    }
+}
+
+struct InteractivePickerView: View {
+    let step: ConversationStep
+    @Binding var selectedDate: Date
+    @Binding var selectedTime: Date
+    let onDateSelected: (Date) -> Void
+    let onTimeSelected: (Date) -> Void
+    let onUnknownTime: () -> Void
+    
+    var body: some View {
+        HStack {
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 8) {
+                if step.inputType == "date" {
+                    VStack(alignment: .trailing, spacing: 12) {
+                        Text("Select your birth date")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: 280, alignment: .trailing)
+                        
+                        DatePicker(
+                            "Birth Date",
+                            selection: $selectedDate,
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(.compact)
+                        .colorScheme(.dark)
+                        .onChange(of: selectedDate) { oldValue, newValue in
+                            onDateSelected(newValue)
+                        }
+                    }
+                    .padding()
+                    .background(Color.purple.opacity(0.8))
+                    .foregroundColor(.white)
+                    .cornerRadius(20)
+                    .frame(maxWidth: 280, alignment: .trailing)
+                } else if step.inputType == "time" {
+                    VStack(alignment: .trailing, spacing: 12) {
+                        Text("Select your birth time")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: 280, alignment: .trailing)
+                        
+                        DatePicker(
+                            "Birth Time",
+                            selection: $selectedTime,
+                            displayedComponents: .hourAndMinute
+                        )
+                        .datePickerStyle(.compact)
+                        .colorScheme(.dark)
+                        .onChange(of: selectedTime) { oldValue, newValue in
+                            onTimeSelected(newValue)
+                        }
+                        
+                        Button("I don't know my birth time") {
+                            onUnknownTime()
+                        }
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                        .padding(.top, 4)
+                    }
+                    .padding()
+                    .background(Color.purple.opacity(0.8))
+                    .foregroundColor(.white)
+                    .cornerRadius(20)
+                    .frame(maxWidth: 280, alignment: .trailing)
+                }
+            }
+        }
     }
 }
 

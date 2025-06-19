@@ -205,7 +205,7 @@ struct ConversationalOnboardingView: View {
                                 .animation(.easeInOut(duration: 0.8), value: badgeRotation)
                         }
                         .frame(height: 150)
-                        .padding(.top, 50)
+                        .padding(.top, 150)
                         
                         Text("")
                             .font(.system(size: 24, weight: .semibold))
@@ -326,7 +326,7 @@ struct ConversationalOnboardingView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill entire screen
         }
-        .ignoresSafeArea(.container, edges: .bottom) // KEY: Extend to bottom of screen
+        .ignoresSafeArea(.all)
         .onAppear {
             startConversation()
         }

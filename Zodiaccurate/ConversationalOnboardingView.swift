@@ -62,7 +62,7 @@ struct ConversationalOnboardingView: View {
                 .frame(maxWidth: .infinity)
                 .background(Color.clear)
                 
-                // Scrollable Chat Content
+                // Scrollable Chat Content - positioned to start at midway of profile image
                 ScrollViewReader { proxy in
                     ScrollView {
                         VStack(alignment: .leading, spacing: 24) {
@@ -130,6 +130,7 @@ struct ConversationalOnboardingView: View {
                             Spacer().frame(height: 20)
                         }
                         .padding(.horizontal)
+                        .padding(.top, -75) // Move chat content up to overlap with profile image
                     }
                     .onChange(of: messages.count) {
                         withAnimation(.easeInOut(duration: 0.5)) {
@@ -701,4 +702,8 @@ struct ChatInputView: View {
             .transition(.opacity)
         }
     }
+}
+
+#Preview {
+    ConversationalOnboardingView()
 }

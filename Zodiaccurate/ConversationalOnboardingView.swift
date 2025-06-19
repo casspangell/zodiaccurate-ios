@@ -481,32 +481,29 @@ struct TypingIndicator: View {
                     .resizable()
                     .frame(width: 20, height: 20)
                     .foregroundColor(.purple)
-                Text("reading your energy...")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            }
-            
-            HStack(spacing: 4) {
-                ForEach(0..<3) { index in
-                    Circle()
-                        .fill(Color.purple.opacity(0.6))
-                        .frame(width: 8, height: 8)
-                        .scaleEffect(animationAmount)
-                        .animation(
-                            Animation.easeInOut(duration: 0.6)
-                                .repeatForever()
-                                .delay(Double(index) * 0.2),
-                            value: animationAmount
-                        )
+                
+                HStack(spacing: 4) {
+                    ForEach(0..<3) { index in
+                        Circle()
+                            .fill(Color.accentGold.opacity(0.6))
+                            .frame(width: 8, height: 8)
+                            .scaleEffect(animationAmount)
+                            .animation(
+                                Animation.easeInOut(duration: 0.6)
+                                    .repeatForever()
+                                    .delay(Double(index) * 0.2),
+                                value: animationAmount
+                            )
+                    }
                 }
-            }
-            .onAppear {
-                animationAmount = 1.0
             }
             
             Spacer()
         }
         .padding()
+        .onAppear {
+            animationAmount = 1.0
+        }
     }
 }
 
@@ -637,13 +634,13 @@ struct UserData {
 
 let conversationSteps: [ConversationStep] = [
     ConversationStep(
-        message: "✨ Welcome, beautiful soul. I can sense you're here for a reason... The universe has guided you to me. What name were you blessed with?",
+        message: "✨ Welcome, beautiful soul. I can sense you're here for a reason... The universe has guided you to me. What do you call yourself?",
         inputType: "text",
         placeholder: "Your first name...",
         dataKey: "firstName"
     ),
     ConversationStep(
-        message: "{name}... what a beautiful name. I can already feel your energy resonating through the cosmos. Now, tell me - when did you choose to grace this world with your presence?",
+        message: "{name}... what a beautiful name. I can already feel your energy resonating through the cosmos. Now, tell me - when did you choose to come into this world?",
         inputType: "date",
         placeholder: "Your birth date",
         dataKey: "birthDate"

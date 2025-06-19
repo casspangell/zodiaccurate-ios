@@ -18,6 +18,7 @@ struct ConversationalOnboardingView: View {
     @State private var showInteractivePicker = false
     @State private var showInputField = false
     @State private var showSecondaryElements = false
+    @State private var keyboardHeight: CGFloat = 0
     var onComplete: () -> Void = {}
     
     var body: some View {
@@ -25,127 +26,146 @@ struct ConversationalOnboardingView: View {
             // Background layers
             BackgroundView()
             
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        VStack(spacing: 8) {
-                            // Logo with minimal glow
-                            ZStack {
-                                // Subtle glow
-                                RadialGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.accentGold.opacity(0.15),
-                                        Color.clear
-                                    ]),
-                                    center: .center,
-                                    startRadius: 45,
-                                    endRadius: 65
-                                )
-                                .frame(width: 150, height: 150)
-                                .blur(radius: 8)
-                                
-                                // Logo image
-                                Image("logo")
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 140, height: 140)
-                            }
-                            .frame(height: 150)
-                            .padding(.top, 30)
-                            
-                            // Empty name label
-                            Text("")
-                                .font(.system(size: 24, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.bottom, 8)
-                        }
-                        .frame(maxWidth: .infinity)
-                        
-                        // Chat Content
-                        ChatContentView(
-                            messages: messages,
-                            currentStep: currentStep,
-                            conversationSteps: conversationSteps,
-                            showInteractivePicker: showInteractivePicker,
-                            showSecondaryElements: showSecondaryElements,
-                            selectedDate: $selectedDate,
-                            selectedTime: $selectedTime,
-                            isTyping: isTyping,
-                            onDateSelected: { date in
-                                let formatter = DateFormatter()
-                                formatter.dateStyle = .medium
-                                handleUserInput(input: formatter.string(from: date))
-                            },
-                            onTimeSelected: { time in
-                                let formatter = DateFormatter()
-                                formatter.timeStyle = .short
-                                handleUserInput(input: formatter.string(from: time))
-                            },
-                            onUnknownTime: {
-                                handleUserInput(input: "Unknown")
-                            }
+            VStack(spacing: 0) {
+                // Fixed Header
+                VStack(spacing: 8) {
+                    // Logo with minimal glow
+                    ZStack {
+                        // Subtle glow
+                        RadialGradient(
+                            gradient: Gradient(colors: [
+                                Color.accentGold.opacity(0.15),
+                                Color.clear
+                            ]),
+                            center: .center,
+                            startRadius: 45,
+                            endRadius: 65
                         )
+                        .frame(width: 150, height: 150)
+                        .blur(radius: 8)
                         
-                        // Input
-                        ChatInputView(
-                            currentStep: currentStep,
-                            conversationSteps: conversationSteps,
-                            showInputField: showInputField,
-                            showSecondaryElements: showSecondaryElements,
-                            currentInput: $currentInput,
-                            onSend: { handleUserInput(input: currentInput) }
-                        )
-                        
-                        // Complete Button
-                        if (currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal && messages.count > 0 && messages.last?.isUser == false) ||
-                           currentStep >= conversationSteps.count {
-                            Button(action: { onComplete() }) {
-                                HStack {
-                                    Image(systemName: "sparkles")
-                                    Text("Begin Your Journey")
-                                    Image(systemName: "arrow.right")
+                        // Logo image
+                        Image("logo")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 140, height: 140)
+                    }
+                    .frame(height: 150)
+                    .padding(.top, 30)
+                    
+                    // Empty name label
+                    Text("")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.bottom, 8)
+                }
+                .frame(maxWidth: .infinity)
+                .background(Color.clear)
+                
+                // Scrollable Chat Content
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 24) {
+                            // Chat Content
+                            ChatContentView(
+                                messages: messages,
+                                currentStep: currentStep,
+                                conversationSteps: conversationSteps,
+                                showInteractivePicker: showInteractivePicker,
+                                showSecondaryElements: showSecondaryElements,
+                                selectedDate: $selectedDate,
+                                selectedTime: $selectedTime,
+                                isTyping: isTyping,
+                                onDateSelected: { date in
+                                    let formatter = DateFormatter()
+                                    formatter.dateStyle = .medium
+                                    handleUserInput(input: formatter.string(from: date))
+                                },
+                                onTimeSelected: { time in
+                                    let formatter = DateFormatter()
+                                    formatter.timeStyle = .short
+                                    handleUserInput(input: formatter.string(from: time))
+                                },
+                                onUnknownTime: {
+                                    handleUserInput(input: "Unknown")
                                 }
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(
-                                    LinearGradient(
-                                        colors: [Color.purple, Color.pink],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
+                            )
+                            
+                            // Input
+                            ChatInputView(
+                                currentStep: currentStep,
+                                conversationSteps: conversationSteps,
+                                showInputField: showInputField,
+                                showSecondaryElements: showSecondaryElements,
+                                currentInput: $currentInput,
+                                onSend: { handleUserInput(input: currentInput) }
+                            )
+                            
+                            // Complete Button
+                            if (currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal && messages.count > 0 && messages.last?.isUser == false) ||
+                               currentStep >= conversationSteps.count {
+                                Button(action: { onComplete() }) {
+                                    HStack {
+                                        Image(systemName: "sparkles")
+                                        Text("Begin Your Journey")
+                                        Image(systemName: "arrow.right")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color.purple, Color.pink],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
                                     )
-                                )
-                                .cornerRadius(12)
+                                    .cornerRadius(12)
+                                }
+                                .padding(.horizontal)
+                                .transition(.opacity)
                             }
-                            .padding(.horizontal)
-                            .transition(.opacity)
+                            
+                            Spacer().frame(height: 20)
                         }
-                        
-                        Spacer().frame(height: 20)
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
-                }
-                .onChange(of: messages.count) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo("bottom", anchor: .bottom)
-                    }
-                }
-                .onChange(of: showInteractivePicker) {
-                    if showInteractivePicker {
+                    .onChange(of: messages.count) {
                         withAnimation(.easeInOut(duration: 0.5)) {
                             proxy.scrollTo("bottom", anchor: .bottom)
                         }
                     }
-                }
-                .onChange(of: currentStep) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo("bottom", anchor: .bottom)
+                    .onChange(of: showInteractivePicker) {
+                        if showInteractivePicker {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                proxy.scrollTo("bottom", anchor: .bottom)
+                            }
+                        }
                     }
-                }
-                .onChange(of: isTyping) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo("bottom", anchor: .bottom)
+                    .onChange(of: currentStep) {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            proxy.scrollTo("bottom", anchor: .bottom)
+                        }
+                    }
+                    .onChange(of: isTyping) { oldValue, newValue in
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo("chatContent", anchor: .bottom)
+                        }
+                    }
+                    .onChange(of: showInteractivePicker) { oldValue, newValue in
+                        if newValue {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    proxy.scrollTo("chatContent", anchor: .bottom)
+                                }
+                            }
+                        }
+                    }
+                    .onChange(of: keyboardHeight) { oldValue, newValue in
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo("chatContent", anchor: .bottom)
+                        }
                     }
                 }
             }

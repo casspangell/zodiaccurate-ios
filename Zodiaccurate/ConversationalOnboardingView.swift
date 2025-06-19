@@ -16,153 +16,71 @@ struct ConversationalOnboardingView: View {
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
     @State private var showInteractivePicker = false
+    @State private var showInputField = false
+    @State private var showSecondaryElements = false
     var onComplete: () -> Void = {}
     
     var body: some View {
         ZStack {
-            // Cosmic background (matching login view)
-            RadialGradient(
-                gradient: Gradient(stops: [
-                    .init(color: Color(hex: "1A0B2E"), location: 0.0),
-                    .init(color: Color(hex: "0F051A"), location: 0.7),
-                    .init(color: Color.black, location: 1.0)
-                ]),
-                center: .center,
-                startRadius: 100,
-                endRadius: 600
-            )
-            .ignoresSafeArea()
-
-            // Vignette overlay for black corners/edges
-            RadialGradient(
-                gradient: Gradient(stops: [
-                    .init(color: Color.black.opacity(0.0), location: 0.6),
-                    .init(color: Color.black.opacity(0.7), location: 1.0)
-                ]),
-                center: .center,
-                startRadius: 100,
-                endRadius: 600
-            )
-            .ignoresSafeArea()
-            .blendMode(.multiply)
-            .allowsHitTesting(false)
-
-            // Celestial bodies animation
-            GeometryReader { geo in
-                CelestialSystemBackground()
-                    .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-                    .position(x: geo.size.width / 5, y: geo.size.height / 2)
-            }
-
-            // Orange overlay
-            Color.backgroundPrimary.opacity(0.5)
-                .ignoresSafeArea()
+            // Background layers
+            BackgroundView()
             
-            // Content
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         Spacer().frame(height: 60)
                         
-                        Text("Cosmic Guide")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.bottom, 4)
-                        
-                        Text("Let's discover your cosmic blueprint")
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundColor(Color.white.opacity(0.7))
-                            .padding(.bottom, 16)
-                        
-                        // Chat Messages
-                        VStack(spacing: 16) {
-                            ForEach(messages) { message in
-                                ChatBubble(message: message)
-                                    .id(message.id)
-                            }
+                        // Header
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Cosmic Guide")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(.white)
                             
-                            // Show interactive picker for current step
-                            if currentStep < conversationSteps.count && 
-                               !conversationSteps[currentStep].isFinal && 
-                               showInteractivePicker {
-                                InteractivePickerView(
-                                    step: conversationSteps[currentStep],
-                                    selectedDate: $selectedDate,
-                                    selectedTime: $selectedTime,
-                                    onDateSelected: { date in
-                                        let formatter = DateFormatter()
-                                        formatter.dateStyle = .medium
-                                        handleUserInput(input: formatter.string(from: date))
-                                    },
-                                    onTimeSelected: { time in
-                                        let formatter = DateFormatter()
-                                        formatter.timeStyle = .short
-                                        handleUserInput(input: formatter.string(from: time))
-                                    },
-                                    onUnknownTime: {
-                                        handleUserInput(input: "Unknown")
-                                    }
-                                )
-                                .background(Color.white.opacity(0.08))
-                                .cornerRadius(12)
-                            }
-                            
-                            if isTyping {
-                                TypingIndicator()
-                            }
-                            
-                            // Always keep this at the end for autoscroll
-                            Color.clear
-                                .frame(height: 1)
-                                .id("bottom")
+                            Text("Let's discover your cosmic blueprint")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundColor(Color.white.opacity(0.7))
                         }
-                        .padding(.horizontal)
+                        .padding(.bottom, 16)
                         
-                        // Input Area - only for text input
-                        if currentStep < conversationSteps.count && 
-                           !conversationSteps[currentStep].isFinal && 
-                           conversationSteps[currentStep].inputType == "text" {
-                            InputSection(
-                                currentInput: $currentInput,
-                                currentStep: conversationSteps[currentStep],
-                                onSend: { handleUserInput(input: currentInput) }
-                            )
-                            .background(Color.white.opacity(0.08))
-                            .cornerRadius(12)
-                            .padding(.horizontal)
-                            .padding(.top, 8)
-                        } else if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
-                            // Final step - show the final message and then the button
-                            if messages.count > 0 && messages.last?.isUser == false {
-                                // Final CTA Button
-                                Button(action: {
-                                    onComplete()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "sparkles")
-                                        Text("Begin Your Journey")
-                                        Image(systemName: "arrow.right")
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        LinearGradient(
-                                            colors: [Color.purple, Color.pink],
-                                            startPoint: .leading,
-                                            endPoint: .trailing
-                                        )
-                                    )
-                                    .cornerRadius(12)
-                                }
-                                .padding(.horizontal)
+                        // Chat Content
+                        ChatContentView(
+                            messages: messages,
+                            currentStep: currentStep,
+                            conversationSteps: conversationSteps,
+                            showInteractivePicker: showInteractivePicker,
+                            showSecondaryElements: showSecondaryElements,
+                            selectedDate: $selectedDate,
+                            selectedTime: $selectedTime,
+                            isTyping: isTyping,
+                            onDateSelected: { date in
+                                let formatter = DateFormatter()
+                                formatter.dateStyle = .medium
+                                handleUserInput(input: formatter.string(from: date))
+                            },
+                            onTimeSelected: { time in
+                                let formatter = DateFormatter()
+                                formatter.timeStyle = .short
+                                handleUserInput(input: formatter.string(from: time))
+                            },
+                            onUnknownTime: {
+                                handleUserInput(input: "Unknown")
                             }
-                        } else if currentStep >= conversationSteps.count {
-                            // Final CTA Button
-                            Button(action: {
-                                onComplete()
-                            }) {
+                        )
+                        
+                        // Input
+                        ChatInputView(
+                            currentStep: currentStep,
+                            conversationSteps: conversationSteps,
+                            showInputField: showInputField,
+                            showSecondaryElements: showSecondaryElements,
+                            currentInput: $currentInput,
+                            onSend: { handleUserInput(input: currentInput) }
+                        )
+                        
+                        // Complete Button
+                        if (currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal && messages.count > 0 && messages.last?.isUser == false) ||
+                           currentStep >= conversationSteps.count {
+                            Button(action: { onComplete() }) {
                                 HStack {
                                     Image(systemName: "sparkles")
                                     Text("Begin Your Journey")
@@ -182,6 +100,7 @@ struct ConversationalOnboardingView: View {
                                 .cornerRadius(12)
                             }
                             .padding(.horizontal)
+                            .transition(.opacity)
                         }
                         
                         Spacer().frame(height: 20)
@@ -217,18 +136,94 @@ struct ConversationalOnboardingView: View {
         }
     }
     
+    // Background View
+    private struct BackgroundView: View {
+        var body: some View {
+            ZStack {
+                // Cosmic background
+                RadialGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color(hex: "1A0B2E"), location: 0.0),
+                        .init(color: Color(hex: "0F051A"), location: 0.7),
+                        .init(color: Color.black, location: 1.0)
+                    ]),
+                    center: .center,
+                    startRadius: 100,
+                    endRadius: 600
+                )
+                .ignoresSafeArea()
+
+                // Vignette overlay
+                RadialGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color.black.opacity(0.0), location: 0.6),
+                        .init(color: Color.black.opacity(0.7), location: 1.0)
+                    ]),
+                    center: .center,
+                    startRadius: 100,
+                    endRadius: 600
+                )
+                .ignoresSafeArea()
+                .blendMode(.multiply)
+                .allowsHitTesting(false)
+
+                // Celestial bodies
+                GeometryReader { geo in
+                    CelestialSystemBackground()
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                        .position(x: geo.size.width / 5, y: geo.size.height / 2)
+                }
+
+                // Orange overlay
+                Color.backgroundPrimary.opacity(0.5)
+                    .ignoresSafeArea()
+            }
+        }
+    }
+    
     private func startConversation() {
         showInteractivePicker = false
+        showInputField = false
+        showSecondaryElements = false
+        
+        // Add initial message with typing animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            addAIMessage(conversationSteps[0].message)
+            isTyping = true
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                isTyping = false
+                let aiMessage = ChatMessage(
+                    text: conversationSteps[0].message,
+                    isUser: false,
+                    timestamp: Date()
+                )
+                withAnimation {
+                    messages.append(aiMessage)
+                }
+                
+                // Show input field or interactive picker after message appears
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation {
+                        showSecondaryElements = true
+                        if conversationSteps[0].inputType == "text" {
+                            showInputField = true
+                        } else if conversationSteps[0].inputType == "date" || 
+                                conversationSteps[0].inputType == "time" {
+                            showInteractivePicker = true
+                        }
+                    }
+                }
+            }
         }
     }
     
     private func handleUserInput(input: String) {
         guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
-        // Hide interactive picker when user provides input
+        // Hide interactive elements when user provides input
         showInteractivePicker = false
+        showInputField = false
+        showSecondaryElements = false
         
         // Add user message
         let userMessage = ChatMessage(
@@ -236,7 +231,9 @@ struct ConversationalOnboardingView: View {
             isUser: true,
             timestamp: Date()
         )
-        messages.append(userMessage)
+        withAnimation {
+            messages.append(userMessage)
+        }
         
         // Store user data
         storeUserData(input: input, step: conversationSteps[currentStep])
@@ -253,18 +250,15 @@ struct ConversationalOnboardingView: View {
                 let nextMessage = conversationSteps[currentStep].message
                 let personalizedMessage = personalizeMessage(nextMessage, with: userData.firstName)
                 addAIMessage(personalizedMessage)
-                
-                // If this is the final step and it doesn't require input, automatically proceed
-                if conversationSteps[currentStep].isFinal && conversationSteps[currentStep].inputType == "none" {
-                    // The final message will be shown and then the button will appear
-                    // No additional action needed since the view will automatically show the button
-                }
             }
         }
     }
     
     private func addAIMessage(_ text: String) {
         isTyping = true
+        showInputField = false
+        showInteractivePicker = false
+        showSecondaryElements = false
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             isTyping = false
@@ -273,14 +267,22 @@ struct ConversationalOnboardingView: View {
                 isUser: false,
                 timestamp: Date()
             )
-            messages.append(aiMessage)
+            withAnimation {
+                messages.append(aiMessage)
+            }
             
-            // Show interactive picker after AI message is displayed
+            // Show input field or interactive picker after message appears
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if currentStep < conversationSteps.count && 
-                   (conversationSteps[currentStep].inputType == "date" || 
-                    conversationSteps[currentStep].inputType == "time") {
-                    showInteractivePicker = true
+                withAnimation {
+                    showSecondaryElements = true
+                    if currentStep < conversationSteps.count {
+                        if conversationSteps[currentStep].inputType == "text" {
+                            showInputField = true
+                        } else if conversationSteps[currentStep].inputType == "date" || 
+                                conversationSteps[currentStep].inputType == "time" {
+                            showInteractivePicker = true
+                        }
+                    }
                 }
             }
         }
@@ -310,11 +312,18 @@ struct ConversationalOnboardingView: View {
     }
 }
 
-struct ChatMessage: Identifiable {
+struct ChatMessage: Identifiable, Equatable {
     let id = UUID()
     let text: String
     let isUser: Bool
     let timestamp: Date
+    
+    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
+        lhs.id == rhs.id &&
+        lhs.text == rhs.text &&
+        lhs.isUser == rhs.isUser &&
+        lhs.timestamp == rhs.timestamp
+    }
 }
 
 struct ChatBubble: View {
@@ -343,7 +352,7 @@ struct ChatBubble: View {
                     
                     Text(message.text)
                         .padding()
-                        .background(Color.gray.opacity(0.1))
+                        .background(Color.white.opacity(0.05))
                         .foregroundColor(.white)
                         .cornerRadius(20)
                         .frame(maxWidth: 280, alignment: .leading)
@@ -427,98 +436,91 @@ struct InteractivePickerView: View {
         HStack {
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 8) {
-                if step.inputType == "date" {
-                    VStack(alignment: .trailing, spacing: 12) {
-                        Text("Select your birth date")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: 280, alignment: .trailing)
-                        
-                        DatePicker(
-                            "Birth Date",
-                            selection: $selectedDate,
-                            displayedComponents: .date
-                        )
-                        .datePickerStyle(.compact)
-                        .colorScheme(.dark)
-                        
-                        Button(action: {
-                            onDateSelected(selectedDate)
-                        }) {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                Text("Submit")
-                            }
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.green.opacity(0.8))
-                            .cornerRadius(12)
+            if step.inputType == "date" {
+                VStack(alignment: .trailing, spacing: 12) {
+                    DatePicker(
+                        "Birth Date",
+                        selection: $selectedDate,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.compact)
+                    .colorScheme(.dark)
+                    
+                    Button(action: {
+                        onDateSelected(selectedDate)
+                    }) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Submit")
                         }
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.green.opacity(0.8))
+                        .cornerRadius(12)
                     }
-                    .padding()
-                    .background(Color.purple.opacity(0.8))
-                    .foregroundColor(.white)
-                    .cornerRadius(20)
-                    .frame(maxWidth: 280, alignment: .trailing)
-                } else if step.inputType == "time" {
-                    VStack(alignment: .trailing, spacing: 12) {
-                        Text("Select your birth time")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: 280, alignment: .trailing)
-                        
-                        DatePicker(
-                            "Birth Time",
-                            selection: $selectedTime,
-                            displayedComponents: .hourAndMinute
-                        )
-                        .datePickerStyle(.compact)
-                        .colorScheme(.dark)
-                        
-                        Button(action: {
-                            onTimeSelected(selectedTime)
-                        }) {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                Text("Submit")
-                            }
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.green.opacity(0.8))
-                            .cornerRadius(12)
-                        }
-                        
-                        Text("or")
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.6))
-                            .padding(.top, 4)
-                        
-                        Button(action: {
-                            onUnknownTime()
-                        }) {
-                            HStack {
-                                Image(systemName: "questionmark.circle.fill")
-                                Text("I don't know my birth time")
-                            }
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color.orange.opacity(0.8))
-                            .cornerRadius(12)
-                        }
-                    }
-                    .padding()
-                    .background(Color.purple.opacity(0.8))
-                    .foregroundColor(.white)
-                    .cornerRadius(20)
-                    .frame(maxWidth: 280, alignment: .trailing)
                 }
+                .padding()
+                .background(Color.purple.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(20)
+                .frame(maxWidth: 280, alignment: .trailing)
+            } else if step.inputType == "time" {
+                VStack(alignment: .trailing, spacing: 12) {
+                    Text("Select your birth time")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: 280, alignment: .trailing)
+                    
+                    DatePicker(
+                        "Birth Time",
+                        selection: $selectedTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .datePickerStyle(.compact)
+                    .colorScheme(.dark)
+                    
+                    Button(action: {
+                        onTimeSelected(selectedTime)
+                    }) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                            Text("Submit")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.green.opacity(0.8))
+                        .cornerRadius(12)
+                    }
+                    
+                    Text("or")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.6))
+                        .padding(.top, 4)
+                    
+                    Button(action: {
+                        onUnknownTime()
+                    }) {
+                        HStack {
+                            Image(systemName: "questionmark.circle.fill")
+                            Text("I don't know my birth time")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(12)
+                    }
+                }
+                .padding()
+                .background(Color.purple.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(20)
+                .frame(maxWidth: 280, alignment: .trailing)
             }
         }
     }
@@ -586,3 +588,81 @@ let conversationSteps: [ConversationStep] = [
         isFinal: true
     )
 ]
+
+// Break out the chat content into a separate view
+struct ChatContentView: View {
+    let messages: [ChatMessage]
+    let currentStep: Int
+    let conversationSteps: [ConversationStep]
+    let showInteractivePicker: Bool
+    let showSecondaryElements: Bool
+    let selectedDate: Binding<Date>
+    let selectedTime: Binding<Date>
+    let isTyping: Bool
+    let onDateSelected: (Date) -> Void
+    let onTimeSelected: (Date) -> Void
+    let onUnknownTime: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            ForEach(messages) { message in
+                ChatBubble(message: message)
+                    .id(message.id)
+                    .transition(.opacity)
+            }
+            
+            if currentStep < conversationSteps.count && 
+               !conversationSteps[currentStep].isFinal && 
+               showInteractivePicker && showSecondaryElements {
+                InteractivePickerView(
+                    step: conversationSteps[currentStep],
+                    selectedDate: selectedDate,
+                    selectedTime: selectedTime,
+                    onDateSelected: onDateSelected,
+                    onTimeSelected: onTimeSelected,
+                    onUnknownTime: onUnknownTime
+                )
+            }
+            
+            if isTyping {
+                TypingIndicator()
+                    .transition(.opacity)
+            }
+            
+            Color.clear
+                .frame(height: 1)
+                .id("bottom")
+        }
+        .padding(.horizontal)
+        .animation(.easeInOut(duration: 0.3), value: messages)
+        .animation(.easeInOut(duration: 0.3), value: showSecondaryElements)
+    }
+}
+
+// Break out the input section into a separate view
+struct ChatInputView: View {
+    let currentStep: Int
+    let conversationSteps: [ConversationStep]
+    let showInputField: Bool
+    let showSecondaryElements: Bool
+    let currentInput: Binding<String>
+    let onSend: () -> Void
+    
+    var body: some View {
+        if currentStep < conversationSteps.count && 
+           !conversationSteps[currentStep].isFinal && 
+           conversationSteps[currentStep].inputType == "text" &&
+           showInputField && showSecondaryElements {
+            InputSection(
+                currentInput: currentInput,
+                currentStep: conversationSteps[currentStep],
+                onSend: onSend
+            )
+            .background(Color.white.opacity(0.08))
+            .cornerRadius(12)
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .transition(.opacity)
+        }
+    }
+}

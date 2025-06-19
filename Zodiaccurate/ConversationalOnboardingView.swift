@@ -79,14 +79,34 @@ struct ConversationalOnboardingView: View {
                         if isTyping {
                             TypingIndicator()
                         }
+                        
+                        // Always keep this at the end for autoscroll
+                        Color.clear
+                            .frame(height: 1)
+                            .id("bottom")
                     }
                     .padding()
                 }
                 .onChange(of: messages.count) {
-                    if let lastMessage = messages.last {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
+                    }
+                }
+                .onChange(of: showInteractivePicker) {
+                    if showInteractivePicker {
                         withAnimation(.easeInOut(duration: 0.5)) {
-                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+                            proxy.scrollTo("bottom", anchor: .bottom)
                         }
+                    }
+                }
+                .onChange(of: currentStep) { _ in
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
+                    }
+                }
+                .onChange(of: isTyping) { _ in
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
                     }
                 }
             }
@@ -414,16 +434,41 @@ struct InteractivePickerView: View {
                         )
                         .datePickerStyle(.compact)
                         .colorScheme(.dark)
-                        .onChange(of: selectedTime) { oldValue, newValue in
-                            onTimeSelected(newValue)
+                        
+                        Button(action: {
+                            onTimeSelected(selectedTime)
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Submit")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.green.opacity(0.8))
+                            .cornerRadius(12)
                         }
                         
-                        Button("I don't know my birth time") {
+                        Text("or")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.6))
+                            .padding(.top, 4)
+                        
+                        Button(action: {
                             onUnknownTime()
+                        }) {
+                            HStack {
+                                Image(systemName: "questionmark.circle.fill")
+                                Text("I don't know my birth time")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.orange.opacity(0.8))
+                            .cornerRadius(12)
                         }
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                        .padding(.top, 4)
                     }
                     .padding()
                     .background(Color.purple.opacity(0.8))

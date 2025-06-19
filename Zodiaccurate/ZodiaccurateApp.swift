@@ -17,6 +17,8 @@ struct ZodiaccurateApp: App {
     
     init() {
         FirebaseApp.configure()
+        // Temporarily reset onboarding flag for testing
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
     }
     
     var body: some Scene {
@@ -41,11 +43,12 @@ struct RootView: View {
                 SplashScreenView {
                     withAnimation(.easeInOut(duration: 0.7)) {
                         showSplash = false
-                        if hasCompletedOnboarding {
-                            showLogin = true
-                        } else {
+                        // Temporarily always show onboarding
+                        // if hasCompletedOnboarding {
+                        //     showLogin = true
+                        // } else {
                             showOnboarding = true
-                        }
+                        // }
                     }
                 }
                 .transition(.opacity)
@@ -54,7 +57,8 @@ struct RootView: View {
             if showOnboarding {
                 ConversationalOnboardingView {
                     withAnimation(.easeInOut(duration: 0.7)) {
-                        hasCompletedOnboarding = true
+                        // Temporarily comment out onboarding completion
+                        // hasCompletedOnboarding = true
                         showOnboarding = false
                         showLogin = true
                     }

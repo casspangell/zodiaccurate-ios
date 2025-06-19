@@ -20,38 +20,62 @@ struct ConversationalOnboardingView: View {
     
     var body: some View {
         ZStack {
-            // Celestial Background
-            CelestialSystemBackground()
+            // Cosmic background (matching login view)
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color(hex: "1A0B2E"), location: 0.0),
+                    .init(color: Color(hex: "0F051A"), location: 0.7),
+                    .init(color: Color.black, location: 1.0)
+                ]),
+                center: .center,
+                startRadius: 100,
+                endRadius: 600
+            )
+            .ignoresSafeArea()
+
+            // Vignette overlay for black corners/edges
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color.black.opacity(0.0), location: 0.6),
+                    .init(color: Color.black.opacity(0.7), location: 1.0)
+                ]),
+                center: .center,
+                startRadius: 100,
+                endRadius: 600
+            )
+            .ignoresSafeArea()
+            .blendMode(.multiply)
+            .allowsHitTesting(false)
+
+            // Celestial bodies animation
+            GeometryReader { geo in
+                CelestialSystemBackground()
+                    .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                    .position(x: geo.size.width / 5, y: geo.size.height / 2)
+            }
+
+            // Orange overlay
+            Color.backgroundPrimary.opacity(0.5)
                 .ignoresSafeArea()
             
-            VStack {
-                // Header with mystical background
-                ZStack {
-                    LinearGradient(
-                        colors: [Color.purple.opacity(0.8), Color.indigo.opacity(0.6)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .ignoresSafeArea()
-                    
-                    VStack {
-                        Image(systemName: "moon.stars.fill")
-                            .font(.system(size: 40))
-                            .foregroundColor(.white)
+            // Content
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Spacer().frame(height: 60)
                         
                         Text("Cosmic Guide")
-                            .font(.title2)
-                            .fontWeight(.medium)
+                            .font(.system(size: 32, weight: .bold))
                             .foregroundColor(.white)
-                    }
-                    .padding(.top, 20)
-                }
-                .frame(height: 120)
-                
-                // Chat Messages
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
+                            .padding(.bottom, 4)
+                        
+                        Text("Let's discover your cosmic blueprint")
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(Color.white.opacity(0.7))
+                            .padding(.bottom, 16)
+                        
+                        // Chat Messages
+                        VStack(spacing: 16) {
                             ForEach(messages) { message in
                                 ChatBubble(message: message)
                                     .id(message.id)
@@ -79,8 +103,8 @@ struct ConversationalOnboardingView: View {
                                         handleUserInput(input: "Unknown")
                                     }
                                 )
-                                .background(Color.black.opacity(0.6))
-                                .cornerRadius(15)
+                                .background(Color.white.opacity(0.08))
+                                .cornerRadius(12)
                             }
                             
                             if isTyping {
@@ -92,94 +116,99 @@ struct ConversationalOnboardingView: View {
                                 .frame(height: 1)
                                 .id("bottom")
                         }
-                        .padding()
-                    }
-                    .background(Color.black.opacity(0.4))
-                    .onChange(of: messages.count) {
-                        withAnimation(.easeInOut(duration: 0.5)) {
-                            proxy.scrollTo("bottom", anchor: .bottom)
-                        }
-                    }
-                    .onChange(of: showInteractivePicker) {
-                        if showInteractivePicker {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                proxy.scrollTo("bottom", anchor: .bottom)
+                        .padding(.horizontal)
+                        
+                        // Input Area - only for text input
+                        if currentStep < conversationSteps.count && 
+                           !conversationSteps[currentStep].isFinal && 
+                           conversationSteps[currentStep].inputType == "text" {
+                            InputSection(
+                                currentInput: $currentInput,
+                                currentStep: conversationSteps[currentStep],
+                                onSend: { handleUserInput(input: currentInput) }
+                            )
+                            .background(Color.white.opacity(0.08))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                        } else if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
+                            // Final step - show the final message and then the button
+                            if messages.count > 0 && messages.last?.isUser == false {
+                                // Final CTA Button
+                                Button(action: {
+                                    onComplete()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "sparkles")
+                                        Text("Begin Your Journey")
+                                        Image(systemName: "arrow.right")
+                                    }
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(
+                                        LinearGradient(
+                                            colors: [Color.purple, Color.pink],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .cornerRadius(12)
+                                }
+                                .padding(.horizontal)
                             }
+                        } else if currentStep >= conversationSteps.count {
+                            // Final CTA Button
+                            Button(action: {
+                                onComplete()
+                            }) {
+                                HStack {
+                                    Image(systemName: "sparkles")
+                                    Text("Begin Your Journey")
+                                    Image(systemName: "arrow.right")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color.purple, Color.pink],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
                         }
+                        
+                        Spacer().frame(height: 20)
                     }
-                    .onChange(of: currentStep) {
-                        withAnimation(.easeInOut(duration: 0.5)) {
-                            proxy.scrollTo("bottom", anchor: .bottom)
-                        }
+                    .padding(.horizontal)
+                }
+                .onChange(of: messages.count) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
                     }
-                    .onChange(of: isTyping) {
+                }
+                .onChange(of: showInteractivePicker) {
+                    if showInteractivePicker {
                         withAnimation(.easeInOut(duration: 0.5)) {
                             proxy.scrollTo("bottom", anchor: .bottom)
                         }
                     }
                 }
-                
-                // Input Area - only for text input
-                if currentStep < conversationSteps.count && 
-                   !conversationSteps[currentStep].isFinal && 
-                   conversationSteps[currentStep].inputType == "text" {
-                    InputSection(
-                        currentInput: $currentInput,
-                        currentStep: conversationSteps[currentStep],
-                        onSend: { handleUserInput(input: currentInput) }
-                    )
-                    .background(Color.black.opacity(0.6))
-                } else if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
-                    // Final step - show the final message and then the button
-                    if messages.count > 0 && messages.last?.isUser == false {
-                        // Final CTA Button
-                        Button(action: {
-                            onComplete()
-                        }) {
-                            HStack {
-                                Image(systemName: "sparkles")
-                                Text("Unlock My Cosmic Blueprint")
-                                Image(systemName: "arrow.right")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(
-                                LinearGradient(
-                                    colors: [Color.purple, Color.pink],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .cornerRadius(25)
-                        }
-                        .padding()
-                        .background(Color.black.opacity(0.6))
+                .onChange(of: currentStep) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
                     }
-                } else if currentStep >= conversationSteps.count {
-                    // Final CTA Button
-                    Button(action: {
-                        onComplete()
-                    }) {
-                        HStack {
-                            Image(systemName: "sparkles")
-                            Text("Unlock My Cosmic Blueprint")
-                            Image(systemName: "arrow.right")
-                        }
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                colors: [Color.purple, Color.pink],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(25)
+                }
+                .onChange(of: isTyping) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo("bottom", anchor: .bottom)
                     }
-                    .padding()
-                    .background(Color.black.opacity(0.6))
                 }
             }
         }

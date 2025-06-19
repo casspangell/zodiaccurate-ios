@@ -51,7 +51,7 @@ struct ConversationalOnboardingView: View {
                             .frame(width: 140, height: 140)
                     }
                     .frame(height: 150)
-                    .padding(.top, 30)
+                    .padding(.top, 50)
                     
                     // Empty name label
                     Text("")
@@ -130,7 +130,7 @@ struct ConversationalOnboardingView: View {
                             Spacer().frame(height: 20)
                         }
                         .padding(.horizontal)
-                        .padding(.top, -75) // Move chat content up to overlap with profile image
+                        .padding(.top, -100) // Move chat content up to overlap with profile image
                     }
                     .onChange(of: messages.count) {
                         withAnimation(.easeInOut(duration: 0.5)) {
@@ -169,6 +169,7 @@ struct ConversationalOnboardingView: View {
                         }
                     }
                 }
+                .offset(y: -75) // Move the entire ScrollView up to start midway behind the profile image
             }
         }
         .onAppear {

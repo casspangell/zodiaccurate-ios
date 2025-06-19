@@ -19,110 +19,144 @@ struct ConversationalOnboardingView: View {
     var onComplete: () -> Void = {}
     
     var body: some View {
-        VStack {
-            // Header with mystical background
-            ZStack {
-                LinearGradient(
-                    colors: [Color.purple.opacity(0.8), Color.indigo.opacity(0.6)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            // Celestial Background
+            CelestialSystemBackground()
                 .ignoresSafeArea()
-                
-                VStack {
-                    Image(systemName: "moon.stars.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.white)
-                    
-                    Text("Cosmic Guide")
-                        .font(.title2)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                }
-                .padding(.top, 20)
-            }
-            .frame(height: 120)
             
-            // Chat Messages
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        ForEach(messages) { message in
-                            ChatBubble(message: message)
-                                .id(message.id)
-                        }
+            VStack {
+                // Header with mystical background
+                ZStack {
+                    LinearGradient(
+                        colors: [Color.purple.opacity(0.8), Color.indigo.opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .ignoresSafeArea()
+                    
+                    VStack {
+                        Image(systemName: "moon.stars.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.white)
                         
-                        // Show interactive picker for current step
-                        if currentStep < conversationSteps.count && 
-                           !conversationSteps[currentStep].isFinal && 
-                           showInteractivePicker {
-                            InteractivePickerView(
-                                step: conversationSteps[currentStep],
-                                selectedDate: $selectedDate,
-                                selectedTime: $selectedTime,
-                                onDateSelected: { date in
-                                    let formatter = DateFormatter()
-                                    formatter.dateStyle = .medium
-                                    handleUserInput(input: formatter.string(from: date))
-                                },
-                                onTimeSelected: { time in
-                                    let formatter = DateFormatter()
-                                    formatter.timeStyle = .short
-                                    handleUserInput(input: formatter.string(from: time))
-                                },
-                                onUnknownTime: {
-                                    handleUserInput(input: "Unknown")
-                                }
-                            )
-                        }
-                        
-                        if isTyping {
-                            TypingIndicator()
-                        }
-                        
-                        // Always keep this at the end for autoscroll
-                        Color.clear
-                            .frame(height: 1)
-                            .id("bottom")
+                        Text("Cosmic Guide")
+                            .font(.title2)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
                     }
-                    .padding()
+                    .padding(.top, 20)
                 }
-                .onChange(of: messages.count) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo("bottom", anchor: .bottom)
+                .frame(height: 120)
+                
+                // Chat Messages
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(messages) { message in
+                                ChatBubble(message: message)
+                                    .id(message.id)
+                            }
+                            
+                            // Show interactive picker for current step
+                            if currentStep < conversationSteps.count && 
+                               !conversationSteps[currentStep].isFinal && 
+                               showInteractivePicker {
+                                InteractivePickerView(
+                                    step: conversationSteps[currentStep],
+                                    selectedDate: $selectedDate,
+                                    selectedTime: $selectedTime,
+                                    onDateSelected: { date in
+                                        let formatter = DateFormatter()
+                                        formatter.dateStyle = .medium
+                                        handleUserInput(input: formatter.string(from: date))
+                                    },
+                                    onTimeSelected: { time in
+                                        let formatter = DateFormatter()
+                                        formatter.timeStyle = .short
+                                        handleUserInput(input: formatter.string(from: time))
+                                    },
+                                    onUnknownTime: {
+                                        handleUserInput(input: "Unknown")
+                                    }
+                                )
+                                .background(Color.black.opacity(0.6))
+                                .cornerRadius(15)
+                            }
+                            
+                            if isTyping {
+                                TypingIndicator()
+                            }
+                            
+                            // Always keep this at the end for autoscroll
+                            Color.clear
+                                .frame(height: 1)
+                                .id("bottom")
+                        }
+                        .padding()
                     }
-                }
-                .onChange(of: showInteractivePicker) {
-                    if showInteractivePicker {
+                    .background(Color.black.opacity(0.4))
+                    .onChange(of: messages.count) {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            proxy.scrollTo("bottom", anchor: .bottom)
+                        }
+                    }
+                    .onChange(of: showInteractivePicker) {
+                        if showInteractivePicker {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                proxy.scrollTo("bottom", anchor: .bottom)
+                            }
+                        }
+                    }
+                    .onChange(of: currentStep) {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            proxy.scrollTo("bottom", anchor: .bottom)
+                        }
+                    }
+                    .onChange(of: isTyping) {
                         withAnimation(.easeInOut(duration: 0.5)) {
                             proxy.scrollTo("bottom", anchor: .bottom)
                         }
                     }
                 }
-                .onChange(of: currentStep) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo("bottom", anchor: .bottom)
+                
+                // Input Area - only for text input
+                if currentStep < conversationSteps.count && 
+                   !conversationSteps[currentStep].isFinal && 
+                   conversationSteps[currentStep].inputType == "text" {
+                    InputSection(
+                        currentInput: $currentInput,
+                        currentStep: conversationSteps[currentStep],
+                        onSend: { handleUserInput(input: currentInput) }
+                    )
+                    .background(Color.black.opacity(0.6))
+                } else if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
+                    // Final step - show the final message and then the button
+                    if messages.count > 0 && messages.last?.isUser == false {
+                        // Final CTA Button
+                        Button(action: {
+                            onComplete()
+                        }) {
+                            HStack {
+                                Image(systemName: "sparkles")
+                                Text("Unlock My Cosmic Blueprint")
+                                Image(systemName: "arrow.right")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(
+                                LinearGradient(
+                                    colors: [Color.purple, Color.pink],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(25)
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.6))
                     }
-                }
-                .onChange(of: isTyping) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo("bottom", anchor: .bottom)
-                    }
-                }
-            }
-            
-            // Input Area - only for text input
-            if currentStep < conversationSteps.count && 
-               !conversationSteps[currentStep].isFinal && 
-               conversationSteps[currentStep].inputType == "text" {
-                InputSection(
-                    currentInput: $currentInput,
-                    currentStep: conversationSteps[currentStep],
-                    onSend: { handleUserInput(input: currentInput) }
-                )
-            } else if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
-                // Final step - show the final message and then the button
-                if messages.count > 0 && messages.last?.isUser == false {
+                } else if currentStep >= conversationSteps.count {
                     // Final CTA Button
                     Button(action: {
                         onComplete()
@@ -145,33 +179,10 @@ struct ConversationalOnboardingView: View {
                         .cornerRadius(25)
                     }
                     .padding()
+                    .background(Color.black.opacity(0.6))
                 }
-            } else if currentStep >= conversationSteps.count {
-                // Final CTA Button
-                Button(action: {
-                    onComplete()
-                }) {
-                    HStack {
-                        Image(systemName: "sparkles")
-                        Text("Unlock My Cosmic Blueprint")
-                        Image(systemName: "arrow.right")
-                    }
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            colors: [Color.purple, Color.pink],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(25)
-                }
-                .padding()
             }
         }
-        .background(Color.black)
         .onAppear {
             startConversation()
         }

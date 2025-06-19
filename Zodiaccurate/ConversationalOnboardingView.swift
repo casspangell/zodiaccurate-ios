@@ -470,7 +470,7 @@ struct InteractivePickerView: View {
                 VStack(alignment: .trailing, spacing: 12) {
                     Text("Select your birth time")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.white)
                         .frame(maxWidth: 280, alignment: .trailing)
                     
                     DatePicker(
@@ -498,7 +498,7 @@ struct InteractivePickerView: View {
                     
                     Text("or")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(.white)
                         .padding(.top, 4)
                     
                     Button(action: {

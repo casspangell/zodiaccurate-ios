@@ -21,6 +21,14 @@ struct ConversationalOnboardingView: View {
     @State private var keyboardHeight: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
     @State private var currentProfileImage = "logo"
+    @State private var isAcquiringBadge = false
+    @State private var badgeScale: CGFloat = 1.0
+    @State private var badgeRotation: Double = 0
+    @State private var sparkleOpacity: Double = 0
+    @State private var cosmicParticlesOpacity: Double = 0
+    @State private var nebulaOpacity: Double = 0
+    @State private var starFieldOpacity: Double = 0
+    @State private var cosmicGlowOpacity: Double = 0
     var onComplete: () -> Void = {}
     
     // Calculate dynamic offsets
@@ -77,13 +85,124 @@ struct ConversationalOnboardingView: View {
                         // Logo with minimal glow
                         ZStack {
                             Circle()
-                                .fill(Color.white.opacity(0.25))
+                                .fill(Color.white.opacity(currentProfileImage == "logo" ? 0.5 : 0.8))
                                 .frame(width: 130, height: 130)
+                                .scaleEffect(badgeScale)
+                                .rotationEffect(.degrees(badgeRotation))
+                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                                .animation(.easeInOut(duration: 0.8), value: badgeRotation)
+                            
+                            // Sparkle overlay effect
+                            ZStack {
+                                // Cosmic glow effect
+                                Circle()
+                                    .fill(
+                                        RadialGradient(
+                                            gradient: Gradient(stops: [
+                                                .init(color: Color.purple.opacity(0.8), location: 0.0),
+                                                .init(color: Color.blue.opacity(0.4), location: 0.5),
+                                                .init(color: Color.clear, location: 1.0)
+                                            ]),
+                                            center: .center,
+                                            startRadius: 20,
+                                            endRadius: 100
+                                        )
+                                    )
+                                    .frame(width: 200, height: 200)
+                                    .opacity(cosmicGlowOpacity)
+                                    .scaleEffect(badgeScale)
+                                    .animation(.easeInOut(duration: 1.2), value: cosmicGlowOpacity)
+                                
+                                // Nebula effect
+                                ZStack {
+                                    ForEach(0..<3) { layer in
+                                        Circle()
+                                            .fill(
+                                                AngularGradient(
+                                                    gradient: Gradient(stops: [
+                                                        .init(color: Color.purple.opacity(0.3), location: 0.0),
+                                                        .init(color: Color.blue.opacity(0.2), location: 0.3),
+                                                        .init(color: Color.pink.opacity(0.3), location: 0.6),
+                                                        .init(color: Color.purple.opacity(0.3), location: 1.0)
+                                                    ]),
+                                                    center: .center
+                                                )
+                                            )
+                                            .frame(width: 160 + CGFloat(layer * 20), height: 160 + CGFloat(layer * 20))
+                                            .rotationEffect(.degrees(Double(layer) * 45))
+                                            .opacity(nebulaOpacity)
+                                            .animation(
+                                                .easeInOut(duration: 2.0)
+                                                .delay(Double(layer) * 0.3),
+                                                value: nebulaOpacity
+                                            )
+                                    }
+                                }
+                                
+                                // Star field effect
+                                ZStack {
+                                    ForEach(0..<12) { index in
+                                        Circle()
+                                            .fill(Color.white)
+                                            .frame(width: CGFloat.random(in: 2...4), height: CGFloat.random(in: 2...4))
+                                            .offset(
+                                                x: 80 * cos(Double(index) * .pi / 6),
+                                                y: 80 * sin(Double(index) * .pi / 6)
+                                            )
+                                            .opacity(starFieldOpacity)
+                                            .animation(
+                                                .easeInOut(duration: 1.5)
+                                                .delay(Double(index) * 0.1),
+                                                value: starFieldOpacity
+                                            )
+                                    }
+                                }
+                                
+                                // Cosmic particles
+                                ZStack {
+                                    ForEach(0..<6) { index in
+                                        Image(systemName: "sparkle")
+                                            .foregroundColor([Color.yellow, Color.cyan, Color.pink, Color.white].randomElement()!)
+                                            .font(.system(size: 12))
+                                            .offset(
+                                                x: 70 * cos(Double(index) * .pi / 3),
+                                                y: 70 * sin(Double(index) * .pi / 3)
+                                            )
+                                            .opacity(cosmicParticlesOpacity)
+                                            .animation(
+                                                .easeInOut(duration: 1.0)
+                                                .delay(Double(index) * 0.2),
+                                                value: cosmicParticlesOpacity
+                                            )
+                                    }
+                                }
+                                
+                                // Original sparkle effect (now cosmic)
+                                ForEach(0..<8) { index in
+                                    Image(systemName: "sparkle")
+                                        .foregroundColor([Color.yellow, Color.cyan, Color.pink].randomElement()!)
+                                        .font(.system(size: 16))
+                                        .offset(
+                                            x: 60 * cos(Double(index) * .pi / 4),
+                                            y: 60 * sin(Double(index) * .pi / 4)
+                                        )
+                                        .opacity(sparkleOpacity)
+                                        .animation(
+                                            .easeInOut(duration: 0.8)
+                                            .delay(Double(index) * 0.1),
+                                            value: sparkleOpacity
+                                        )
+                                }
+                            }
                             
                             Image(currentProfileImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 140, height: 140)
+                                .scaleEffect(badgeScale)
+                                .rotationEffect(.degrees(badgeRotation))
+                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                                .animation(.easeInOut(duration: 0.8), value: badgeRotation)
                         }
                         .frame(height: 150)
                         .padding(.top, 50)
@@ -408,10 +527,15 @@ struct ConversationalOnboardingView: View {
         if let date = formatter.date(from: dateString) {
             do {
                 let zodiacSign = try ZodiacUtility.getZodiacSign(from: date)
-                // Update the profile image to show the zodiac sign
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    currentProfileImage = zodiacSign.assetName
+                
+                // Trigger badge acquisition animation
+                triggerBadgeAnimation {
+                    // Update the profile image to show the zodiac sign
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        currentProfileImage = zodiacSign.assetName
+                    }
                 }
+                
                 return zodiacSign.rawValue
             } catch {
                 print("Error determining zodiac sign: \(error)")
@@ -420,6 +544,65 @@ struct ConversationalOnboardingView: View {
         }
         
         return "Unknown"
+    }
+    
+    private func triggerBadgeAnimation(completion: @escaping () -> Void) {
+        isAcquiringBadge = true
+        
+        // Phase 1: Cosmic glow appears
+        withAnimation(.easeInOut(duration: 0.8)) {
+            cosmicGlowOpacity = 1.0
+        }
+        
+        // Phase 2: Scale up and rotate with nebula
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                badgeScale = 1.3
+                badgeRotation = 15
+            }
+            
+            withAnimation(.easeInOut(duration: 1.0)) {
+                nebulaOpacity = 1.0
+            }
+        }
+        
+        // Phase 3: Star field and cosmic particles
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(.easeInOut(duration: 0.8)) {
+                starFieldOpacity = 1.0
+                cosmicParticlesOpacity = 1.0
+            }
+        }
+        
+        // Phase 4: Sparkle effect
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                sparkleOpacity = 1.0
+            }
+        }
+        
+        // Phase 5: Return to normal with cosmic fade
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                badgeScale = 1.0
+                badgeRotation = 0
+            }
+            
+            // Fade out all cosmic effects
+            withAnimation(.easeInOut(duration: 0.8)) {
+                sparkleOpacity = 0.0
+                cosmicParticlesOpacity = 0.0
+                starFieldOpacity = 0.0
+                nebulaOpacity = 0.0
+                cosmicGlowOpacity = 0.0
+            }
+            
+            // Phase 6: Completion callback
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                isAcquiringBadge = false
+                completion()
+            }
+        }
     }
 }
 

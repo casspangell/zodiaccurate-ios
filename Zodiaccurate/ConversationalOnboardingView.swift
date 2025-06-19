@@ -99,12 +99,12 @@ struct ConversationalOnboardingView: View {
                         }
                     }
                 }
-                .onChange(of: currentStep) { _ in
+                .onChange(of: currentStep) {
                     withAnimation(.easeInOut(duration: 0.5)) {
                         proxy.scrollTo("bottom", anchor: .bottom)
                     }
                 }
-                .onChange(of: isTyping) { _ in
+                .onChange(of: isTyping) {
                     withAnimation(.easeInOut(duration: 0.5)) {
                         proxy.scrollTo("bottom", anchor: .bottom)
                     }
@@ -200,6 +200,9 @@ struct ConversationalOnboardingView: View {
         
         // Store user data
         storeUserData(input: input, step: conversationSteps[currentStep])
+        
+        // Clear the text field after submission
+        currentInput = ""
         
         // Move to next step
         currentStep += 1

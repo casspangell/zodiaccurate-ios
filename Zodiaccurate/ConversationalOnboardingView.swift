@@ -30,17 +30,21 @@ struct ConversationalOnboardingView: View {
                     VStack(alignment: .leading, spacing: 24) {
                         Spacer().frame(height: 60)
                         
-                        // Header
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Zodiaccurate Guide")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(.white)
+                        // Profile Section
+                        VStack(spacing: 16) {
+                            // Logo image
+                            Image("logo")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 120, height: 120)
                             
-                            Text("Let's discover your cosmic blueprint")
-                                .font(.system(size: 16, weight: .regular))
-                                .foregroundColor(Color.white.opacity(0.7))
+                            // Empty name label
+                            Text("")
+                                .font(.system(size: 24, weight: .semibold))
+                                .foregroundColor(.white)
                         }
-                        .padding(.bottom, 16)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 24)
                         
                         // Chat Content
                         ChatContentView(

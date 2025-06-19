@@ -594,12 +594,12 @@ struct InteractivePickerView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.2))
+                        .background(Color.lightSaphire.opacity(0.8))
                         .cornerRadius(12)
                     }
                 }
                 .padding()
-                .background(Color.sapphire.opacity(0.8))
+                .background(Color.bubbleFrost.opacity(0.8))
                 .foregroundColor(.white)
                 .cornerRadius(20)
                 .frame(maxWidth: 280, alignment: .trailing)

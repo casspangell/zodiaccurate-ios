@@ -195,14 +195,15 @@ struct ConversationalOnboardingView: View {
                                 }
                             }
                             
-                            Image(currentProfileImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 140, height: 140)
-                                .scaleEffect(badgeScale)
-                                .rotationEffect(.degrees(badgeRotation))
-                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                                .animation(.easeInOut(duration: 0.8), value: badgeRotation)
+                            ZStack {
+                                Image(currentProfileImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 140, height: 140)
+                                    .id(currentProfileImage)
+                            }
+                            .scaleEffect(badgeScale)
+                            .rotationEffect(.degrees(badgeRotation))
                         }
                         .frame(height: 150)
                         .padding(.top, 150)
@@ -553,13 +554,8 @@ struct ConversationalOnboardingView: View {
             do {
                 let zodiacSign = try ZodiacUtility.getZodiacSign(from: date)
                 
-                // Trigger badge acquisition animation
-                triggerBadgeAnimation {
-                    // Update the profile image to show the zodiac sign
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        currentProfileImage = zodiacSign.assetName
-                    }
-                }
+                // Trigger badge acquisition animation, swapping the image mid-way
+                triggerBadgeAnimation(andSwapTo: zodiacSign.assetName)
                 
                 return zodiacSign.rawValue
             } catch {
@@ -571,49 +567,50 @@ struct ConversationalOnboardingView: View {
         return "Unknown"
     }
     
-    private func triggerBadgeAnimation(completion: @escaping () -> Void) {
+    private func triggerBadgeAnimation(andSwapTo newAssetName: String) {
         isAcquiringBadge = true
         
-        // Phase 1: Cosmic glow appears
-        withAnimation(.easeInOut(duration: 0.8)) {
-            cosmicGlowOpacity = 1.0
-        }
-        
-        // Phase 2: Scale up and rotate with nebula
+        // Phase 1 & 2: Build up cosmic effects and scale up badge
+        withAnimation(.easeInOut(duration: 0.8)) { cosmicGlowOpacity = 1.0 }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                 badgeScale = 1.3
                 badgeRotation = 15
             }
-            
-            withAnimation(.easeInOut(duration: 1.0)) {
-                nebulaOpacity = 1.0
-            }
+            withAnimation(.easeInOut(duration: 1.0)) { nebulaOpacity = 1.0 }
         }
-        
-        // Phase 3: Star field and cosmic particles
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             withAnimation(.easeInOut(duration: 0.8)) {
                 starFieldOpacity = 1.0
                 cosmicParticlesOpacity = 1.0
             }
         }
-        
-        // Phase 4: Sparkle effect
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                sparkleOpacity = 1.0
+            withAnimation(.easeInOut(duration: 0.3)) { sparkleOpacity = 1.0 }
+        }
+
+        // Phase 3: Funnel effect - spin and shrink
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation(.linear(duration: 0.8)) {
+                badgeRotation += 1080 // Spin 3 times
+                badgeScale = 0.01 // Shrink to almost nothing
             }
         }
         
-        // Phase 5: Return to normal with cosmic fade
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                badgeScale = 1.0
-                badgeRotation = 0
-            }
+        // Phase 4: Swap image and pop it into view
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { // After funnel
+            // Instantly swap image and reset rotation
+            self.currentProfileImage = newAssetName
+            self.badgeRotation = 0
             
-            // Fade out all cosmic effects
+            // Pop out with spring animation
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                badgeScale = 1.0
+            }
+        }
+        
+        // Phase 5: Fade out all cosmic effects
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
             withAnimation(.easeInOut(duration: 0.8)) {
                 sparkleOpacity = 0.0
                 cosmicParticlesOpacity = 0.0
@@ -621,12 +618,11 @@ struct ConversationalOnboardingView: View {
                 nebulaOpacity = 0.0
                 cosmicGlowOpacity = 0.0
             }
-            
-            // Phase 6: Completion callback
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                isAcquiringBadge = false
-                completion()
-            }
+        }
+        
+        // Phase 6: Reset state
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.1) {
+            isAcquiringBadge = false
         }
     }
 }

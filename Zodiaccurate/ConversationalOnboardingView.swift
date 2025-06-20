@@ -307,6 +307,11 @@ struct ConversationalOnboardingView: View {
                             scrollToBottom(proxy: proxy, delay: 0.1)
                         }
                     }
+                    .onChange(of: isTyping) { _, newValue in
+                        if newValue {
+                            scrollToShowTyping(proxy: proxy)
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill remaining space
                 .offset(y: -scrollViewOffset)
@@ -327,7 +332,9 @@ struct ConversationalOnboardingView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             withAnimation(.easeInOut(duration: 0.4)) {
                 // Scroll to show the latest content smoothly
-                if let lastMessage = messages.last {
+                if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
+                    proxy.scrollTo("bottom", anchor: .bottom)
+                } else if let lastMessage = messages.last {
                     proxy.scrollTo(lastMessage.id, anchor: .center)
                 } else {
                     proxy.scrollTo("chatBottom", anchor: .center)
@@ -354,7 +361,8 @@ struct ConversationalOnboardingView: View {
     
     private func scrollToShowTyping(proxy: ScrollViewProxy, delay: Double = 0.1) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.easeInOut(duration: 0.8)) {
+            withAnimation(.easeInOut(duration: 0.4)) {
+                // Scroll to show typing indicator
                 proxy.scrollTo("typingIndicator", anchor: .center)
             }
         }
@@ -944,6 +952,7 @@ struct ChatContentView: View {
             
             TypingIndicator(isAnimating: isTyping)
                 .opacity(isTyping ? 1 : 0)
+                .id("typingIndicator")
 
             // Ensure we always have a bottom anchor for scrolling
             Color.clear

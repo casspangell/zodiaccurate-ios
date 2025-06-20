@@ -46,19 +46,20 @@ struct ConversationalOnboardingView: View {
     
     var body: some View {
         ZStack {
-            // Background layers
+            // Background layers - ensure full screen coverage
             BackgroundView()
-                .ignoresSafeArea(.all) // Make background fill entire screen
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(.all, edges: .all)
             
             VStack(spacing: 0) {
                 // Header ZStack - positioned on top
                 ZStack {
                     // Dark header background with gradient fade
                     VStack(spacing: 0) {
-                        // Solid dark background for header content
+                        // Solid dark background for header content - extend to very top
                         Rectangle()
                             .fill(Color.deepBlue.opacity(1.0))
-                            .frame(height: headerHeight - 180)
+                            .frame(height: headerHeight + 100) // Increased height to extend to top
                         
                         // Enhanced gradient fade at bottom
                         LinearGradient(
@@ -79,6 +80,7 @@ struct ConversationalOnboardingView: View {
                         .frame(height: 100)
                     }
                     .allowsHitTesting(false)
+                    .ignoresSafeArea(.all, edges: .top) // Ensure header background extends to top edge
                     
                     // Fixed Header Content
                     VStack(spacing: 8) {
@@ -206,7 +208,7 @@ struct ConversationalOnboardingView: View {
                             .rotationEffect(.degrees(badgeRotation))
                         }
                         .frame(height: 150)
-                        .padding(.top, 150)
+                        .padding(.top, 60)
                         
                         Text("")
                             .font(.system(size: 24, weight: .semibold))
@@ -214,6 +216,7 @@ struct ConversationalOnboardingView: View {
                             .padding(.bottom, 8)
                     }
                     .frame(maxWidth: .infinity)
+                    .padding(.top, 0)
                     .background(
                         GeometryReader { headerGeometry in
                             Color.clear
@@ -320,7 +323,8 @@ struct ConversationalOnboardingView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill entire screen
         }
-        .ignoresSafeArea(.all)
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure full screen coverage
+        .ignoresSafeArea(.all, edges: .all) // Ignore all safe areas
         .onAppear {
             startConversation()
         }
@@ -384,7 +388,8 @@ struct ConversationalOnboardingView: View {
                     startRadius: 100,
                     endRadius: 600
                 )
-                .ignoresSafeArea(.all) // Fill entire screen including safe areas
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(.all, edges: .all)
 
                 // Vignette overlay
                 RadialGradient(
@@ -396,7 +401,8 @@ struct ConversationalOnboardingView: View {
                     startRadius: 100,
                     endRadius: 600
                 )
-                .ignoresSafeArea(.all)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(.all, edges: .all)
                 .blendMode(.multiply)
                 .allowsHitTesting(false)
 
@@ -406,13 +412,37 @@ struct ConversationalOnboardingView: View {
                         .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                         .position(x: geo.size.width / 5, y: geo.size.height / 2)
                 }
-                .ignoresSafeArea(.all)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(.all, edges: .all)
 
                 // Orange overlay
                 Color.backgroundPrimary.opacity(0.5)
-                    .ignoresSafeArea(.all)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea(.all, edges: .all)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+    
+    // Helper function to calculate dynamic typing delay based on text length
+    private func calculateTypingDelay(for text: String) -> Double {
+        let wordCount = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.count
+        let characterCount = text.count
+        
+        // Base delay for very short messages
+        let baseDelay: Double = 1.5
+        
+        // Additional delay based on word count (more natural for reading)
+        let wordDelay = Double(wordCount) * 0.15
+        
+        // Additional delay for very long messages (character-based)
+        let characterDelay = characterCount > 200 ? Double(characterCount - 200) * 0.01 : 0
+        
+        // Cap the maximum delay to prevent it from being too long
+        let maxDelay: Double = 8.0
+        let calculatedDelay = baseDelay + wordDelay + characterDelay
+        
+        return min(calculatedDelay, maxDelay)
     }
     
     private func startConversation() {
@@ -420,14 +450,17 @@ struct ConversationalOnboardingView: View {
         showInputField = false
         showSecondaryElements = false
         
-        // Add initial message with typing animation
+        let initialMessage = conversationSteps[0].message
+        let typingDelay = calculateTypingDelay(for: initialMessage)
+        
+        // Add initial message with dynamic typing animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             isTyping = true
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + typingDelay) {
                 isTyping = false
                 let aiMessage = ChatMessage(
-                    text: conversationSteps[0].message,
+                    text: initialMessage,
                     isUser: false,
                     timestamp: Date()
                 )
@@ -494,7 +527,9 @@ struct ConversationalOnboardingView: View {
         showInteractivePicker = false
         showSecondaryElements = false
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        let typingDelay = calculateTypingDelay(for: text)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + typingDelay) {
             isTyping = false
             let aiMessage = ChatMessage(
                 text: text,

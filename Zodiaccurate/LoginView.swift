@@ -205,7 +205,7 @@ struct LoginView: View {
                             .cornerRadius(12)
                             .foregroundColor(.white)
                             // Password strength indicator
-                            if isRegistering {
+                            if isRegistering && !password.isEmpty {
                                 HStack(spacing: 8) {
                                     Text("Strength: ")
                                         .font(.system(size: 13, weight: .regular))
@@ -220,7 +220,7 @@ struct LoginView: View {
                                 }
                             }
                             // Password requirements
-                            if isRegistering {
+                            if isRegistering && !password.isEmpty {
                                 let (_, reqs) = passwordMeetsRequirements(password)
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack(spacing: 6) {

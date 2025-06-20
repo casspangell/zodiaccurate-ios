@@ -225,7 +225,7 @@ struct ConversationalOnboardingView: View {
                 // Chat ScrollView - This is the key change
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 24) {
+                        LazyVStack(alignment: .leading, spacing: 12) {
                             // Add spacing to push content below profile image
                             Spacer().frame(height: contentTopSpacing)
                             
@@ -292,31 +292,19 @@ struct ConversationalOnboardingView: View {
                             // Bottom anchor with safe area padding
                             Color.clear
                                 .frame(height: 1)
-                                .padding(.bottom, 20) // Add some bottom padding
+                                .padding(.bottom, 50) // Add some bottom padding
                                 .id("bottom")
                         }
                         .padding(.horizontal)
                         .padding(.top, -contentTopPadding)
                     }
-                    .scrollDisabled(true)
+                    .scrollDisabled(false) // Enable scrolling for better UX
                     .scrollDismissesKeyboard(.interactively)
                     .clipped() // Prevent content from overflowing
                     .onChange(of: messages.count) { _, _ in
-                        scrollToBottom(proxy: proxy)
-                    }
-                    .onChange(of: showInputField) { _, newValue in
-                        if newValue {
-                            scrollToBottom(proxy: proxy, delay: 0.3)
-                        }
-                    }
-                    .onChange(of: showInteractivePicker) { _, newValue in
-                        if newValue {
-                            scrollToBottom(proxy: proxy, delay: 0.3)
-                        }
-                    }
-                    .onChange(of: isTyping) { _, newValue in
-                        if newValue {
-                            scrollToBottom(proxy: proxy)
+                        // Only scroll when an AI response is added (not user messages)
+                        if let lastMessage = messages.last, !lastMessage.isUser {
+                            scrollToBottom(proxy: proxy, delay: 0.1)
                         }
                     }
                 }
@@ -337,8 +325,37 @@ struct ConversationalOnboardingView: View {
     
     private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.1) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.easeInOut(duration: 0.5)) {
-                proxy.scrollTo("bottom", anchor: .bottom)
+            withAnimation(.easeInOut(duration: 0.4)) {
+                // Scroll to show the latest content smoothly
+                if let lastMessage = messages.last {
+                    proxy.scrollTo(lastMessage.id, anchor: .center)
+                } else {
+                    proxy.scrollTo("chatBottom", anchor: .center)
+                }
+            }
+        }
+    }
+    
+    private func scrollToShowInput(proxy: ScrollViewProxy, delay: Double = 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            withAnimation(.easeInOut(duration: 0.8)) {
+                proxy.scrollTo("inputSection", anchor: .center)
+            }
+        }
+    }
+    
+    private func scrollToShowPicker(proxy: ScrollViewProxy, delay: Double = 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            withAnimation(.easeInOut(duration: 0.8)) {
+                proxy.scrollTo("interactivePicker", anchor: .center)
+            }
+        }
+    }
+    
+    private func scrollToShowTyping(proxy: ScrollViewProxy, delay: Double = 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            withAnimation(.easeInOut(duration: 0.8)) {
+                proxy.scrollTo("typingIndicator", anchor: .center)
             }
         }
     }
@@ -633,6 +650,7 @@ struct ChatBubble: View {
                     .foregroundColor(.white)
                     .cornerRadius(20)
                     .frame(maxWidth: 280, alignment: .trailing)
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     Image("logo")
@@ -645,8 +663,9 @@ struct ChatBubble: View {
                         .background(Color.bubbleSilver)
                         .foregroundColor(.white)
                         .cornerRadius(20)
-                        .frame(maxWidth: 280, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .frame(maxWidth: 280, alignment: .leading)
                 Spacer()
             }
         }
@@ -672,7 +691,8 @@ struct InputSection: View {
             }
             .disabled(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, 10)
     }
 }
 
@@ -925,9 +945,10 @@ struct ChatContentView: View {
             TypingIndicator(isAnimating: isTyping)
                 .opacity(isTyping ? 1 : 0)
 
+            // Ensure we always have a bottom anchor for scrolling
             Color.clear
                 .frame(height: 1)
-                .id("bottom")
+                .id("chatBottom")
         }
         .padding(.horizontal)
         .animation(.easeInOut(duration: 0.3), value: messages)
@@ -958,7 +979,6 @@ struct ChatInputView: View {
             .background(Color.white.opacity(0.08))
             .cornerRadius(12)
             .padding(.horizontal)
-            .padding(.top, 8)
             .transition(.opacity)
             .opacity(isVisible ? 1 : 0)
             .allowsHitTesting(isVisible)

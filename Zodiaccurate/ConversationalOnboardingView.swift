@@ -275,7 +275,7 @@ struct ConversationalOnboardingView: View {
                                 Button(action: { onComplete() }) {
                                     HStack {
                                         Image(systemName: "sparkles")
-                                        Text("Begin Your Journey")
+                                        Text("See Your First Zodiaccurate")
                                         Image(systemName: "arrow.right")
                                     }
                                     .font(.headline)
@@ -678,6 +678,7 @@ struct InputSection: View {
 
 struct TypingIndicator: View {
     @State private var animationAmount = 0.0
+    let isAnimating: Bool
     
     var body: some View {
         HStack {
@@ -694,9 +695,11 @@ struct TypingIndicator: View {
                             .frame(width: 8, height: 8)
                             .scaleEffect(animationAmount)
                             .animation(
-                                Animation.easeInOut(duration: 0.6)
+                                isAnimating
+                                ? Animation.easeInOut(duration: 0.6)
                                     .repeatForever()
-                                    .delay(Double(index) * 0.2),
+                                    .delay(Double(index) * 0.2)
+                                : .default,
                                 value: animationAmount
                             )
                     }
@@ -707,7 +710,12 @@ struct TypingIndicator: View {
         }
         .padding()
         .onAppear {
-            animationAmount = 1.0
+            if isAnimating {
+                self.animationAmount = 1.0
+            }
+        }
+        .onChange(of: isAnimating) { _, newValue in
+            self.animationAmount = newValue ? 1.0 : 0.0
         }
     }
 }
@@ -734,19 +742,22 @@ struct InteractivePickerView: View {
                     .datePickerStyle(.compact)
                     .colorScheme(.dark)
                     
-                    Button(action: {
-                        onDateSelected(selectedDate)
-                    }) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Submit")
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            onDateSelected(selectedDate)
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Submit")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.accentGold)
+                            .cornerRadius(12)
                         }
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.accentGold)
-                        .cornerRadius(12)
                     }
                 }
                 .padding()
@@ -756,11 +767,6 @@ struct InteractivePickerView: View {
                 .frame(maxWidth: 280, alignment: .trailing)
             } else if step.inputType == "time" {
                 VStack(alignment: .trailing, spacing: 12) {
-                    Text("Select your birth time")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: 280, alignment: .trailing)
-                    
                     DatePicker(
                         "Birth Time",
                         selection: $selectedTime,
@@ -769,39 +775,36 @@ struct InteractivePickerView: View {
                     .datePickerStyle(.compact)
                     .colorScheme(.dark)
                     
-                    Button(action: {
-                        onTimeSelected(selectedTime)
-                    }) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Submit")
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            onUnknownTime()
+                        }) {
+                            HStack {
+                                Image(systemName: "questionmark.circle.fill")
+                                Text("I don't know")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.lightSaphire.opacity(0.8))
+                            .cornerRadius(12)
                         }
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.accentGold)
-                        .cornerRadius(12)
-                    }
-                    
-                    Text("or")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.top, 4)
-                    
-                    Button(action: {
-                        onUnknownTime()
-                    }) {
-                        HStack {
-                            Image(systemName: "questionmark.circle.fill")
-                            Text("I don't know my birth time")
+                        
+                        Button(action: {
+                            onTimeSelected(selectedTime)
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Submit")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.accentGold)
+                            .cornerRadius(12)
                         }
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.lightSaphire.opacity(0.8))
-                        .cornerRadius(12)
                     }
                 }
                 .padding()
@@ -902,9 +905,11 @@ struct ChatContentView: View {
                 .transition(.opacity)
             }
             
-            if currentStep < conversationSteps.count && 
-               !conversationSteps[currentStep].isFinal && 
-               showInteractivePicker && showSecondaryElements {
+            if currentStep < conversationSteps.count {
+                let showPicker = !conversationSteps[currentStep].isFinal &&
+                                 showInteractivePicker &&
+                                 showSecondaryElements
+
                 InteractivePickerView(
                     step: conversationSteps[currentStep],
                     selectedDate: selectedDate,
@@ -913,13 +918,13 @@ struct ChatContentView: View {
                     onTimeSelected: onTimeSelected,
                     onUnknownTime: onUnknownTime
                 )
+                .opacity(showPicker ? 1 : 0)
+                .allowsHitTesting(showPicker)
             }
             
-            if isTyping {
-                TypingIndicator()
-                    .transition(.opacity)
-            }
-            
+            TypingIndicator(isAnimating: isTyping)
+                .opacity(isTyping ? 1 : 0)
+
             Color.clear
                 .frame(height: 1)
                 .id("bottom")
@@ -940,10 +945,11 @@ struct ChatInputView: View {
     let onSend: () -> Void
     
     var body: some View {
-        if currentStep < conversationSteps.count && 
-           !conversationSteps[currentStep].isFinal && 
-           conversationSteps[currentStep].inputType == "text" &&
-           showInputField && showSecondaryElements {
+        if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
+            let isVisible = conversationSteps[currentStep].inputType == "text" &&
+                            showInputField &&
+                            showSecondaryElements
+            
             InputSection(
                 currentInput: currentInput,
                 currentStep: conversationSteps[currentStep],
@@ -954,6 +960,8 @@ struct ChatInputView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             .transition(.opacity)
+            .opacity(isVisible ? 1 : 0)
+            .allowsHitTesting(isVisible)
         }
     }
 }

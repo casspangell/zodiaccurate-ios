@@ -36,6 +36,7 @@ struct RootView: View {
     @State private var showSplash = true
     @State private var showOnboarding = false
     @State private var showLogin = false
+    @State private var shouldStartWithRegistration = false
     
     var body: some View {
         ZStack {
@@ -61,13 +62,14 @@ struct RootView: View {
                         // hasCompletedOnboarding = true
                         showOnboarding = false
                         showLogin = true
+                        shouldStartWithRegistration = true
                     }
                 }
                 .transition(.opacity)
             }
             
             if showLogin && !authManager.isAuthenticated {
-                LoginView()
+                LoginView(isRegistering: shouldStartWithRegistration)
                     .transition(.opacity)
             }
             

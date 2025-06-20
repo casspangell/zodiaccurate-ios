@@ -13,7 +13,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
-    @State private var isRegistering = false
+    @State private var isRegistering: Bool
     @State private var showingResetPassword = false
     @State private var resetEmail = ""
     @State private var confirmPassword = ""
@@ -23,6 +23,10 @@ struct LoginView: View {
     @State private var agreedToTerms = false
     @State private var showAgreementError = false
     @FocusState private var focusedField: Field?
+    
+    init(isRegistering: Bool = false) {
+        _isRegistering = State(initialValue: isRegistering)
+    }
     
     enum PasswordStrength: String {
         case weak = "Weak"

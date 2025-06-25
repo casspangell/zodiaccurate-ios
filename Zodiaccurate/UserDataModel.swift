@@ -14,7 +14,7 @@ final class UserDataModel {
     var birthDate: String
     var birthTime: String
     var zodiacSign: String
-    var responses: [String] // Stored as "question|key|answer" strings
+    var responses: String // JSON-encoded array of "question|key|answer" strings
     var userId: String?
     var createdAt: Date
     var updatedAt: Date
@@ -29,15 +29,26 @@ final class UserDataModel {
         self.birthDate = birthDate
         self.birthTime = birthTime
         self.zodiacSign = zodiacSign
-        self.responses = responses
+        // Encode array to JSON string
+        self.responses = (try? JSONEncoder().encode(responses)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
         self.userId = userId
         self.createdAt = Date()
         self.updatedAt = Date()
     }
     
+    // Computed property for array access
+    var responseArray: [String] {
+        get {
+            (try? JSONDecoder().decode([String].self, from: Data(responses.utf8))) ?? []
+        }
+        set {
+            responses = (try? JSONEncoder().encode(newValue)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
+        }
+    }
+    
     // Helper method to convert responses back to tuples
     var responseTuples: [(String, String, String)] {
-        return responses.compactMap { responseString in
+        return responseArray.compactMap { responseString in
             let components = responseString.split(separator: "|", maxSplits: 2)
             guard components.count == 3 else { return nil }
             return (String(components[0]), String(components[1]), String(components[2]))
@@ -53,10 +64,10 @@ final class UserDataModel {
     
     // Helper method to update a response
     func updateResponse(for key: String, question: String, answer: String) {
-        // Remove existing response for this key
-        responses.removeAll { $0.contains("|\(key)|") }
-        // Add new response
-        responses.append("\(question)|\(key)|\(answer)")
+        var arr = responseArray
+        arr.removeAll { $0.contains("|\(key)|") }
+        arr.append("\(question)|\(key)|\(answer)")
+        responseArray = arr
         updatedAt = Date()
     }
 } 

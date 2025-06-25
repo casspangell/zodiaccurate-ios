@@ -129,8 +129,8 @@ class UserDataManager: ObservableObject {
             existingData.birthDate = userData.birthDate
             existingData.birthTime = userData.birthTime
             existingData.zodiacSign = userData.zodiacSign
-            existingData.responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
-            
+            let responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
+            existingData.responseArray = responses
             do {
                 try modelContext.save()
                 currentUserData = existingData

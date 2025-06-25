@@ -26,6 +26,7 @@ struct ZodiaccurateApp: App {
             RootView()
                 .environmentObject(authManager)
         }
+        .modelContainer(for: [UserDataModel.self, Item.self])
     }
 }
 
@@ -58,8 +59,8 @@ struct RootView: View {
             if showOnboarding {
                 ConversationalOnboardingView {
                     withAnimation(.easeInOut(duration: 0.7)) {
-                        // Temporarily comment out onboarding completion
-                        // hasCompletedOnboarding = true
+                        // Save onboarding completion flag
+                        hasCompletedOnboarding = true
                         showOnboarding = false
                         showLogin = true
                         shouldStartWithRegistration = true

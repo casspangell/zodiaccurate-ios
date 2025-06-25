@@ -6,8 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ConversationalOnboardingView: View {
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var userDataManager: UserDataManager
     @State private var messages: [ChatMessage] = []
     @State private var currentInput = ""
     @State private var currentStep = 0
@@ -30,6 +33,12 @@ struct ConversationalOnboardingView: View {
     @State private var starFieldOpacity: Double = 0
     @State private var cosmicGlowOpacity: Double = 0
     var onComplete: () -> Void = {}
+    
+    init(onComplete: @escaping () -> Void = {}) {
+        self.onComplete = onComplete
+        // Initialize UserDataManager with a temporary context - will be updated in onAppear
+        self._userDataManager = StateObject(wrappedValue: UserDataManager(modelContext: ModelContext(try! ModelContainer(for: UserDataModel.self))))
+    }
     
     // Calculate dynamic offsets
     private var scrollViewOffset: CGFloat {
@@ -276,7 +285,10 @@ struct ConversationalOnboardingView: View {
                             // Complete Button
                             if (currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal && messages.count > 0 && messages.last?.isUser == false) ||
                                currentStep >= conversationSteps.count {
-                                Button(action: { onComplete() }) {
+                                Button(action: { 
+                                    saveOnboardingData()
+                                    onComplete() 
+                                }) {
                                     HStack {
                                         Image(systemName: "sparkles")
                                         Text("See Your First Zodiaccurate")
@@ -326,6 +338,8 @@ struct ConversationalOnboardingView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure full screen coverage
         .ignoresSafeArea(.all, edges: .all) // Ignore all safe areas
         .onAppear {
+            // Set up UserDataManager with the correct model context
+            userDataManager.updateModelContext(modelContext)
             startConversation()
         }
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
@@ -567,11 +581,17 @@ struct ConversationalOnboardingView: View {
         case "birthTime":
             userData.birthTime = input
         case "intuition":
-            userData.responses.append(("intuition", input))
+            // Get the personalized question text
+            let questionText = personalizeMessage(step.message, with: userData.firstName)
+            userData.responses.append((questionText, "intuition", input))
         case "energy":
-            userData.responses.append(("energy", input))
+            // Get the personalized question text
+            let questionText = personalizeMessage(step.message, with: userData.firstName)
+            userData.responses.append((questionText, "energy", input))
         case "dreams":
-            userData.responses.append(("dreams", input))
+            // Get the personalized question text
+            let questionText = personalizeMessage(step.message, with: userData.firstName)
+            userData.responses.append((questionText, "dreams", input))
         default:
             break
         }
@@ -659,6 +679,26 @@ struct ConversationalOnboardingView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.1) {
             isAcquiringBadge = false
         }
+    }
+    
+    private func saveOnboardingData() {
+        print("💾 Saving onboarding data...")
+        print("👤 User data: \(userData)")
+        
+        // Save the user data locally
+        userDataManager.saveUserData(userData)
+        
+        // Also save to UserDefaults for quick access
+        UserDefaults.standard.set(userData.firstName, forKey: "userFirstName")
+        UserDefaults.standard.set(userData.birthDate, forKey: "userBirthDate")
+        UserDefaults.standard.set(userData.birthTime, forKey: "userBirthTime")
+        UserDefaults.standard.set(userData.zodiacSign, forKey: "userZodiacSign")
+        
+        // Save responses as JSON
+        let responsesData = try? JSONSerialization.data(withJSONObject: userData.responses.map { ["question": $0.0, "key": $0.1, "answer": $0.2] })
+        UserDefaults.standard.set(responsesData, forKey: "userResponses")
+        
+        print("✅ Onboarding data saved successfully!")
     }
 }
 
@@ -897,7 +937,7 @@ struct UserData {
     var birthDate: String = ""
     var birthTime: String = ""
     var zodiacSign: String = ""
-    var responses: [(String, String)] = []
+    var responses: [(String, String, String)] = [] // (question, key, answer)
 }
 
 let conversationSteps: [ConversationStep] = [

@@ -1,7 +1,15 @@
 import SwiftUI
+import SwiftData
 
 struct MainView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var onboardingDataAccess: OnboardingDataAccess
+    
+    init() {
+        // Initialize with a temporary context - will be updated in onAppear
+        self._onboardingDataAccess = StateObject(wrappedValue: OnboardingDataAccess(modelContext: ModelContext(try! ModelContainer(for: UserDataModel.self))))
+    }
     
     var body: some View {
         NavigationView {
@@ -11,37 +19,128 @@ struct MainView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.all, edges: .all)
                 
-                VStack {
-                    Text("Welcome to Zodiaccurate")
-                        .font(.title)
-                        .foregroundColor(.white)
-                        .padding()
-                    
-                    Text("You are logged in as: \(authManager.user?.email ?? "")")
-                        .foregroundColor(.white.opacity(0.7))
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        try? authManager.signOut()
-                    }) {
-                        Text("Sign Out")
-                            .foregroundColor(.white)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Header
+                        VStack(spacing: 12) {
+                            Text("Welcome to Zodiaccurate")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            
+                            Text("You are logged in as: \(authManager.user?.email ?? "")")
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        .padding(.top, 40)
+                        
+                        // User Profile Card
+                        VStack(spacing: 16) {
+                            Text("Your Cosmic Profile")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                            
+                            VStack(spacing: 12) {
+                                ProfileRow(title: "Name", value: OnboardingDataAccess.firstName)
+                                ProfileRow(title: "Birth Date", value: OnboardingDataAccess.birthDate)
+                                ProfileRow(title: "Birth Time", value: OnboardingDataAccess.birthTime.isEmpty ? "Unknown" : OnboardingDataAccess.birthTime)
+                                ProfileRow(title: "Zodiac Sign", value: OnboardingDataAccess.zodiacSign)
+                            }
                             .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.red.opacity(0.3))
+                            .background(Color.white.opacity(0.1))
                             .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        // Responses Section
+                        if !OnboardingDataAccess.responses.isEmpty {
+                            VStack(spacing: 16) {
+                                Text("Your Responses")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                
+                                VStack(spacing: 12) {
+                                    ForEach(OnboardingDataAccess.responses, id: \.0) { response in
+                                        ResponseRow(key: response.0, value: response.1)
+                                    }
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        Spacer()
+                        
+                        // Sign Out Button
+                        Button(action: {
+                            // Clear onboarding data on sign out
+                            OnboardingDataAccess.clearOnboardingData()
+                            try? authManager.signOut()
+                        }) {
+                            Text("Sign Out")
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.red.opacity(0.3))
+                                .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        .padding(.bottom, 40)
                     }
-                    .padding()
                 }
             }
             .navigationBarHidden(true)
+            .onAppear {
+                onboardingDataAccess.updateModelContext(modelContext)
+            }
         }
     }
 }
 
+// Profile Row Component
+struct ProfileRow: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundColor(.white.opacity(0.7))
+                .frame(width: 100, alignment: .leading)
+            
+            Spacer()
+            
+            Text(value)
+                .foregroundColor(.white)
+                .fontWeight(.medium)
+        }
+    }
+}
+
+// Response Row Component
+struct ResponseRow: View {
+    let key: String
+    let value: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(key.capitalized)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.7))
+            
+            Text(value)
+                .foregroundColor(.white)
+                .fontWeight(.medium)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 // Background View (same as onboarding)
-private struct BackgroundView: View {
+struct BackgroundView: View {
     var body: some View {
         ZStack {
             // Cosmic background
@@ -87,6 +186,7 @@ private struct BackgroundView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea(.all, edges: .all)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

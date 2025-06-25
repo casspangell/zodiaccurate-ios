@@ -14,7 +14,7 @@ struct MainView: View {
     var body: some View {
         NavigationView {
             ZStack(alignment: .topLeading) {
-                AuroraBackgroundView()
+                MainCelestialBackground()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.all, edges: .all)
 

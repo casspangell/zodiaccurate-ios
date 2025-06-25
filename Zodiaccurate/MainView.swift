@@ -13,12 +13,14 @@ struct MainView: View {
     
     var body: some View {
         NavigationView {
-            ZStack {
-                // Background layers - ensure full screen coverage
-                BackgroundView()
+            ZStack(alignment: .topLeading) {
+                AuroraBackgroundView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.all, edges: .all)
-                
+
+                ZodiacProfileBadge()
+                    .zIndex(1)
+
                 ScrollView {
                     VStack(spacing: 20) {
                         // Header

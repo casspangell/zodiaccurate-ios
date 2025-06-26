@@ -4,11 +4,27 @@ struct ZodiacProfileBadge: View {
     var zodiacImage: Image = Image("Capricorn") // Change as needed
     var body: some View {
         ZStack {
+            // Large gradient circle behind
+            Circle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.orange.opacity(0.6),
+                            Color.pink.opacity(0.6),
+                            Color.purple.opacity(0.6)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: 200, height: 200)
+                .blur(radius: 10)
+            
+            // Main black circle
             Circle()
                 .fill(
                     RadialGradient(
                         gradient: Gradient(colors: [
-                            Color(red: 1.0, green: 0.6, blue: 0.2), // orange
                             Color.black.opacity(0.8)
                         ]),
                         center: .center,
@@ -16,8 +32,8 @@ struct ZodiacProfileBadge: View {
                         endRadius: 120
                     )
                 )
-                .frame(width: 180, height: 180)
-                .shadow(color: Color.orange.opacity(0.3), radius: 40, x: 0, y: 0)
+                .frame(width: 160, height: 160)
+            
             zodiacImage
                 .resizable()
                 .scaledToFit()

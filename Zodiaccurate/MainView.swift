@@ -24,19 +24,14 @@ struct MainView: View {
                     ZodiacProfileBadge()
                     
                     // Right column - Welcome text
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Welcome to Zodiaccurate")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                        
+                    VStack(alignment: .leading, spacing: 10) {
                         Text("You are logged in as: \(authManager.user?.email ?? "")")
                             .foregroundColor(.white.opacity(0.7))
                     }
                     
                     Spacer()
                 }
-                .padding(.top, 40)
+                .padding(.top, 0)
                 .padding(.horizontal)
                 .zIndex(1)
 
@@ -153,19 +148,6 @@ struct ResponseRow: View {
 struct BackgroundView: View {
     var body: some View {
         ZStack {
-            // Cosmic background
-            RadialGradient(
-                gradient: Gradient(stops: [
-                    .init(color: Color(hex: "1A0B2E"), location: 0.0),
-                    .init(color: Color(hex: "0F051A"), location: 0.7),
-                    .init(color: Color.black, location: 1.0)
-                ]),
-                center: .center,
-                startRadius: 100,
-                endRadius: 600
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(.all, edges: .all)
 
             // Vignette overlay
             RadialGradient(

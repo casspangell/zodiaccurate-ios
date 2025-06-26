@@ -32,3 +32,14 @@ struct SecondaryButtonStyle: ButtonStyle {
     }
 }
 
+func getDayOfWeek(date: Date = Date()) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "EEEE"
+    return formatter.string(from: date)
+}
+
+func getFormattedDate(date: Date = Date()) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MMMM d, yyyy"
+    return formatter.string(from: date)
+}

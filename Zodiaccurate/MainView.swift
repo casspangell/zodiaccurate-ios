@@ -18,27 +18,44 @@ struct MainView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.all, edges: .all)
 
-                // Header containing profile badge and welcome text
-                HStack(alignment: .top, spacing: 10) {
-                    // Left column - Profile badge
-                    ZodiacProfileBadge()
-                    
-                    // Right column - Date text
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(getDayOfWeek())
-                            .foregroundColor(.white.opacity(0.7))
-                            .font(.headline)
-                        Text(getFormattedDate())
-                            .foregroundColor(.white.opacity(0.7))
-                            .font(.subheadline)
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.top, 0)
-                .padding(.horizontal)
-                .zIndex(1)
+                ZStack(alignment: .topTrailing) {
+                    // Main header HStack: badge and date
+                    HStack(alignment: .top, spacing: 0) {
+                        // Profile badge on the left
+                        ZodiacProfileBadge()
+                            .frame(width: 180, height: 180)
 
+                        Spacer()
+
+                        // Date text at the far right
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(getDayOfWeek())
+                                .font(.system(size: 36, weight: .bold))
+                                .foregroundColor(.white.opacity(0.9))
+                            Text(getFormattedDate())
+                                .font(.system(size: 28, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.9))
+                        }
+                        .padding(.top, 32)
+                        .padding(.trailing, 8)
+                    }
+                    .padding(.top, 0)
+                    .padding(.horizontal)
+                    .zIndex(1)
+
+                    // Button stack at the top-right
+                    VStack(spacing: 16) {
+                        CircleAssetButton(assetName: "bell", accessibilityLabel: "Notifications") {
+                            // Notification action
+                        }
+                        CircleAssetButton(assetName: "settings", accessibilityLabel: "Settings") {
+                            // Settings action
+                        }
+                    }
+                    .padding(.trailing, 8)
+                    .padding(.top, 8)
+                }
+                
                 ScrollView {
                     VStack(spacing: 20) {
                         // User Profile Card
@@ -106,19 +123,6 @@ struct MainView: View {
                 onboardingDataAccess.updateModelContext(modelContext)
             }
         }
-    }
-    
-    // Helper functions for date formatting
-    private func getDayOfWeek() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
-        return formatter.string(from: Date())
-    }
-    
-    private func getFormattedDate() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM d, yyyy"
-        return formatter.string(from: Date())
     }
 }
 
@@ -196,6 +200,52 @@ struct BackgroundView: View {
                 .ignoresSafeArea(.all, edges: .all)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// Outlined circular icon button
+struct CircleIconButton: View {
+    let systemName: String
+    let accessibilityLabel: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 40, height: 40)
+                .background(Color.clear)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.7), lineWidth: 2)
+                )
+        }
+        .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+// Outlined circular asset image button
+struct CircleAssetButton: View {
+    let assetName: String
+    let accessibilityLabel: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(assetName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 22, height: 22)
+                .padding(9)
+                .background(Color.clear)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.7), lineWidth: 2)
+                )
+        }
+        .frame(width: 40, height: 40)
+        .accessibilityLabel(accessibilityLabel)
     }
 }
 

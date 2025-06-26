@@ -23,10 +23,14 @@ struct MainView: View {
                     // Left column - Profile badge
                     ZodiacProfileBadge()
                     
-                    // Right column - Welcome text
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("You are logged in as: \(authManager.user?.email ?? "")")
+                    // Right column - Date text
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(getDayOfWeek())
                             .foregroundColor(.white.opacity(0.7))
+                            .font(.headline)
+                        Text(getFormattedDate())
+                            .foregroundColor(.white.opacity(0.7))
+                            .font(.subheadline)
                     }
                     
                     Spacer()
@@ -102,6 +106,19 @@ struct MainView: View {
                 onboardingDataAccess.updateModelContext(modelContext)
             }
         }
+    }
+    
+    // Helper functions for date formatting
+    private func getDayOfWeek() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: Date())
+    }
+    
+    private func getFormattedDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        return formatter.string(from: Date())
     }
 }
 

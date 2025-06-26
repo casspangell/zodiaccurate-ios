@@ -18,23 +18,30 @@ struct MainView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.all, edges: .all)
 
-                ZodiacProfileBadge()
-                    .zIndex(1)
+                // Header containing profile badge and welcome text
+                HStack(alignment: .top, spacing: 20) {
+                    // Left column - Profile badge
+                    ZodiacProfileBadge()
+                    
+                    // Right column - Welcome text
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Welcome to Zodiaccurate")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        
+                        Text("You are logged in as: \(authManager.user?.email ?? "")")
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.top, 40)
+                .padding(.horizontal)
+                .zIndex(1)
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        // Header
-                        VStack(spacing: 12) {
-                            Text("Welcome to Zodiaccurate")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            
-                            Text("You are logged in as: \(authManager.user?.email ?? "")")
-                                .foregroundColor(.white.opacity(0.7))
-                        }
-                        .padding(.top, 40)
-                        
                         // User Profile Card
                         VStack(spacing: 16) {
                             Text("Your Cosmic Profile")
@@ -93,6 +100,7 @@ struct MainView: View {
                         .padding(.bottom, 40)
                     }
                 }
+                .padding(.top, 244) // Header height: 40 (top) + 180 (badge) + 24 (badge top padding) = 244
             }
             .navigationBarHidden(true)
             .onAppear {

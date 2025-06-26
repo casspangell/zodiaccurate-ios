@@ -19,7 +19,7 @@ struct MainView: View {
                     .ignoresSafeArea(.all, edges: .all)
 
                 // Header containing profile badge and welcome text
-                HStack(alignment: .top, spacing: 20) {
+                HStack(alignment: .top, spacing: 10) {
                     // Left column - Profile badge
                     ZodiacProfileBadge()
                     

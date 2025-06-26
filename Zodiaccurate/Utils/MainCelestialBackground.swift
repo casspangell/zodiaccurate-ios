@@ -10,6 +10,7 @@ struct MainCelestialBackground: View {
     @State private var auroraShift: Double = 0
     @State private var cometTrail: [CGPoint] = []
     @State private var meteorShower: [Meteor] = []
+    @State private var currentTime: Date = Date()
     
     struct Meteor {
         var position: CGPoint
@@ -36,9 +37,14 @@ struct MainCelestialBackground: View {
                 )
                 .ignoresSafeArea()
                 
-                // Animated nebula clouds
+                // Animated nebula clouds with time-based positioning
                 ForEach(0..<5, id: \.self) { index in
-                    NebulaCloud(index: index, opacity: nebulaOpacity)
+                    NebulaCloud(
+                        index: index, 
+                        opacity: nebulaOpacity,
+                        currentTime: currentTime,
+                        screenSize: geometry.size
+                    )
                 }
                 
                 // Zodiac constellation wheel
@@ -70,6 +76,14 @@ struct MainCelestialBackground: View {
         .onAppear {
             startAnimations()
             startMeteorShower()
+            startTimeUpdates()
+        }
+    }
+    
+    private func startTimeUpdates() {
+        // Update time every minute to refresh nebula positions
+        Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+            currentTime = Date()
         }
     }
     
@@ -137,6 +151,8 @@ struct MainCelestialBackground: View {
 struct NebulaCloud: View {
     let index: Int
     let opacity: Double
+    let currentTime: Date
+    let screenSize: CGSize
     
     var body: some View {
         Ellipse()
@@ -162,15 +178,137 @@ struct NebulaCloud: View {
     }
     
     private func calculateNebulaX(index: Int) -> CGFloat {
-        let baseX: CGFloat = 100
-        let increment: CGFloat = 80
-        return baseX + CGFloat(index) * increment
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: currentTime)
+        let minute = calendar.component(.minute, from: currentTime)
+        
+        // Convert time to a normalized value (0-1) for the day
+        let timeProgress = (Double(hour) + Double(minute) / 60.0) / 24.0
+        
+        // Different positioning patterns for different times of day
+        let timeOfDay = getTimeOfDay(hour: hour)
+        
+        switch timeOfDay {
+        case .dawn:
+            // Dawn: bubbles cluster on the left side, rising
+            let baseX = screenSize.width * 0.2
+            let xOffset = CGFloat(index) * 40
+            let timeOffset = sin(timeProgress * .pi) * 50
+            return baseX + xOffset + timeOffset
+            
+        case .morning:
+            // Morning: bubbles spread across the top
+            let baseX = screenSize.width * 0.1
+            let xSpread = screenSize.width * 0.8
+            let xOffset = (CGFloat(index) / 4.0) * xSpread
+            let timeOffset = cos(timeProgress * .pi * 2) * 30
+            return baseX + xOffset + timeOffset
+            
+        case .afternoon:
+            // Afternoon: bubbles move to the right side
+            let baseX = screenSize.width * 0.6
+            let xOffset = CGFloat(index) * 35
+            let timeOffset = sin(timeProgress * .pi * 3) * 40
+            return baseX + xOffset + timeOffset
+            
+        case .dusk:
+            // Dusk: bubbles cluster in the center, preparing for night
+            let centerX = screenSize.width * 0.5
+            let xOffset = CGFloat(index - 2) * 60
+            let timeOffset = cos(timeProgress * .pi) * 80
+            return centerX + xOffset + timeOffset
+            
+        case .night:
+            // Night: bubbles spread across the bottom, like stars
+            let baseX = screenSize.width * 0.15
+            let xSpread = screenSize.width * 0.7
+            let xOffset = (CGFloat(index) / 4.0) * xSpread
+            let timeOffset = sin(timeProgress * .pi * 4) * 25
+            return baseX + xOffset + timeOffset
+            
+        case .lateNight:
+            // Late night: bubbles cluster on the left, preparing for dawn
+            let baseX = screenSize.width * 0.3
+            let xOffset = CGFloat(index) * 45
+            let timeOffset = cos(timeProgress * .pi * 2) * 35
+            return baseX + xOffset + timeOffset
+        }
     }
     
     private func calculateNebulaY(index: Int) -> CGFloat {
-        let baseY: CGFloat = 150
-        let increment: CGFloat = 60
-        return baseY + CGFloat(index) * increment
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: currentTime)
+        let minute = calendar.component(.minute, from: currentTime)
+        
+        // Convert time to a normalized value (0-1) for the day
+        let timeProgress = (Double(hour) + Double(minute) / 60.0) / 24.0
+        
+        let timeOfDay = getTimeOfDay(hour: hour)
+        
+        switch timeOfDay {
+        case .dawn:
+            // Dawn: bubbles rise from bottom to middle
+            let baseY = screenSize.height * 0.8
+            let yOffset = CGFloat(index) * 30
+            let timeOffset = (1.0 - timeProgress) * screenSize.height * 0.4
+            return baseY - yOffset - timeOffset
+            
+        case .morning:
+            // Morning: bubbles stay in upper third
+            let baseY = screenSize.height * 0.2
+            let yOffset = CGFloat(index) * 25
+            let timeOffset = sin(timeProgress * .pi * 2) * 20
+            return baseY + yOffset + timeOffset
+            
+        case .afternoon:
+            // Afternoon: bubbles move to middle-right
+            let baseY = screenSize.height * 0.4
+            let yOffset = CGFloat(index) * 35
+            let timeOffset = cos(timeProgress * .pi * 3) * 30
+            return baseY + yOffset + timeOffset
+            
+        case .dusk:
+            // Dusk: bubbles cluster in center
+            let centerY = screenSize.height * 0.5
+            let yOffset = CGFloat(index - 2) * 40
+            let timeOffset = sin(timeProgress * .pi) * 50
+            return centerY + yOffset + timeOffset
+            
+        case .night:
+            // Night: bubbles spread across bottom
+            let baseY = screenSize.height * 0.7
+            let yOffset = CGFloat(index) * 30
+            let timeOffset = sin(timeProgress * .pi * 4) * 20
+            return baseY + yOffset + timeOffset
+            
+        case .lateNight:
+            // Late night: bubbles prepare to rise
+            let baseY = screenSize.height * 0.6
+            let yOffset = CGFloat(index) * 25
+            let timeOffset = cos(timeProgress * .pi * 2) * 40
+            return baseY + yOffset + timeOffset
+        }
+    }
+    
+    private func getTimeOfDay(hour: Int) -> TimeOfDay {
+        switch hour {
+        case 5..<8:
+            return .dawn
+        case 8..<12:
+            return .morning
+        case 12..<17:
+            return .afternoon
+        case 17..<20:
+            return .dusk
+        case 20..<24:
+            return .night
+        default: // 0-5
+            return .lateNight
+        }
+    }
+    
+    private enum TimeOfDay {
+        case dawn, morning, afternoon, dusk, night, lateNight
     }
     
     private let nebulaColors: [Color] = [

@@ -9,7 +9,6 @@ struct ZodiacProfileBadge: View {
                     RadialGradient(
                         gradient: Gradient(colors: [
                             Color(red: 1.0, green: 0.6, blue: 0.2), // orange
-                            Color(red: 0.7, green: 0.2, blue: 0.7), // purple
                             Color.black.opacity(0.8)
                         ]),
                         center: .center,
@@ -18,7 +17,7 @@ struct ZodiacProfileBadge: View {
                     )
                 )
                 .frame(width: 180, height: 180)
-                .shadow(color: Color.purple.opacity(0.5), radius: 40, x: 0, y: 0)
+                .shadow(color: Color.orange.opacity(0.3), radius: 40, x: 0, y: 0)
             zodiacImage
                 .resizable()
                 .scaledToFit()

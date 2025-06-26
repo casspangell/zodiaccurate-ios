@@ -1,6 +1,263 @@
 import SwiftUI
 
-// Shooting Stars Components
+// MARK: - Solar Flare Background Effect
+
+/// Custom animated shape for solar flare effects
+struct SolarFlareShape: Shape {
+    var animatableData: Double
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let width = rect.width
+        let height = rect.height
+        
+        // Create flame-like shape that flows horizontally
+        let flamePoints = 16
+        let baseWidth = width * 0.6
+        let baseHeight = height * 0.8
+        
+        // Start from the bottom center (fire base)
+        let startPoint = CGPoint(x: center.x, y: center.y + baseHeight * 0.4)
+        path.move(to: startPoint)
+        
+        // Create the right side of the flame (flowing right)
+        for i in 0..<flamePoints {
+            let progress = Double(i) / Double(flamePoints - 1)
+            let x = center.x + (baseWidth * 0.5) * progress
+            let y = center.y + baseHeight * 0.4 - (baseHeight * 0.8) * progress
+            
+            // Add flame-like variation
+            let flameVariation = sin(progress * .pi * 3 + animatableData * 2) * 0.3
+            let widthVariation = sin(progress * .pi * 2 + animatableData * 1.5) * 0.2
+            let adjustedX = x + flameVariation * baseWidth * 0.1
+            let adjustedY = y + widthVariation * baseHeight * 0.1
+            
+            path.addLine(to: CGPoint(x: adjustedX, y: adjustedY))
+        }
+        
+        // Create the left side of the flame (flowing left)
+        for i in (0..<flamePoints).reversed() {
+            let progress = Double(i) / Double(flamePoints - 1)
+            let x = center.x - (baseWidth * 0.5) * progress
+            let y = center.y + baseHeight * 0.4 - (baseHeight * 0.8) * progress
+            
+            // Add flame-like variation
+            let flameVariation = sin(progress * .pi * 3 + animatableData * 2) * 0.3
+            let widthVariation = sin(progress * .pi * 2 + animatableData * 1.5) * 0.2
+            let adjustedX = x - flameVariation * baseWidth * 0.1
+            let adjustedY = y + widthVariation * baseHeight * 0.1
+            
+            path.addLine(to: CGPoint(x: adjustedX, y: adjustedY))
+        }
+        
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// Individual solar flare layer with custom animation
+struct SolarFlareLayer: View {
+    let size: CGFloat
+    let rotationSpeed: Double
+    let scaleSpeed: Double
+    let opacity: Double
+    let color: Color
+    let delay: Double
+    
+    @State private var rotation: Double = 0
+    @State private var scale: CGFloat = 0.8
+    @State private var opacityValue: Double = 0
+    @State private var flameOffset: CGFloat = 0
+    
+    var body: some View {
+        SolarFlareShape(animatableData: rotation)
+            .fill(
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: color.opacity(opacity), location: 0.0),
+                        .init(color: color.opacity(opacity * 0.8), location: 0.3),
+                        .init(color: color.opacity(opacity * 0.5), location: 0.6),
+                        .init(color: color.opacity(opacity * 0.2), location: 0.8),
+                        .init(color: Color.clear, location: 1.0)
+                    ]),
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+            )
+            .frame(width: size, height: size)
+            .scaleEffect(scale)
+            .opacity(opacityValue)
+            .offset(x: flameOffset, y: 0)
+            .blur(radius: 6)
+            .blendMode(.screen)
+            .onAppear {
+                // Horizontal flame movement
+                withAnimation(
+                    .easeInOut(duration: rotationSpeed)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay)
+                ) {
+                    flameOffset = size * 0.1
+                }
+                
+                // Flame shape animation
+                withAnimation(
+                    .easeInOut(duration: rotationSpeed * 0.8)
+                    .repeatForever(autoreverses: false)
+                    .delay(delay)
+                ) {
+                    rotation = 2 * .pi
+                }
+                
+                // Flame intensity pulsing
+                withAnimation(
+                    .easeInOut(duration: scaleSpeed)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay)
+                ) {
+                    scale = 1.1
+                }
+                
+                // Opacity breathing effect
+                withAnimation(
+                    .easeInOut(duration: scaleSpeed * 0.7)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay)
+                ) {
+                    opacityValue = opacity
+                }
+            }
+    }
+}
+
+/// Complete solar flare background effect
+struct SolarFlareBackground: View {
+    let size: CGFloat
+    
+    // Solar flare color palette
+    private let flareColors: [Color] = [
+        Color(hex: "FF4500"), // Deep orange
+        Color(hex: "FFD700"), // Bright yellow
+        Color(hex: "FF6347"), // Warm red
+        Color(hex: "FFA500"), // Light orange
+        Color(hex: "FFFFE0")  // Pale yellow
+    ]
+    
+    var body: some View {
+        ZStack {
+            // Base layer - slow rotation and scaling
+            SolarFlareLayer(
+                size: size,
+                rotationSpeed: 8.0,
+                scaleSpeed: 6.0,
+                opacity: 0.6,
+                color: flareColors[0],
+                delay: 0.0
+            )
+            
+            // Middle layer - medium rotation in opposite direction
+            SolarFlareLayer(
+                size: size * 0.8,
+                rotationSpeed: 5.0,
+                scaleSpeed: 4.0,
+                opacity: 0.5,
+                color: flareColors[1],
+                delay: 1.0
+            )
+            
+            // Top layer - faster pulsing for active flare tips
+            SolarFlareLayer(
+                size: size * 0.6,
+                rotationSpeed: 3.0,
+                scaleSpeed: 2.5,
+                opacity: 0.7,
+                color: flareColors[2],
+                delay: 2.0
+            )
+            
+            // Additional accent layers for complexity
+            SolarFlareLayer(
+                size: size * 0.9,
+                rotationSpeed: 7.0,
+                scaleSpeed: 5.0,
+                opacity: 0.4,
+                color: flareColors[3],
+                delay: 0.5
+            )
+            
+            SolarFlareLayer(
+                size: size * 0.7,
+                rotationSpeed: 4.5,
+                scaleSpeed: 3.5,
+                opacity: 0.3,
+                color: flareColors[4],
+                delay: 1.5
+            )
+        }
+        .drawingGroup() // Optimize for performance
+    }
+}
+
+/// Profile badge with integrated solar flare background
+struct ProfileBadgeWithFlare: View {
+    let profileImage: Image
+    let zodiacImage: Image
+    let size: CGFloat
+    
+    var body: some View {
+        ZStack {
+            // Solar flare background
+            SolarFlareBackground(size: size)
+                .frame(width: size, height: size)
+            
+            // Profile badge circle with gradient
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 1.0, green: 0.6, blue: 0.2), // orange
+                            Color(red: 0.7, green: 0.2, blue: 0.7), // purple
+                            Color.black.opacity(0.8)
+                        ]),
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: size * 0.6
+                    )
+                )
+                .frame(width: size, height: size)
+                .shadow(color: Color.purple.opacity(0.5), radius: 40, x: 0, y: 0)
+            
+            // Zodiac image
+            zodiacImage
+                .resizable()
+                .scaledToFit()
+                .frame(width: size * 0.67, height: size * 0.67)
+                .clipShape(Circle())
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+// MARK: - Enhanced Zodiac Profile Badge with Solar Flare
+
+/// Enhanced version of ZodiacProfileBadge with solar flare effect
+struct EnhancedZodiacProfileBadge: View {
+    var zodiacImage: Image = Image("Capricorn")
+    let size: CGFloat = 180
+    
+    var body: some View {
+        ProfileBadgeWithFlare(
+            profileImage: Image("logo"),
+            zodiacImage: zodiacImage,
+            size: size
+        )
+        .padding(.top, 24)
+        .padding(.leading, 16)
+    }
+}
+
+// MARK: - Shooting Stars Components
 struct ShootingStarsLayer: View {
     @State private var shootingStars: [ShootingStarData] = []
     let maxStars = 7

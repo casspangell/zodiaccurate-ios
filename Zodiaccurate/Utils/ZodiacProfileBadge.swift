@@ -17,8 +17,8 @@ struct ZodiacProfileBadge: View {
                         endPoint: .bottom
                     )
                 )
-                .frame(width: 200, height: 200)
-                .blur(radius: 10)
+                .frame(width: 180, height: 180)
+                .blur(radius: 20)
             
             // Main black circle
             Circle()
@@ -32,7 +32,7 @@ struct ZodiacProfileBadge: View {
                         endRadius: 120
                     )
                 )
-                .frame(width: 160, height: 160)
+                .frame(width: 140, height: 140)
             
             zodiacImage
                 .resizable()

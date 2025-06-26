@@ -23,7 +23,7 @@ struct MainView: View {
                     HStack(alignment: .top, spacing: 0) {
                         // Profile badge on the left
                         ZodiacProfileBadge()
-                            .frame(width: 180, height: 180)
+                            .frame(width: 140, height: 140)
 
                         Spacer()
 

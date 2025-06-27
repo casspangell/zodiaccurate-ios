@@ -36,7 +36,7 @@ struct MainView: View {
                                 .font(.system(size: 28, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.9))
                         }
-                        .padding(.top, 32)
+                        .padding(.top, 80)
                         .padding(.trailing, 8)
                     }
                     .padding(.top, 0)

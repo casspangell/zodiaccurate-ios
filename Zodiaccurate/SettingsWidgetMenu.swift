@@ -106,36 +106,79 @@ struct SettingsWidgetMenu: View {
 // Large User Badge Widget
 struct UserBadgeWidget: View {
     var body: some View {
-        VStack(spacing: 30) {
-            // Large Zodiac Profile Badge
-            ZodiacProfileBadge()
-                .frame(width: 120, height: 120)
-            
-            // User Info
-            VStack(spacing: 6) {
-                Text(OnboardingDataAccess.firstName)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
+        HStack(spacing: 32) {
+            // Zodiac Profile Badge on the left
+            ZStack {
+                // Glowing background circle
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            gradient: Gradient(colors: [
+                                Color.accentGold.opacity(0.3),
+                                Color.accentPurple.opacity(0.2),
+                                Color.clear
+                            ]),
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 60
+                        )
+                    )
+                    .frame(width: 100, height: 100)
+                    .blur(radius: 8)
                 
+                // Main badge
+                ZodiacProfileBadge()
+                    .frame(width: 80, height: 80)
+            }
+            
+            // User Info on the right
+            VStack(alignment: .center, spacing: 8) {
+                // Name with cosmic styling
+                Text(OnboardingDataAccess.firstName.isEmpty ? "Zodiac User" : OnboardingDataAccess.firstName)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.white)
+                    .minimumScaleFactor(0.6)
+                    .lineLimit(1)
+                
+                // Zodiac sign
                 Text(OnboardingDataAccess.zodiacSign.isEmpty ? OnboardingDataAccess.firstName : OnboardingDataAccess.zodiacSign)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.white.opacity(0.8))
                 
-                Text("Member since \(getFormattedDate())")
-                    .font(.system(size: 12, weight: .regular))
+                // Member since
+                Text("Member since")
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundColor(.white.opacity(0.6))
+                
+                Text("\(getFormattedDate())")
+                    .font(.system(size: 11, weight: .regular))
                     .foregroundColor(.white.opacity(0.6))
             }
+            .padding(.leading, 16)
+            
+            Spacer()
         }
-        .padding(20)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .fill(Color.white.opacity(0.08))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(LinearGradient(gradient: Gradient(colors: [Color.accentGold.opacity(0.5), Color.accentPurple.opacity(0.4)]), startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.accentGold.opacity(0.4),
+                                    Color.accentPurple.opacity(0.3),
+                                    Color.blue.opacity(0.2)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
                 )
         )
-        .shadow(color: Color.accentGold.opacity(0.1), radius: 12, x: 0, y: 6)
+        .shadow(color: Color.accentGold.opacity(0.15), radius: 12, x: 0, y: 6)
         .onAppear {
             logUserProfile()
         }

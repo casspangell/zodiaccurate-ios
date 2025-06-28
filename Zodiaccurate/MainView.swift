@@ -45,10 +45,10 @@ struct MainView: View {
 
                     // Button stack at the top-right
                     VStack(spacing: 16) {
-                        CircleAssetButton(assetName: "bell", accessibilityLabel: "Notifications") {
-                            // Notification action
+                        CircleIconButton(systemName: "bell", accessibilityLabel: "Notifications") {
+                            //something
                         }
-                        CircleAssetButton(assetName: "settings", accessibilityLabel: "Settings") {
+                        CircleIconButton(systemName: "gearshape", accessibilityLabel: "Settings") {
                             // Settings action
                         }
                     }
@@ -200,52 +200,6 @@ struct BackgroundView: View {
                 .ignoresSafeArea(.all, edges: .all)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-// Outlined circular icon button
-struct CircleIconButton: View {
-    let systemName: String
-    let accessibilityLabel: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(.white)
-                .frame(width: 40, height: 40)
-                .background(Color.clear)
-                .overlay(
-                    Circle()
-                        .stroke(Color.white.opacity(0.7), lineWidth: 2)
-                )
-        }
-        .accessibilityLabel(accessibilityLabel)
-    }
-}
-
-// Outlined circular asset image button
-struct CircleAssetButton: View {
-    let assetName: String
-    let accessibilityLabel: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(assetName)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 22, height: 22)
-                .padding(9)
-                .background(Color.clear)
-                .overlay(
-                    Circle()
-                        .stroke(Color.white.opacity(0.7), lineWidth: 2)
-                )
-        }
-        .frame(width: 40, height: 40)
-        .accessibilityLabel(accessibilityLabel)
     }
 }
 

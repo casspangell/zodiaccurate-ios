@@ -5,6 +5,7 @@ struct MainView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @Environment(\.modelContext) private var modelContext
     @StateObject private var onboardingDataAccess: OnboardingDataAccess
+    @State private var showingSettings = false
     
     init() {
         // Initialize with a temporary context - will be updated in onAppear
@@ -12,115 +13,135 @@ struct MainView: View {
     }
     
     var body: some View {
-        NavigationView {
-            ZStack(alignment: .topLeading) {
-                MainCelestialBackground()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .ignoresSafeArea(.all, edges: .all)
+        GeometryReader { geo in
+            ZStack {
+                NavigationView {
+                    ZStack(alignment: .topLeading) {
+                        MainCelestialBackground()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .ignoresSafeArea(.all, edges: .all)
 
-                ZStack(alignment: .topTrailing) {
-                    // Main header HStack: badge and date
-                    HStack(alignment: .top, spacing: 0) {
-                        // Profile badge on the left
-                        ZodiacProfileBadge()
-                            .frame(width: 140, height: 140)
+                        // Main header HStack: badge and date
+                        HStack(alignment: .top, spacing: 0) {
+                            // Profile badge on the left
+                            ZodiacProfileBadge()
+                                .frame(width: 140, height: 140)
 
-                        Spacer()
+                            Spacer()
 
-                        // Date text at the far right
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(getDayOfWeek())
-                                .font(.system(size: 36, weight: .bold))
-                                .foregroundColor(.white.opacity(0.9))
-                            Text(getFormattedDate())
-                                .font(.system(size: 28, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                        .padding(.top, 80)
-                        .padding(.trailing, 8)
-                    }
-                    .padding(.top, 0)
-                    .padding(.horizontal)
-                    .zIndex(1)
-
-                    // Button stack at the top-right
-                    VStack(spacing: 16) {
-                        CircleIconButton(systemName: "bell", accessibilityLabel: "Notifications") {
-                            //something
-                        }
-                        CircleIconButton(systemName: "gearshape", accessibilityLabel: "Settings") {
-                            // Settings action
-                        }
-                    }
-                    .padding(.trailing, 8)
-                    .padding(.top, 8)
-                }
-                
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // User Profile Card
-                        VStack(spacing: 16) {
-                            Text("Your Cosmic Profile")
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                            
-                            VStack(spacing: 12) {
-                                ProfileRow(title: "Name", value: OnboardingDataAccess.firstName)
-                                ProfileRow(title: "Birth Date", value: OnboardingDataAccess.birthDate)
-                                ProfileRow(title: "Birth Time", value: OnboardingDataAccess.birthTime.isEmpty ? "Unknown" : OnboardingDataAccess.birthTime)
-                                ProfileRow(title: "Zodiac Sign", value: OnboardingDataAccess.zodiacSign)
+                            // Date text at the far right
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(getDayOfWeek())
+                                    .font(.system(size: 36, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.9))
+                                Text(getFormattedDate())
+                                    .font(.system(size: 28, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.9))
                             }
-                            .padding()
-                            .background(Color.white.opacity(0.1))
-                            .cornerRadius(12)
+                            .padding(.top, 80)
+                            .padding(.trailing, 8)
                         }
+                        .padding(.top, 0)
                         .padding(.horizontal)
-                        
-                        // Responses Section
-                        if !OnboardingDataAccess.responses.isEmpty {
-                            VStack(spacing: 16) {
-                                Text("Your Responses")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.white)
-                                
-                                VStack(spacing: 12) {
-                                    ForEach(OnboardingDataAccess.responses, id: \.0) { response in
-                                        ResponseRow(key: response.0, value: response.1)
+                        .zIndex(1)
+
+                        ScrollView {
+                            VStack(spacing: 20) {
+                                // User Profile Card
+                                VStack(spacing: 16) {
+                                    Text("Your Cosmic Profile")
+                                        .font(.title2)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
+                                    
+                                    VStack(spacing: 12) {
+                                        ProfileRow(title: "Name", value: OnboardingDataAccess.firstName)
+                                        ProfileRow(title: "Birth Date", value: OnboardingDataAccess.birthDate)
+                                        ProfileRow(title: "Birth Time", value: OnboardingDataAccess.birthTime.isEmpty ? "Unknown" : OnboardingDataAccess.birthTime)
+                                        ProfileRow(title: "Zodiac Sign", value: OnboardingDataAccess.zodiacSign)
                                     }
+                                    .padding()
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(12)
                                 }
-                                .padding()
-                                .background(Color.white.opacity(0.1))
-                                .cornerRadius(12)
+                                .padding(.horizontal)
+                                
+                                // Responses Section
+                                if !OnboardingDataAccess.responses.isEmpty {
+                                    VStack(spacing: 16) {
+                                        Text("Your Responses")
+                                            .font(.title2)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                        
+                                        VStack(spacing: 12) {
+                                            ForEach(OnboardingDataAccess.responses, id: \.0) { response in
+                                                ResponseRow(key: response.0, value: response.1)
+                                            }
+                                        }
+                                        .padding()
+                                        .background(Color.white.opacity(0.1))
+                                        .cornerRadius(12)
+                                    }
+                                    .padding(.horizontal)
+                                }
+                                
+                                Spacer()
+                                
+                                // Sign Out Button
+                                Button(action: {
+                                    // Clear onboarding data on sign out
+                                    OnboardingDataAccess.clearOnboardingData()
+                                    try? authManager.signOut()
+                                }) {
+                                    Text("Sign Out")
+                                        .foregroundColor(.white)
+                                        .padding()
+                                        .frame(maxWidth: .infinity)
+                                        .background(Color.red.opacity(0.3))
+                                        .cornerRadius(12)
+                                }
+                                .padding(.horizontal)
+                                .padding(.bottom, 40)
                             }
-                            .padding(.horizontal)
                         }
-                        
-                        Spacer()
-                        
-                        // Sign Out Button
-                        Button(action: {
-                            // Clear onboarding data on sign out
-                            OnboardingDataAccess.clearOnboardingData()
-                            try? authManager.signOut()
-                        }) {
-                            Text("Sign Out")
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.red.opacity(0.3))
-                                .cornerRadius(12)
-                        }
-                        .padding(.horizontal)
-                        .padding(.bottom, 40)
+                        .padding(.top, 244) // Header height: 40 (top) + 180 (badge) + 24 (badge top padding) = 244
+                    }
+                    .navigationBarHidden(true)
+                    .sheet(isPresented: $showingSettings) {
+                        SettingsView()
+                    }
+                    .onAppear {
+                        onboardingDataAccess.updateModelContext(modelContext)
                     }
                 }
-                .padding(.top, 244) // Header height: 40 (top) + 180 (badge) + 24 (badge top padding) = 244
-            }
-            .navigationBarHidden(true)
-            .onAppear {
-                onboardingDataAccess.updateModelContext(modelContext)
+                // Overlay: Notification and Settings buttons in upper right
+                ZStack {
+                    VStack(spacing: 8) {
+                        Text("Test")
+                            .foregroundColor(.yellow)
+                            .background(Color.black)
+                        CircleIconButton(systemName: "bell", accessibilityLabel: "Notifications") {
+                            //alert action
+                        }
+                        .background(Color.red.opacity(0.3)) // TEMP: visualize bell button
+
+                        SettingsButtonWithMenu(
+                            onProfileTap: {
+                                showingSettings = true
+                            },
+                            onLogoutTap: {
+                                OnboardingDataAccess.clearOnboardingData()
+                                try? authManager.signOut()
+                            }
+                        )
+                        .background(Color.green.opacity(0.3)) // TEMP: visualize gear button
+                    }
+                    .frame(width: 80, height: 120)
+                    .border(Color.blue, width: 2)
+                    .position(x: UIScreen.main.bounds.width - 40, y: 60)
+                    .zIndex(100)
+                }
             }
         }
     }

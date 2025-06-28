@@ -388,4 +388,214 @@ struct ShootingStar: View {
     private func lerp(_ a: CGFloat, _ b: CGFloat, _ t: CGFloat) -> CGFloat {
         a + (b - a) * t
     }
+}
+
+// MARK: - Settings Button with Circular Menu
+
+/// Settings button with circular menu animation
+struct SettingsButtonWithMenu: View {
+    @State private var isMenuOpen = false
+    @State private var gearRotation: Double = 0
+    @State private var menuScale: CGFloat = 0
+    @State private var menuOpacity: Double = 0
+    @State private var profileItemScale: CGFloat = 0
+    @State private var logoutItemScale: CGFloat = 0
+    
+    let onProfileTap: () -> Void
+    let onLogoutTap: () -> Void
+    
+    var body: some View {
+        ZStack {
+            // Background overlay to close menu when tapped outside
+            if isMenuOpen {
+                Color.black.opacity(0.001) // Nearly transparent but tappable
+                    .onTapGesture {
+                        closeMenu()
+                    }
+            }
+            
+            // Main settings button
+            Button(action: {
+                if isMenuOpen {
+                    closeMenu()
+                } else {
+                    openMenu()
+                }
+                
+                // Haptic feedback
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+            }) {
+                ZStack {
+                    // Background gradient
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.indigo, Color.sapphire]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                    
+                    // Gear icon
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.white)
+                        .rotationEffect(.degrees(gearRotation))
+                }
+                .overlay(
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2
+                        )
+                )
+            }
+            .frame(width: 40, height: 40)
+            .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+            .disabled(isMenuOpen)
+            
+            // Circular menu
+            ZStack {
+                // Profile menu item (10 o'clock position)
+                MenuItem(
+                    icon: "person.circle",
+                    title: "Profile",
+                    position: .topLeading,
+                    scale: profileItemScale,
+                    action: {
+                        onProfileTap()
+                        closeMenu()
+                    }
+                )
+                
+                // Logout menu item (2 o'clock position)
+                MenuItem(
+                    icon: "arrow.right.square",
+                    title: "Logout",
+                    position: .topTrailing,
+                    scale: logoutItemScale,
+                    action: {
+                        onLogoutTap()
+                        closeMenu()
+                    }
+                )
+            }
+            .scaleEffect(menuScale)
+            .opacity(menuOpacity)
+        }
+    }
+    
+    private func openMenu() {
+        isMenuOpen = true
+        
+        // Gear rotation animation
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            gearRotation = 30
+        }
+        
+        // Menu appearance animation
+        withAnimation(.easeInOut(duration: 0.4)) {
+            menuScale = 1
+            menuOpacity = 1
+        }
+        
+        // Staggered menu items animation
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.1)) {
+            profileItemScale = 1
+        }
+        
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.2)) {
+            logoutItemScale = 1
+        }
+    }
+    
+    private func closeMenu() {
+        // Menu items disappear first
+        withAnimation(.easeInOut(duration: 0.2)) {
+            profileItemScale = 0
+            logoutItemScale = 0
+        }
+        
+        // Menu container disappears
+        withAnimation(.easeInOut(duration: 0.3).delay(0.1)) {
+            menuScale = 0
+            menuOpacity = 0
+        }
+        
+        // Gear rotation back to original
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6).delay(0.2)) {
+            gearRotation = 0
+        }
+        
+        // Update state after animations
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            isMenuOpen = false
+        }
+    }
+}
+
+/// Individual menu item component
+struct MenuItem: View {
+    let icon: String
+    let title: String
+    let position: Alignment
+    let scale: CGFloat
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(.white)
+                
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+            }
+            .frame(width: 60, height: 60)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+        }
+        .scaleEffect(scale)
+        .position(getPosition())
+    }
+    
+    private func getPosition() -> CGPoint {
+        let radius: CGFloat = 80
+        switch position {
+        case .topLeading:
+            return CGPoint(x: -radius, y: -radius)
+        case .topTrailing:
+            return CGPoint(x: radius, y: -radius)
+        default:
+            return CGPoint(x: 0, y: 0)
+        }
+    }
+}
+
+// MARK: - Preview
+struct SettingsButtonWithMenu_Previews: PreviewProvider {
+    static var previews: some View {
+        ZStack {
+            Color.black
+                .ignoresSafeArea()
+            
+            SettingsButtonWithMenu(
+                onProfileTap: { print("Profile tapped") },
+                onLogoutTap: { print("Logout tapped") }
+            )
+        }
+    }
 } 

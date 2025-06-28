@@ -394,7 +394,8 @@ struct ShootingStar: View {
 
 /// Settings button with circular menu animation
 struct SettingsButtonWithMenu: View {
-    @State private var isMenuOpen = false
+    @Binding var isMenuOpen: Bool
+    @State private var isAnimatingMenu = false
     @State private var gearRotation: Double = 0
     @State private var menuScale: CGFloat = 0
     @State private var menuOpacity: Double = 0
@@ -456,41 +457,43 @@ struct SettingsButtonWithMenu: View {
             }
             .frame(width: 40, height: 40)
             .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
-            .disabled(isMenuOpen)
             
             // Circular menu
-            ZStack {
-                // Profile menu item (10 o'clock position)
-                MenuItem(
-                    icon: "person.circle",
-                    title: "Profile",
-                    position: .topLeading,
-                    scale: profileItemScale,
-                    action: {
-                        onProfileTap()
-                        closeMenu()
-                    }
-                )
-                
-                // Logout menu item (2 o'clock position)
-                MenuItem(
-                    icon: "arrow.right.square",
-                    title: "Logout",
-                    position: .topTrailing,
-                    scale: logoutItemScale,
-                    action: {
-                        onLogoutTap()
-                        closeMenu()
-                    }
-                )
+            if isAnimatingMenu {
+                ZStack {
+                    // Profile menu item (10 o'clock position)
+                    MenuItem(
+                        icon: "person.circle",
+                        title: "Profile",
+                        position: .topLeading,
+                        scale: profileItemScale,
+                        action: {
+                            onProfileTap()
+                            closeMenu()
+                        }
+                    )
+                    
+                    // Logout menu item (2 o'clock position)
+                    MenuItem(
+                        icon: "arrow.right.square",
+                        title: "Logout",
+                        position: .topTrailing,
+                        scale: logoutItemScale,
+                        action: {
+                            onLogoutTap()
+                            closeMenu()
+                        }
+                    )
+                }
+                .scaleEffect(menuScale)
+                .opacity(menuOpacity)
             }
-            .scaleEffect(menuScale)
-            .opacity(menuOpacity)
         }
     }
     
     private func openMenu() {
         isMenuOpen = true
+        isAnimatingMenu = true
         
         // Gear rotation animation
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
@@ -514,26 +517,27 @@ struct SettingsButtonWithMenu: View {
     }
     
     private func closeMenu() {
-        // Menu items disappear first
+        // Immediately hide the blur/overlay
+        isMenuOpen = false
+
+        // Animate out the menu
         withAnimation(.easeInOut(duration: 0.2)) {
             profileItemScale = 0
             logoutItemScale = 0
         }
-        
-        // Menu container disappears
+
         withAnimation(.easeInOut(duration: 0.3).delay(0.1)) {
             menuScale = 0
             menuOpacity = 0
         }
-        
-        // Gear rotation back to original
+
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6).delay(0.2)) {
             gearRotation = 0
         }
-        
-        // Update state after animations
+
+        // Remove the menu after the animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            isMenuOpen = false
+            isAnimatingMenu = false
         }
     }
 }
@@ -593,6 +597,7 @@ struct SettingsButtonWithMenu_Previews: PreviewProvider {
                 .ignoresSafeArea()
             
             SettingsButtonWithMenu(
+                isMenuOpen: .constant(false),
                 onProfileTap: { print("Profile tapped") },
                 onLogoutTap: { print("Logout tapped") }
             )

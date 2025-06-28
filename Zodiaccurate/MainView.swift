@@ -6,6 +6,7 @@ struct MainView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var onboardingDataAccess: OnboardingDataAccess
     @State private var showingSettings = false
+    @State private var isMenuOpen = false
     
     init() {
         // Initialize with a temporary context - will be updated in onAppear
@@ -115,14 +116,21 @@ struct MainView: View {
                         onboardingDataAccess.updateModelContext(modelContext)
                     }
                 }
+                // Overlay: Blur when menu is open
+                if isMenuOpen {
+                    VisualEffectBlur(blurStyle: UIBlurEffect.Style.systemUltraThinMaterialDark)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .animation(.easeInOut(duration: 0.3), value: isMenuOpen)
+                }
                 // Overlay: Notification and Settings buttons in upper right
                 ZStack {
                     VStack(spacing: 8) {
                         CircleIconButton(systemName: "bell", accessibilityLabel: "Notifications") {
                             //alert action
                         }
-
                         SettingsButtonWithMenu(
+                            isMenuOpen: $isMenuOpen,
                             onProfileTap: {
                                 showingSettings = true
                             },

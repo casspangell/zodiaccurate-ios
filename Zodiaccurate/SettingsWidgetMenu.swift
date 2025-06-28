@@ -6,9 +6,7 @@ struct SettingsWidgetMenu: View {
     @State private var notificationsEnabled = true
     @State private var appearance: Int = 0 // 0: Auto, 1: Light, 2: Dark
     @State private var animateTiles = false
-    @State private var graphPeriod = "Monthly"
     @State private var graphData: [Double] = [50, 80, 60, 100, 55, 40, 45]
-    let graphPeriods = ["Monthly", "Weekly"]
     
     let columns = [
         GridItem(.flexible(), spacing: 20),
@@ -27,8 +25,13 @@ struct SettingsWidgetMenu: View {
                     .foregroundColor(.white.opacity(0.2))
                     .padding(.top, 12)
                 
+                // Large User Badge Widget at the top
+                UserBadgeWidget()
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 16)
+                
                 // Prominent Graph Card
-                GraphCardView(graphData: graphData, period: $graphPeriod, periods: graphPeriods)
+                GraphCardView(graphData: graphData)
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 8)
                 
@@ -62,8 +65,12 @@ struct SettingsWidgetMenu: View {
                     SettingsTile(icon: "info.circle.fill", color: .teal, label: "App Info") {
                         // Show app info
                     }
+                    // Update Credit Card Tile
+                    SettingsTile(icon: "creditcard.fill", color: .green, label: "Update Credit Card") {
+                        // Show credit card update
+                    }
                     // Help Tile
-                    SettingsTile(icon: "questionmark.circle.fill", color: .green, label: "Help") {
+                    SettingsTile(icon: "questionmark.circle.fill", color: .indigo, label: "Help") {
                         // Show help/support
                     }
                     // Sign Out Tile
@@ -93,6 +100,72 @@ struct SettingsWidgetMenu: View {
                 }
             }
         }
+    }
+}
+
+// Large User Badge Widget
+struct UserBadgeWidget: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            // Large Zodiac Profile Badge
+            ZodiacProfileBadge()
+                .frame(width: 120, height: 120)
+            
+            // User Info
+            VStack(spacing: 4) {
+                Text(OnboardingDataAccess.firstName)
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text(OnboardingDataAccess.zodiacSign.isEmpty ? OnboardingDataAccess.firstName : OnboardingDataAccess.zodiacSign)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white.opacity(0.8))
+                
+                Text("Member since \(getFormattedDate())")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.white.opacity(0.6))
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(LinearGradient(gradient: Gradient(colors: [Color.accentGold.opacity(0.5), Color.accentPurple.opacity(0.4)]), startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                )
+        )
+        .shadow(color: Color.accentGold.opacity(0.1), radius: 12, x: 0, y: 6)
+        .onAppear {
+            logUserProfile()
+        }
+    }
+    
+    private func getFormattedDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: Date())
+    }
+    
+    private func logUserProfile() {
+        print("🔍 === USER PROFILE DEBUG INFO ===")
+        print("👤 First Name: '\(OnboardingDataAccess.firstName)'")
+        print("📅 Birth Date: '\(OnboardingDataAccess.birthDate)'")
+        print("⏰ Birth Time: '\(OnboardingDataAccess.birthTime)'")
+        print("♈ Zodiac Sign: '\(OnboardingDataAccess.zodiacSign)'")
+        print("✅ Has Completed Onboarding: \(OnboardingDataAccess.hasCompletedOnboarding)")
+        print("📝 Number of Responses: \(OnboardingDataAccess.responses.count)")
+        
+        if !OnboardingDataAccess.responses.isEmpty {
+            print("💬 User Responses:")
+            for (index, response) in OnboardingDataAccess.responses.enumerated() {
+                print("   \(index + 1). Question: '\(response.0)'")
+                print("      Key: '\(response.1)'")
+                print("      Answer: '\(response.2)'")
+            }
+        }
+        
+        print("🔍 === END USER PROFILE DEBUG ===")
     }
 }
 
@@ -164,8 +237,6 @@ struct AnimatedLineGraph: View {
 
 struct GraphCardView: View {
     let graphData: [Double]
-    @Binding var period: String
-    let periods: [String]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -180,17 +251,6 @@ struct GraphCardView: View {
                 Image(systemName: "chevron.right")
                     .foregroundColor(.white.opacity(0.7))
             }
-            HStack {
-                Spacer()
-                Picker("Period", selection: $period) {
-                    ForEach(periods, id: \.self) { p in
-                        Text(p).tag(p)
-                    }
-                }
-                .pickerStyle(MenuPickerStyle())
-                .frame(width: 110)
-            }
-            .padding(.bottom, 4)
             LineGraphWithDots(data: graphData)
                 .frame(height: 120)
         }

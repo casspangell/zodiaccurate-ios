@@ -698,7 +698,11 @@ struct ConversationalOnboardingView: View {
         let responsesData = try? JSONSerialization.data(withJSONObject: userData.responses.map { ["question": $0.0, "key": $0.1, "answer": $0.2] })
         UserDefaults.standard.set(responsesData, forKey: "userResponses")
         
+        // Mark onboarding as completed
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        
         print("✅ Onboarding data saved successfully!")
+        print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
     }
 }
 

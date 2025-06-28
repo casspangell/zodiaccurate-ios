@@ -118,13 +118,9 @@ struct MainView: View {
                 // Overlay: Notification and Settings buttons in upper right
                 ZStack {
                     VStack(spacing: 8) {
-                        Text("Test")
-                            .foregroundColor(.yellow)
-                            .background(Color.black)
                         CircleIconButton(systemName: "bell", accessibilityLabel: "Notifications") {
                             //alert action
                         }
-                        .background(Color.red.opacity(0.3)) // TEMP: visualize bell button
 
                         SettingsButtonWithMenu(
                             onProfileTap: {
@@ -135,10 +131,8 @@ struct MainView: View {
                                 try? authManager.signOut()
                             }
                         )
-                        .background(Color.green.opacity(0.3)) // TEMP: visualize gear button
                     }
                     .frame(width: 80, height: 120)
-                    .border(Color.blue, width: 2)
                     .position(x: UIScreen.main.bounds.width - 40, y: 60)
                     .zIndex(100)
                 }

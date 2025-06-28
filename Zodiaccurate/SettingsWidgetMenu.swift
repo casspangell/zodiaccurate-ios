@@ -106,13 +106,13 @@ struct SettingsWidgetMenu: View {
 // Large User Badge Widget
 struct UserBadgeWidget: View {
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 30) {
             // Large Zodiac Profile Badge
             ZodiacProfileBadge()
                 .frame(width: 120, height: 120)
             
             // User Info
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 Text(OnboardingDataAccess.firstName)
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)

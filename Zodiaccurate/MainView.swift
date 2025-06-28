@@ -7,6 +7,7 @@ struct MainView: View {
     @StateObject private var onboardingDataAccess: OnboardingDataAccess
     @State private var showingSettings = false
     @State private var isMenuOpen = false
+    @State private var showWidgetMenu = false
     
     init() {
         // Initialize with a temporary context - will be updated in onAppear
@@ -116,33 +117,26 @@ struct MainView: View {
                         onboardingDataAccess.updateModelContext(modelContext)
                     }
                 }
-                // Overlay: Blur when menu is open
-                if isMenuOpen {
-                    VisualEffectBlur(blurStyle: UIBlurEffect.Style.systemUltraThinMaterialDark)
-                        .ignoresSafeArea()
-                        .transition(.opacity)
-                        .animation(.easeInOut(duration: 0.3), value: isMenuOpen)
-                }
                 // Overlay: Notification and Settings buttons in upper right
                 ZStack {
                     VStack(spacing: 8) {
                         CircleIconButton(systemName: "bell", accessibilityLabel: "Notifications") {
                             //alert action
                         }
-                        SettingsButtonWithMenu(
-                            isMenuOpen: $isMenuOpen,
-                            onProfileTap: {
-                                showingSettings = true
-                            },
-                            onLogoutTap: {
-                                OnboardingDataAccess.clearOnboardingData()
-                                try? authManager.signOut()
-                            }
-                        )
+                        CircleIconButton(systemName: "gearshape", accessibilityLabel: "Settings") {
+                            showWidgetMenu = true
+                        }
                     }
                     .frame(width: 80, height: 120)
                     .position(x: UIScreen.main.bounds.width - 40, y: 60)
                     .zIndex(100)
+                }
+                // Widget menu overlay
+                if showWidgetMenu {
+                    SettingsWidgetMenu(isPresented: $showWidgetMenu)
+                        .environmentObject(authManager)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .zIndex(200)
                 }
             }
         }

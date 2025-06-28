@@ -104,7 +104,7 @@ struct SettingsView: View {
                                     subtitle: "Receive cosmic insights and updates",
                                     isOn: $notificationsEnabled
                                 )
-                                .onChange(of: notificationsEnabled) { newValue in
+                                .onChange(of: notificationsEnabled) { oldValue, newValue in
                                     if newValue {
                                         notificationManager.requestNotificationPermission()
                                     } else {
@@ -118,7 +118,7 @@ struct SettingsView: View {
                                     subtitle: "Get your daily cosmic forecast",
                                     isOn: $dailyHoroscopeEnabled
                                 )
-                                .onChange(of: dailyHoroscopeEnabled) { newValue in
+                                .onChange(of: dailyHoroscopeEnabled) { oldValue, newValue in
                                     if newValue && notificationsEnabled {
                                         notificationManager.scheduleDailyHoroscope()
                                     } else {

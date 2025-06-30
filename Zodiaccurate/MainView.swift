@@ -8,6 +8,9 @@ struct MainView: View {
     @State private var showingSettings = false
     @State private var isMenuOpen = false
     @State private var showWidgetMenu = false
+    @State private var showDailyHoroscope = false
+    @State private var dailyHoroscope: String?
+    @StateObject private var onboardingAI = OnboardingAI()
     
     init() {
         // Initialize with a temporary context - will be updated in onAppear
@@ -67,6 +70,42 @@ struct MainView: View {
                             }
                             .padding(.horizontal)
                             
+                            // Daily Horoscope Card
+                            VStack(spacing: 16) {
+                                Text("Today's Cosmic Guidance")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                
+                                Button(action: {
+                                    showDailyHoroscope = true
+                                }) {
+                                    VStack(spacing: 12) {
+                                        if let horoscope = dailyHoroscope {
+                                            Text(horoscope)
+                                                .font(.body)
+                                                .foregroundColor(.white)
+                                                .lineSpacing(4)
+                                                .multilineTextAlignment(.leading)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                        } else {
+                                            HStack {
+                                                Image(systemName: "sparkles")
+                                                Text("Generate Your Daily Horoscope")
+                                                Image(systemName: "arrow.right")
+                                            }
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                        }
+                                    }
+                                    .padding()
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(12)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .padding(.horizontal)
+                            
                             // Responses Section
                             if !OnboardingDataAccess.responses.isEmpty {
                                 VStack(spacing: 16) {
@@ -119,6 +158,17 @@ struct MainView: View {
                         .environmentObject(authManager)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                         .zIndex(200)
+                }
+                
+                // Daily Horoscope Sheet
+                if showDailyHoroscope {
+                    DailyHoroscopeSheet(
+                        isPresented: $showDailyHoroscope,
+                        horoscope: $dailyHoroscope,
+                        onboardingAI: onboardingAI
+                    )
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(300)
                 }
             }
         }

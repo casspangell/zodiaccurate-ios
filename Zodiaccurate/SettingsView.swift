@@ -20,6 +20,7 @@ struct SettingsView: View {
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
     @State private var showingHelp = false
+    @State private var showingSecretsDebug = false
     
     init() {
         // Initialize with a temporary context - will be updated in onAppear
@@ -211,6 +212,22 @@ struct SettingsView: View {
                             }
                         }
                         
+                        // Development Section (only show in debug builds)
+                        #if DEBUG
+                        SettingsSection(title: "Development") {
+                            VStack(spacing: 12) {
+                                SettingsRow(
+                                    icon: "key.fill",
+                                    title: "Secrets Manager",
+                                    subtitle: "Debug API keys and secrets",
+                                    action: {
+                                        showingSecretsDebug = true
+                                    }
+                                )
+                            }
+                        }
+                        #endif
+                        
                         // Sign Out Section
                         SettingsSection(title: "Account Actions") {
                             VStack(spacing: 12) {
@@ -309,6 +326,9 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingHelp) {
                 HelpSupportView()
+            }
+            .sheet(isPresented: $showingSecretsDebug) {
+                SecretsDebugView()
             }
         }
     }

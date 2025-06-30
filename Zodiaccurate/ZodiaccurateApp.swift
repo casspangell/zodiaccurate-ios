@@ -17,8 +17,6 @@ struct ZodiaccurateApp: App {
     
     init() {
         FirebaseApp.configure()
-        // Temporarily reset onboarding flag for testing
-        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
     }
     
     var body: some Scene {
@@ -38,25 +36,19 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showLogin = false
     @State private var shouldStartWithRegistration = false
-    @State private var hasLoggedOut = false
     
     var body: some View {
         ZStack {
             if showSplash {
-                SplashScreenView {
+                SplashScreenView { hasCompletedOnboarding in
                     withAnimation(.easeInOut(duration: 0.7)) {
                         showSplash = false
-                        // If user just logged out, reset onboarding flag and show onboarding
-                        if hasLoggedOut {
-                            hasCompletedOnboarding = false
-                            showOnboarding = true
+                        // Always check the actual onboarding completion status
+                        // The hasLoggedOut flag doesn't affect navigation after splash
+                        if hasCompletedOnboarding {
+                            showLogin = true
                         } else {
-                            // Temporarily always show onboarding
-                            // if hasCompletedOnboarding {
-                            //     showLogin = true
-                            // } else {
-                                showOnboarding = true
-                            // }
+                            showOnboarding = true
                         }
                     }
                 }
@@ -94,7 +86,6 @@ struct RootView: View {
             // Handle logout - when user goes from authenticated to not authenticated
             if oldValue == true && newValue == false {
                 print("🚪 User logged out, returning to splash screen")
-                hasLoggedOut = true
                 showSplash = true
                 showOnboarding = false
                 showLogin = false

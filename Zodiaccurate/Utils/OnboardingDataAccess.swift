@@ -87,6 +87,11 @@ class OnboardingDataAccess: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "userBirthTime")
         UserDefaults.standard.removeObject(forKey: "userZodiacSign")
         UserDefaults.standard.removeObject(forKey: "userResponses")
+        // Note: hasCompletedOnboarding is preserved and managed separately
+    }
+    
+    // Clear onboarding completion flag (for testing purposes)
+    static func clearOnboardingCompletionFlag() {
         UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
     }
 } 

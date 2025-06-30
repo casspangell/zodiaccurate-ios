@@ -216,8 +216,15 @@ struct SettingsView: View {
                             VStack(spacing: 12) {
                                 // Sign Out Button styled like SettingsToggleRow
                                 Button(action: {
+                                    // Store onboarding completion status before clearing data
+                                    let hasCompletedOnboarding = OnboardingDataAccess.hasCompletedOnboarding
+                                    
                                     // Clear onboarding data on sign out
                                     OnboardingDataAccess.clearOnboardingData()
+                                    
+                                    // Restore onboarding completion flag
+                                    UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+                                    
                                     try? authManager.signOut()
                                     dismiss()
                                 }) {

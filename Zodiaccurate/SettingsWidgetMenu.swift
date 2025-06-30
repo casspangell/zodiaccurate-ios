@@ -174,13 +174,17 @@ struct SettingsWidgetMenu: View {
         notificationManager.cancelAllNotifications()
         print("🔔 Notifications cancelled")
         
+        // Store onboarding completion status before clearing data
+        let hasCompletedOnboarding = OnboardingDataAccess.hasCompletedOnboarding
+        print("💾 Preserving onboarding status: \(hasCompletedOnboarding)")
+        
         // Clear all onboarding and user data
         OnboardingDataAccess.clearOnboardingData()
         print("🗑️ Onboarding data cleared")
         
-        // Reset onboarding completion flag to force full flow on next login
-        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
-        print("🔄 Onboarding flag reset")
+        // Restore onboarding completion flag - don't force user to redo onboarding
+        UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
+        print("🔄 Onboarding flag restored to: \(hasCompletedOnboarding)")
         
         // Clear any additional UserDefaults data
         clearAdditionalUserData()

@@ -174,23 +174,10 @@ struct SettingsWidgetMenu: View {
         notificationManager.cancelAllNotifications()
         print("🔔 Notifications cancelled")
         
-        // Store onboarding completion status before clearing data
-        let hasCompletedOnboarding = OnboardingDataAccess.hasCompletedOnboarding
-        print("💾 Preserving onboarding status: \(hasCompletedOnboarding)")
+        // Preserve all UserDefaults data - don't clear anything
+        print("💾 All UserDefaults data preserved")
         
-        // Clear all onboarding and user data
-        OnboardingDataAccess.clearOnboardingData()
-        print("🗑️ Onboarding data cleared")
-        
-        // Restore onboarding completion flag - don't force user to redo onboarding
-        UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
-        print("🔄 Onboarding flag restored to: \(hasCompletedOnboarding)")
-        
-        // Clear any additional UserDefaults data
-        clearAdditionalUserData()
-        print("🗑️ Additional user data cleared")
-        
-        // Sign out from Firebase Auth
+        // Sign out from Firebase Auth only
         do {
             try authManager.signOut()
             print("✅ Firebase sign out successful")
@@ -208,21 +195,7 @@ struct SettingsWidgetMenu: View {
         print("🚪 Logout process completed")
     }
     
-    private func clearAdditionalUserData() {
-        // Clear any additional UserDefaults keys that might be used
-        let additionalKeys = [
-            "userProfileImage",
-            "userPreferences",
-            "lastSyncDate",
-            "subscriptionStatus",
-            "trialEndDate",
-            "notificationSettings"
-        ]
-        
-        for key in additionalKeys {
-            UserDefaults.standard.removeObject(forKey: key)
-        }
-    }
+
 }
 
 // Large User Badge Widget

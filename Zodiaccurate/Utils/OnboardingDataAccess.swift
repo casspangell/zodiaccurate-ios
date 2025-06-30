@@ -94,4 +94,14 @@ class OnboardingDataAccess: ObservableObject {
     static func clearOnboardingCompletionFlag() {
         UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
     }
+    
+    // Store last logged-in email
+    static func storeLastLoggedInEmail(_ email: String) {
+        UserDefaults.standard.set(email, forKey: "lastLoggedInEmail")
+    }
+    
+    // Get last logged-in email
+    static var lastLoggedInEmail: String {
+        return UserDefaults.standard.string(forKey: "lastLoggedInEmail") ?? ""
+    }
 } 

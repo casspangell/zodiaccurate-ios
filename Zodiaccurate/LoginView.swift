@@ -28,6 +28,12 @@ struct LoginView: View {
         _isRegistering = State(initialValue: isRegistering)
     }
     
+    private func loadLastLoggedInEmail() {
+        if !isRegistering {
+            email = OnboardingDataAccess.lastLoggedInEmail
+        }
+    }
+    
     enum PasswordStrength: String {
         case weak = "Weak"
         case medium = "Medium"
@@ -355,6 +361,7 @@ struct LoginView: View {
 
                         PrimaryGradientButton(title: isRegistering ? "Create Account" : "Sign In") {
                             Task {
+                                print("🔘 LoginView: Button tapped, isRegistering = \(isRegistering)")
                                 if isRegistering {
                                     // Validate all fields on submit
                                     var errorMsg: String? = nil
@@ -386,11 +393,16 @@ struct LoginView: View {
                                 }
                                 do {
                                     if isRegistering {
+                                        print("🔘 LoginView: Calling signUp...")
                                         try await authManager.signUp(email: email, password: password)
+                                        print("🔘 LoginView: signUp completed successfully")
                                     } else {
+                                        print("🔘 LoginView: Calling signIn...")
                                         try await authManager.signIn(email: email, password: password)
+                                        print("🔘 LoginView: signIn completed successfully")
                                     }
                                 } catch {
+                                    print("🔘 LoginView: Authentication error - \(error)")
                                     // Error is handled by AuthenticationManager
                                 }
                             }
@@ -401,6 +413,9 @@ struct LoginView: View {
                                 ProgressView()
                                     .tint(.white)
                             }
+                        }
+                        .onChange(of: authManager.isLoading) { oldValue, newValue in
+                            print("🔘 LoginView: Loading state changed from \(oldValue) to \(newValue)")
                         }
 
                         // Error message label (other errors)
@@ -427,6 +442,14 @@ struct LoginView: View {
                                 confirmPassword = ""
                                 agreedToTerms = false
                                 showAgreementError = false
+                                
+                                // Clear email when switching to register mode
+                                if isRegistering {
+                                    email = ""
+                                } else {
+                                    // Load last logged-in email when switching to sign-in mode
+                                    loadLastLoggedInEmail()
+                                }
                             }) {
                                 Text(isRegistering ? "Sign In" : "Register for Free")
                                     .foregroundColor(Color(hex: "B39DDB"))
@@ -444,6 +467,9 @@ struct LoginView: View {
                         focusedField = nil
                     })
             }
+        }
+        .onAppear {
+            loadLastLoggedInEmail()
         }
         .alert("Reset Password", isPresented: $showingResetPassword) {
             TextField("Email", text: $resetEmail)

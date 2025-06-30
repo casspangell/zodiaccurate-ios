@@ -27,6 +27,10 @@ class AuthenticationManager: ObservableObject {
             let result = try await auth.signIn(withEmail: email, password: password)
             user = result.user
             isAuthenticated = true
+            
+            // Store the email for future auto-population
+            OnboardingDataAccess.storeLastLoggedInEmail(email)
+            print("💾 Stored last logged-in email: \(email)")
         } catch {
             self.error = error.localizedDescription
             throw error
@@ -34,18 +38,29 @@ class AuthenticationManager: ObservableObject {
     }
     
     func signUp(email: String, password: String) async throws {
+        print("🔄 AuthenticationManager: Starting sign up...")
         isLoading = true
         error = nil
-        defer { isLoading = false }
+        defer { 
+            isLoading = false
+            print("🔄 AuthenticationManager: Loading state reset to false")
+        }
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
             user = result.user
             isAuthenticated = true
+            print("✅ AuthenticationManager: User created successfully, isAuthenticated = \(isAuthenticated)")
+            
+            // Store the email for future auto-population
+            OnboardingDataAccess.storeLastLoggedInEmail(email)
+            print("💾 Stored last logged-in email: \(email)")
             
             // Create user document in Firestore
             try await createUserProfile(userId: result.user.uid, email: email)
+            print("✅ AuthenticationManager: User profile created in Firestore")
         } catch {
             self.error = error.localizedDescription
+            print("❌ AuthenticationManager: Sign up error - \(error.localizedDescription)")
             throw error
         }
     }

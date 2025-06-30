@@ -47,6 +47,7 @@ struct RootView: View {
                         // The hasLoggedOut flag doesn't affect navigation after splash
                         if hasCompletedOnboarding {
                             showLogin = true
+                            shouldStartWithRegistration = false // Existing user should sign in
                         } else {
                             showOnboarding = true
                         }
@@ -62,7 +63,7 @@ struct RootView: View {
                         hasCompletedOnboarding = true
                         showOnboarding = false
                         showLogin = true
-                        shouldStartWithRegistration = true
+                        shouldStartWithRegistration = true // New user completing onboarding
                     }
                 }
                 .transition(.opacity)

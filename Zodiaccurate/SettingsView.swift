@@ -216,15 +216,7 @@ struct SettingsView: View {
                             VStack(spacing: 12) {
                                 // Sign Out Button styled like SettingsToggleRow
                                 Button(action: {
-                                    // Store onboarding completion status before clearing data
-                                    let hasCompletedOnboarding = OnboardingDataAccess.hasCompletedOnboarding
-                                    
-                                    // Clear onboarding data on sign out
-                                    OnboardingDataAccess.clearOnboardingData()
-                                    
-                                    // Restore onboarding completion flag
-                                    UserDefaults.standard.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding")
-                                    
+                                    // Preserve all UserDefaults data - only sign out from Firebase
                                     try? authManager.signOut()
                                     dismiss()
                                 }) {
@@ -239,7 +231,7 @@ struct SettingsView: View {
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.white)
                                             
-                                            Text("Sign out and clear local data")
+                                            Text("Your local data will be preserved")
                                                 .font(.system(size: 14, weight: .regular))
                                                 .foregroundColor(.white.opacity(0.7))
                                         }

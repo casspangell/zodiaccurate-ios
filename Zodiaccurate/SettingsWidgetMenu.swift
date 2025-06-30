@@ -106,36 +106,99 @@ struct SettingsWidgetMenu: View {
 // Large User Badge Widget
 struct UserBadgeWidget: View {
     var body: some View {
-        VStack(spacing: 30) {
-            // Large Zodiac Profile Badge
-            ZodiacProfileBadge()
-                .frame(width: 120, height: 120)
+        ZStack {
+            // Main content
+            HStack(spacing: 20) {
+                // Zodiac Profile Badge
+                ZodiacProfileBadge()
+                    .frame(width: 80, height: 80)
+                    .shadow(color: Color.accentGold.opacity(0.3), radius: 8, x: 0, y: 4)
+                
+                // User Info
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(OnboardingDataAccess.firstName)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    
+                    Text(OnboardingDataAccess.zodiacSign.isEmpty ? OnboardingDataAccess.firstName : OnboardingDataAccess.zodiacSign)
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                
+                Spacer()
+            }
+            .padding(20)
             
-            // User Info
-            VStack(spacing: 6) {
-                Text(OnboardingDataAccess.firstName)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.white)
-                
-                Text(OnboardingDataAccess.zodiacSign.isEmpty ? OnboardingDataAccess.firstName : OnboardingDataAccess.zodiacSign)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white.opacity(0.8))
-                
-                Text("Member since \(getFormattedDate())")
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundColor(.white.opacity(0.6))
+            // Status indicator in upper right corner
+            VStack {
+                HStack {
+                    Spacer()
+                    VStack(spacing: 4) {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 12, height: 12)
+                            .shadow(color: Color.green.opacity(0.5), radius: 4, x: 0, y: 2)
+                        Text("Active")
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    .padding(.top, 12)
+                    .padding(.trailing, 12)
+                }
+                Spacer()
+            }
+            
+            // Member since info in bottom right corner
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.6))
+                            Text("Member since")
+                                .font(.system(size: 12, weight: .regular, design: .rounded))
+                                .foregroundColor(.white.opacity(0.6))
+                        }
+                        Text("\(getFormattedDate())")
+                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    .padding(.bottom, 12)
+                    .padding(.trailing, 12)
+                }
             }
         }
-        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.white.opacity(0.08))
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0.12),
+                            Color.white.opacity(0.08)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(LinearGradient(gradient: Gradient(colors: [Color.accentGold.opacity(0.5), Color.accentPurple.opacity(0.4)]), startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.accentGold.opacity(0.3),
+                                    Color.accentPurple.opacity(0.2)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
         )
-        .shadow(color: Color.accentGold.opacity(0.1), radius: 12, x: 0, y: 6)
+        .shadow(color: Color.black.opacity(0.15), radius: 16, x: 0, y: 8)
         .onAppear {
             logUserProfile()
         }

@@ -19,17 +19,8 @@ jobs:
       with:
         xcode-version: '15.2'
         
-    - name: Cache CocoaPods
-      uses: actions/cache@v3
-      with:
-        path: Pods
-        key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-pods-
-          
-    - name: Install CocoaPods
-      run: |
-        pod install --repo-update
+    - name: List Xcode Schemes
+      run: xcodebuild -workspace Zodiaccurate.xcworkspace -list
         
     - name: Build iOS App
       env:

@@ -8,49 +8,46 @@
 import Foundation
 import SwiftUI
 
-// MARK: - ChatGPT API Models
+// MARK: - OpenAI API Models
 
-struct ChatGPTRequest: Codable {
+struct OpenAIChatGPTRequest: Codable {
     let model: String
-    let messages: [ChatMessage]
+    let messages: [OpenAIChatMessage]
     let temperature: Double
-    let maxTokens: Int
+    let max_tokens: Int
     
     enum CodingKeys: String, CodingKey {
-        case model, messages, temperature
-        case maxTokens = "max_tokens"
+        case model, messages, temperature, max_tokens
     }
 }
 
-struct ChatMessage: Codable {
+struct OpenAIChatMessage: Codable {
     let role: String
     let content: String
 }
 
-struct ChatGPTResponse: Codable {
-    let choices: [Choice]
-    let usage: Usage?
+struct OpenAIChatGPTResponse: Codable {
+    let choices: [OpenAIChoice]
+    let usage: OpenAIUsage?
 }
 
-struct Choice: Codable {
-    let message: ChatMessage
-    let finishReason: String?
+struct OpenAIChoice: Codable {
+    let message: OpenAIChatMessage
+    let finish_reason: String?
     
     enum CodingKeys: String, CodingKey {
         case message
-        case finishReason = "finish_reason"
+        case finish_reason
     }
 }
 
-struct Usage: Codable {
-    let promptTokens: Int
-    let completionTokens: Int
-    let totalTokens: Int
+struct OpenAIUsage: Codable {
+    let prompt_tokens: Int
+    let completion_tokens: Int
+    let total_tokens: Int
     
     enum CodingKeys: String, CodingKey {
-        case promptTokens = "prompt_tokens"
-        case completionTokens = "completion_tokens"
-        case totalTokens = "total_tokens"
+        case prompt_tokens, completion_tokens, total_tokens
     }
 }
 
@@ -210,14 +207,14 @@ class OnboardingAI: ObservableObject {
     }
     
     private func callChatGPTAPI(prompt: String) async throws -> String {
-        let requestBody = ChatGPTRequest(
+        let requestBody = OpenAIChatGPTRequest(
             model: APIConfig.defaultModel,
             messages: [
-                ChatMessage(role: "system", content: "You are a mystical astrologer who creates deeply personal and enchanting horoscopes."),
-                ChatMessage(role: "user", content: prompt)
+                OpenAIChatMessage(role: "system", content: "You are a mystical astrologer who creates deeply personal and enchanting horoscopes."),
+                OpenAIChatMessage(role: "user", content: prompt)
             ],
             temperature: APIConfig.defaultTemperature,
-            maxTokens: APIConfig.maxTokens
+            max_tokens: APIConfig.maxTokens
         )
         
         guard let url = URL(string: baseURL) else {
@@ -247,7 +244,7 @@ class OnboardingAI: ObservableObject {
         }
         
         do {
-            let chatGPTResponse = try JSONDecoder().decode(ChatGPTResponse.self, from: data)
+            let chatGPTResponse = try JSONDecoder().decode(OpenAIChatGPTResponse.self, from: data)
             guard let firstChoice = chatGPTResponse.choices.first else {
                 throw OnboardingAIError.noResponse
             }

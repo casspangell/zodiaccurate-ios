@@ -227,7 +227,7 @@ struct SettingsView: View {
                                             .frame(width: 24)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Sign Out")
+                                            Text("Log Out")
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.white)
                                             

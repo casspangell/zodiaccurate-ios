@@ -714,7 +714,7 @@ struct SignOutWidget: View {
                 
                 // Text
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Sign Out")
+                    Text("Log Out")
                         .font(.dmSansMedium(size: 18))
                         .foregroundColor(.white)
                     

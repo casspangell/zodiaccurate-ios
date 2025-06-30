@@ -8,6 +8,8 @@ struct SettingsWidgetMenu: View {
     @State private var animateTiles = false
     @State private var graphData: [Double] = [50, 80, 60, 100, 55, 40, 45]
     @State private var showingLogoutConfirmation = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDragging = false
     
     let columns = [
         GridItem(.flexible(), spacing: 20),
@@ -93,12 +95,42 @@ struct SettingsWidgetMenu: View {
                         endPoint: .bottom
                     )
                 )
+                .simultaneousGesture(
+                    DragGesture()
+                        .onChanged { (value: DragGesture.Value) in
+                            print("🔍 Drag changed - start: \(value.startLocation.y), translation: \(value.translation.height)")
+                            // Only allow downward drag if it started from the top area (first 50 points)
+                            if value.startLocation.y < 50 && value.translation.height > 0 {
+                                dragOffset = value.translation.height
+                                isDragging = true
+                                print("✅ Setting drag offset to: \(dragOffset)")
+                            }
+                        }
+                        .onEnded { (value: DragGesture.Value) in
+                            print("🔍 Drag ended - start: \(value.startLocation.y), translation: \(value.translation.height)")
+                            isDragging = false
+                            // If dragged down more than 100 points and started from top area, dismiss the menu
+                            if value.startLocation.y < 50 && value.translation.height > 100 {
+                                print("✅ Dismissing settings menu")
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    isPresented = false
+                                }
+                            } else {
+                                // Snap back to original position
+                                print("🔄 Snapping back to original position")
+                                withAnimation(.easeOut(duration: 0.3)) {
+                                    dragOffset = 0
+                                }
+                            }
+                        }
+                )
             }
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color.indigo.opacity(0.7))
             )
             .padding(.horizontal, 8)
+            .offset(y: dragOffset)
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .onAppear {
                 withAnimation {

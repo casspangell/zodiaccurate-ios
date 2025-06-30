@@ -26,8 +26,8 @@ struct ZodiacAlertView: View {
                         .fill(
                             LinearGradient(
                                 gradient: Gradient(colors: [
-                                    Color.red.opacity(0.2),
-                                    Color.orange.opacity(0.15)
+                                    Color.white.opacity(0.2),
+                                    Color.white.opacity(0.15)
                                 ]),
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -36,9 +36,11 @@ struct ZodiacAlertView: View {
                         .frame(width: 60, height: 60)
                         .shadow(color: Color.red.opacity(0.3), radius: 12, x: 0, y: 6)
                     
-                    Image(systemName: "arrow.backward.circle.fill")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.red)
+                    Image("logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 52, height: 52)
+                        .foregroundColor(.white)
                 }
                 
                 // Title

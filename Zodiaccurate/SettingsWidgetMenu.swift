@@ -7,6 +7,7 @@ struct SettingsWidgetMenu: View {
     @State private var appearance: Int = 0 // 0: Auto, 1: Light, 2: Dark
     @State private var animateTiles = false
     @State private var graphData: [Double] = [50, 80, 60, 100, 55, 40, 45]
+    @State private var showingLogoutConfirmation = false
     
     let columns = [
         GridItem(.flexible(), spacing: 20),
@@ -19,64 +20,80 @@ struct SettingsWidgetMenu: View {
                 .ignoresSafeArea()
                 .onTapGesture { isPresented = false }
             
-            VStack(spacing: 16) {
-                Capsule()
-                    .frame(width: 40, height: 6)
-                    .foregroundColor(.white.opacity(0.2))
-                    .padding(.top, 12)
-                
-                // Large User Badge Widget at the top
-                UserBadgeWidget()
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 16)
-                
-                // Prominent Graph Card
-                GraphCardView(graphData: graphData)
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 8)
-                
-                // Credit Card Status Widget
-                CreditCardStatusWidget()
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 16)
-                
-                // Notifications Toggle Widget
-                NotificationsToggleWidget(notificationManager: notificationManager)
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 16)
-                
-                LazyVGrid(columns: columns, spacing: 20) {
-                    // Profile Tile
-                    SettingsTile(icon: "person.crop.circle", color: .blue, label: "Profile") {
-                        // Edit profile action
+            VStack {
+                ScrollView {
+                    VStack(spacing: 16) {
+                        Capsule()
+                            .frame(width: 40, height: 6)
+                            .foregroundColor(.white.opacity(0.2))
+                            .padding(.top, 12)
+                        
+                        // Large User Badge Widget at the top
+                        UserBadgeWidget()
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 16)
+                        
+                        // Prominent Graph Card
+                        GraphCardView(graphData: graphData)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 8)
+                        
+                        // Credit Card Status Widget
+                        CreditCardStatusWidget()
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 16)
+                        
+                        // Notifications Toggle Widget
+                        NotificationsToggleWidget(notificationManager: notificationManager)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 16)
+                        
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            // Profile Tile
+                            SettingsTile(icon: "person.crop.circle", color: .blue, label: "Profile") {
+                                // Edit profile action
+                            }
+                            // App Info Tile
+                            SettingsTile(icon: "info.circle.fill", color: .teal, label: "App Info") {
+                                // Show app info
+                            }
+                            // Update Credit Card Tile
+                            SettingsTile(icon: "creditcard.fill", color: .green, label: "Update Credit Card") {
+                                // Show credit card update
+                            }
+                            // Help Tile
+                            SettingsTile(icon: "questionmark.circle.fill", color: .indigo, label: "Help") {
+                                // Show help/support
+                            }
+                            // Sign Out Tile
+                            SettingsTile(icon: "arrow.backward.circle.fill", color: .red, label: "Sign Out") {
+                                showingLogoutConfirmation = true
+                            }
+                        }
+                        .padding(.horizontal, 8)
+                        .opacity(animateTiles ? 1 : 0)
+                        .offset(y: animateTiles ? 0 : 40)
+                        .animation(.easeOut(duration: 0.6), value: animateTiles)
+                        
+                        // Add some bottom padding to ensure the last item is fully visible
+                        Spacer(minLength: 20)
                     }
-                    // App Info Tile
-                    SettingsTile(icon: "info.circle.fill", color: .teal, label: "App Info") {
-                        // Show app info
-                    }
-                    // Update Credit Card Tile
-                    SettingsTile(icon: "creditcard.fill", color: .green, label: "Update Credit Card") {
-                        // Show credit card update
-                    }
-                    // Help Tile
-                    SettingsTile(icon: "questionmark.circle.fill", color: .indigo, label: "Help") {
-                        // Show help/support
-                    }
-                    // Sign Out Tile
-                    SettingsTile(icon: "arrow.backward.circle.fill", color: .red, label: "Sign Out") {
-                        OnboardingDataAccess.clearOnboardingData()
-                        try? authManager.signOut()
-                        isPresented = false
-                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 8)
                 }
-                .padding(.horizontal, 8)
-                .opacity(animateTiles ? 1 : 0)
-                .offset(y: animateTiles ? 0 : 40)
-                .animation(.easeOut(duration: 0.6), value: animateTiles)
-                Spacer()
+                .mask(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .clear, location: 0.0),
+                            .init(color: .white, location: 0.1),
+                            .init(color: .white, location: 0.9),
+                            .init(color: .clear, location: 1.0)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color.indigo.opacity(0.7))
@@ -88,6 +105,18 @@ struct SettingsWidgetMenu: View {
                     animateTiles = true
                 }
             }
+        }
+        .alert("Confirm Logout", isPresented: $showingLogoutConfirmation) {
+            Button("Cancel", role: .cancel) {
+                // Do nothing, just dismiss the alert
+            }
+            Button("Log Out", role: .destructive) {
+                OnboardingDataAccess.clearOnboardingData()
+                try? authManager.signOut()
+                isPresented = false
+            }
+        } message: {
+            Text("Are you sure you want to log out? We can't notify you of your daily Zodiaccurate if you do.")
         }
     }
 }

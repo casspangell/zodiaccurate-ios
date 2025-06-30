@@ -23,13 +23,9 @@ class UserDataManager: ObservableObject {
         self.modelContext = newContext
     }
     
-    func saveUserData(_ userData: UserData, userId: String? = nil, profileUUID: String? = nil) {
+    func saveUserData(_ userData: UserData, userId: String? = nil) {
         print("💾 UserDataManager: Starting save operation...")
         print("👤 User ID: \(userId ?? "Anonymous")")
-        print("🆔 Profile UUID: \(profileUUID ?? "Will generate new")")
-        
-        // Generate UUID if not provided
-        let finalProfileUUID = profileUUID ?? UUID().uuidString
         
         // Convert UserData to UserDataModel
         let responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
@@ -40,12 +36,10 @@ class UserDataManager: ObservableObject {
             birthTime: userData.birthTime,
             zodiacSign: userData.zodiacSign,
             responses: responses,
-            userId: userId,
-            profileUUID: finalProfileUUID
+            userId: userId
         )
         
         print("🔧 Created UserDataModel with zodiac sign: \(userDataModel.zodiacSign)")
-        print("🆔 Profile UUID: \(userDataModel.profileUUID)")
         
         // Delete any existing user data for this user
         if let userId = userId {
@@ -62,7 +56,6 @@ class UserDataManager: ObservableObject {
             currentUserData = userDataModel
             print("✅ User data saved to Core Data successfully!")
             print("🌟 Zodiac sign '\(userDataModel.zodiacSign)' has been persisted")
-            print("🆔 Profile UUID '\(userDataModel.profileUUID)' has been persisted")
             print("📅 User data created at: \(userDataModel.createdAt)")
         } catch {
             print("❌ Error saving user data to Core Data: \(error)")
@@ -126,9 +119,8 @@ class UserDataManager: ObservableObject {
         }
     }
     
-    func updateUserData(_ userData: UserData, userId: String? = nil, profileUUID: String? = nil) {
+    func updateUserData(_ userData: UserData, userId: String? = nil) {
         print("🔄 UserDataManager: Updating user data for user ID: \(userId ?? "Anonymous")")
-        print("🆔 Profile UUID: \(profileUUID ?? "Will preserve existing")")
         
         if let existingData = loadUserData(for: userId) {
             print("📝 Updating existing user data in Core Data")
@@ -139,17 +131,11 @@ class UserDataManager: ObservableObject {
             existingData.zodiacSign = userData.zodiacSign
             let responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
             existingData.responseArray = responses
-            // Update UUID if provided
-            if let profileUUID = profileUUID {
-                existingData.profileUUID = profileUUID
-                print("🆔 Updated Profile UUID to: \(profileUUID)")
-            }
             do {
                 try modelContext.save()
                 currentUserData = existingData
                 print("✅ User data updated successfully in Core Data")
                 print("🌟 Updated zodiac sign: \(existingData.zodiacSign)")
-                print("🆔 Profile UUID: \(existingData.profileUUID)")
             } catch {
                 print("❌ Error updating user data in Core Data: \(error)")
                 print("🔍 Error details: \(error.localizedDescription)")
@@ -157,7 +143,7 @@ class UserDataManager: ObservableObject {
         } else {
             print("📝 No existing data found, creating new user data")
             // Create new data
-            saveUserData(userData, userId: userId, profileUUID: profileUUID)
+            saveUserData(userData, userId: userId)
         }
     }
 } 

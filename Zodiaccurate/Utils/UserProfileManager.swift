@@ -61,11 +61,6 @@ class UserProfileManager: ObservableObject {
         return profile?.birthTime ?? OnboardingDataAccess.birthTime
     }
     
-    // Get user's profile UUID
-    var profileUUID: String {
-        return profile?.profileUUID ?? UserDefaults.standard.string(forKey: "userProfileUUID") ?? UUID().uuidString
-    }
-    
     // Get user's responses
     var responses: [(String, String, String)] {
         return profile?.responses ?? OnboardingDataAccess.responses
@@ -115,7 +110,6 @@ struct UserProfile {
     let birthTime: String
     let zodiacSign: String
     let responses: [(String, String, String)]
-    let profileUUID: String
     let createdAt: Date
     let updatedAt: Date
     
@@ -124,7 +118,6 @@ struct UserProfile {
          birthTime: String = "", 
          zodiacSign: String = "", 
          responses: [(String, String, String)] = [], 
-         profileUUID: String = UUID().uuidString,
          createdAt: Date = Date(), 
          updatedAt: Date = Date()) {
         self.firstName = firstName
@@ -132,7 +125,6 @@ struct UserProfile {
         self.birthTime = birthTime
         self.zodiacSign = zodiacSign
         self.responses = responses
-        self.profileUUID = profileUUID
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -144,7 +136,6 @@ struct UserProfile {
         self.birthTime = userData.birthTime
         self.zodiacSign = userData.zodiacSign
         self.responses = userData.responseTuples.map { ($0.0, $0.1, $0.2) }
-        self.profileUUID = userData.profileUUID
         self.createdAt = userData.createdAt
         self.updatedAt = userData.updatedAt
     }
@@ -156,8 +147,7 @@ struct UserProfile {
             birthDate: OnboardingDataAccess.birthDate,
             birthTime: OnboardingDataAccess.birthTime,
             zodiacSign: OnboardingDataAccess.zodiacSign,
-            responses: OnboardingDataAccess.responses.map { ($0.0, $0.1, $0.2) },
-            profileUUID: UserDefaults.standard.string(forKey: "userProfileUUID") ?? UUID().uuidString
+            responses: OnboardingDataAccess.responses.map { ($0.0, $0.1, $0.2) }
         )
     }
     

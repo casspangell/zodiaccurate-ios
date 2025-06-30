@@ -16,7 +16,6 @@ final class UserDataModel {
     var zodiacSign: String
     var responses: String // JSON-encoded array of "question|key|answer" strings
     var userId: String?
-    var profileUUID: String // Unique identifier for the user profile
     var createdAt: Date
     var updatedAt: Date
     
@@ -25,8 +24,7 @@ final class UserDataModel {
          birthTime: String = "", 
          zodiacSign: String = "", 
          responses: [String] = [], 
-         userId: String? = nil,
-         profileUUID: String = UUID().uuidString) {
+         userId: String? = nil) {
         self.firstName = firstName
         self.birthDate = birthDate
         self.birthTime = birthTime
@@ -34,7 +32,6 @@ final class UserDataModel {
         // Encode array to JSON string
         self.responses = (try? JSONEncoder().encode(responses)).flatMap { String(data: $0, encoding: .utf8) } ?? "[]"
         self.userId = userId
-        self.profileUUID = profileUUID
         self.createdAt = Date()
         self.updatedAt = Date()
     }

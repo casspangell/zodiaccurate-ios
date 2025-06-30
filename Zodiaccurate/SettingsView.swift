@@ -212,30 +212,69 @@ struct SettingsView: View {
                         }
                         
                         // Sign Out Section
-                        VStack(spacing: 16) {
-                            Button(action: {
-                                // Clear onboarding data on sign out
-                                OnboardingDataAccess.clearOnboardingData()
-                                try? authManager.signOut()
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.right.square")
-                                        .font(.system(size: 16, weight: .medium))
-                                    Text("Sign Out")
-                                        .font(.system(size: 16, weight: .medium))
+                        SettingsSection(title: "Account Actions") {
+                            VStack(spacing: 12) {
+                                // Sign Out Button styled like SettingsToggleRow
+                                Button(action: {
+                                    // Clear onboarding data on sign out
+                                    OnboardingDataAccess.clearOnboardingData()
+                                    try? authManager.signOut()
+                                    dismiss()
+                                }) {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                                            .font(.system(size: 20, weight: .medium))
+                                            .foregroundColor(.red)
+                                            .frame(width: 24)
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Sign Out")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.white)
+                                            
+                                            Text("Sign out and clear local data")
+                                                .font(.system(size: 14, weight: .regular))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.5))
+                                    }
+                                    .padding(.vertical, 4)
                                 }
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.red.opacity(0.3))
-                                .cornerRadius(12)
+                                
+                                // Delete Account Button styled like SettingsToggleRow
+                                Button(action: {
+                                    // TODO: Implement delete account functionality
+                                }) {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 20, weight: .medium))
+                                            .foregroundColor(.red.opacity(0.8))
+                                            .frame(width: 24)
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Delete Account")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.white)
+                                            
+                                            Text("Permanently delete your account")
+                                                .font(.system(size: 14, weight: .regular))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.5))
+                                    }
+                                    .padding(.vertical, 4)
+                                }
                             }
-                            
-                            Text("Signing out will clear your local data")
-                                .font(.system(size: 12, weight: .regular))
-                                .foregroundColor(.white.opacity(0.5))
-                                .multilineTextAlignment(.center)
                         }
                         .padding(.top, 20)
                         .padding(.bottom, 40)

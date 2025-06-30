@@ -67,15 +67,22 @@ struct SettingsWidgetMenu: View {
                             SettingsTile(icon: "questionmark.circle.fill", color: .indigo, label: "Help") {
                                 // Show help/support
                             }
-                            // Sign Out Tile
-                            SettingsTile(icon: "arrow.backward.circle.fill", color: .red, label: "Sign Out") {
-                                showingLogoutConfirmation = true
-                            }
                         }
                         .padding(.horizontal, 8)
                         .opacity(animateTiles ? 1 : 0)
                         .offset(y: animateTiles ? 0 : 40)
                         .animation(.easeOut(duration: 0.6), value: animateTiles)
+                        
+                        // Sign Out Widget
+                        SignOutWidget {
+                            showingLogoutConfirmation = true
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 8)
+                        .padding(.top, 16)
+                        .opacity(animateTiles ? 1 : 0)
+                        .offset(y: animateTiles ? 0 : 40)
+                        .animation(.easeOut(duration: 0.6).delay(0.1), value: animateTiles)
                         
                         // Add some bottom padding to ensure the last item is fully visible
                         Spacer(minLength: 20)
@@ -656,5 +663,75 @@ struct NotificationsToggleWidget: View {
         .onAppear {
             print("🔔 NotificationsToggleWidget appeared, current status: \(notificationManager.isNotificationsEnabled)")
         }
+    }
+}
+
+// Sign Out Widget
+struct SignOutWidget: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                // Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.red.opacity(0.2))
+                        .frame(width: 48, height: 48)
+                    
+                    Image(systemName: "arrow.backward.circle.fill")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.red)
+                }
+                
+                // Text
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Sign Out")
+                        .font(.dmSansMedium(size: 18))
+                        .foregroundColor(.white)
+                    
+                    Text("Log out of your account")
+                        .font(.dmSansMedium(size: 14))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                
+                Spacer()
+                
+                // Arrow
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.red.opacity(0.15),
+                                Color.red.opacity(0.08)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.red.opacity(0.4),
+                                        Color.red.opacity(0.2)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(color: Color.red.opacity(0.2), radius: 16, x: 0, y: 8)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 } 

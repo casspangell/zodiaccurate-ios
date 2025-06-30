@@ -10,7 +10,6 @@ import SwiftUI
 
 // MARK: - Configuration Manager
 
-@MainActor
 class ConfigManager: ObservableObject {
     static let shared = ConfigManager()
     
@@ -64,7 +63,9 @@ class ConfigManager: ObservableObject {
         guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path) as? [String: Any] else {
             print("❌ ConfigManager: Could not load Config.plist")
-            errorMessage = "Could not load Config.plist"
+            Task { @MainActor in
+                self.errorMessage = "Could not load Config.plist"
+            }
             return
         }
         
@@ -80,21 +81,27 @@ class ConfigManager: ObservableObject {
         errorMessage = nil
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.updateConfigStatus()
-            self.isCheckingConfig = false
+            Task { @MainActor in
+                self.updateConfigStatus()
+                self.isCheckingConfig = false
+            }
         }
     }
     
     /// Save all available secrets to keychain
     func saveSecretsToKeychain() {
         SecureKeychain.saveAllSecrets()
-        checkConfigStatus()
+        Task { @MainActor in
+            checkConfigStatus()
+        }
     }
     
     /// Clear all secrets from keychain
     func clearSecretsFromKeychain() {
         SecureKeychain.clearAllSecrets()
-        checkConfigStatus()
+        Task { @MainActor in
+            checkConfigStatus()
+        }
     }
     
     // MARK: - OpenAI Configuration
@@ -222,6 +229,7 @@ class ConfigManager: ObservableObject {
     
     // MARK: - Private Methods
     
+    @MainActor
     private func updateConfigStatus() {
         if areAllSecretsConfigured {
             configStatus = .allConfigured
@@ -293,6 +301,7 @@ class ConfigManager: ObservableObject {
 
 // MARK: - Configuration Debug View
 
+@MainActor
 struct ConfigDebugView: View {
     @StateObject private var configManager = ConfigManager.shared
     @Environment(\.dismiss) private var dismiss

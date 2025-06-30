@@ -45,7 +45,7 @@ struct ZodiacAlertView: View {
                 
                 // Title
                 Text(title)
-                    .font(.dmSansMedium(size: 24))
+                    .font(.dmSansSemibold(size: 24))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                 
@@ -61,7 +61,7 @@ struct ZodiacAlertView: View {
                     // Primary button (Log Out)
                     Button(action: primaryButtonAction) {
                         Text(primaryButtonTitle)
-                            .font(.dmSansMedium(size: 16))
+                            .font(.dmSansSemibold(size: 16))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)

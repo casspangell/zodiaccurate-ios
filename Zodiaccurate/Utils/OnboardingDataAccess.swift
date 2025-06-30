@@ -104,4 +104,14 @@ class OnboardingDataAccess: ObservableObject {
     static var lastLoggedInEmail: String {
         return UserDefaults.standard.string(forKey: "lastLoggedInEmail") ?? ""
     }
+    
+    // Store profile UUID
+    static func storeProfileUUID(_ profileUUID: String) {
+        UserDefaults.standard.set(profileUUID, forKey: "profileUUID")
+    }
+    
+    // Get profile UUID
+    static var profileUUID: String {
+        return UserDefaults.standard.string(forKey: "profileUUID") ?? ""
+    }
 } 

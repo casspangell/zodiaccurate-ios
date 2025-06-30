@@ -113,7 +113,6 @@ The system uses the following settings:
 - **`GeneratedHoroscopeView.swift`**: Welcome horoscope display
 - **`DailyHoroscopeSheet.swift`**: Daily horoscope interface
 - **`SecretsManager.swift`**: Comprehensive secrets management and debugging
-- **`GitHubSecretManager.swift`**: GitHub Secrets integration
 
 ### Integration Points
 

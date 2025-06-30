@@ -15,7 +15,6 @@ The GitHub Secrets integration provides a secure way to manage API keys and sens
 
 ### Components
 
-- **`GitHubSecretManager.swift`**: Manages GitHub Secrets status and validation
 - **`SecretsManager.swift`**: Comprehensive secrets management with GitHub integration
 - **`SecureKeychain.swift`**: iOS Keychain integration for local storage
 - **`APIConfig.swift`**: Configuration management with fallback logic
@@ -85,20 +84,6 @@ The app uses the following priority order for secret resolution:
 3. **Local Configuration** (development)
    - Hardcoded values in `APIConfig.swift`
    - Only for development/testing
-
-### GitHubSecretManager Features
-
-- **Status Monitoring**: Real-time status of GitHub Secrets availability
-- **Validation**: Checks if all required secrets are present
-- **Reporting**: Detailed reports of secret configuration status
-- **Keychain Sync**: Automatically syncs secrets to iOS Keychain
-- **Error Handling**: Comprehensive error reporting and user guidance
-
-### Integration Points
-
-- **OnboardingAI**: Uses secrets for ChatGPT API calls
-- **AuthenticationManager**: Uses Firebase secrets for authentication
-- **SecretsDebugView**: Provides debugging interface for secret status
 
 ## Usage Examples
 

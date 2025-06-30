@@ -87,6 +87,7 @@ class OnboardingDataAccess: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "userBirthTime")
         UserDefaults.standard.removeObject(forKey: "userZodiacSign")
         UserDefaults.standard.removeObject(forKey: "userResponses")
+        UserDefaults.standard.removeObject(forKey: "userProfileUUID")
         // Note: hasCompletedOnboarding is preserved and managed separately
     }
     
@@ -103,5 +104,15 @@ class OnboardingDataAccess: ObservableObject {
     // Get last logged-in email
     static var lastLoggedInEmail: String {
         return UserDefaults.standard.string(forKey: "lastLoggedInEmail") ?? ""
+    }
+    
+    // Store profile UUID
+    static func storeProfileUUID(_ uuid: String) {
+        UserDefaults.standard.set(uuid, forKey: "userProfileUUID")
+    }
+    
+    // Get profile UUID
+    static var profileUUID: String {
+        return UserDefaults.standard.string(forKey: "userProfileUUID") ?? UUID().uuidString
     }
 } 

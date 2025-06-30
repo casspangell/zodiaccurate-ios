@@ -685,8 +685,12 @@ struct ConversationalOnboardingView: View {
         print("💾 Saving onboarding data...")
         print("👤 User data: \(userData)")
         
-        // Save the user data locally
-        userDataManager.saveUserData(userData)
+        // Get the profile UUID that was generated during registration
+        let profileUUID = OnboardingDataAccess.profileUUID
+        print("🆔 Using profile UUID: \(profileUUID)")
+        
+        // Save the user data locally with the profile UUID
+        userDataManager.saveUserData(userData, profileUUID: profileUUID)
         
         // Also save to UserDefaults for quick access
         UserDefaults.standard.set(userData.firstName, forKey: "userFirstName")
@@ -703,6 +707,7 @@ struct ConversationalOnboardingView: View {
         
         print("✅ Onboarding data saved successfully!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
+        print("🆔 Profile UUID saved: \(profileUUID)")
     }
 }
 

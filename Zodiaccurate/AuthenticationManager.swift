@@ -51,12 +51,20 @@ class AuthenticationManager: ObservableObject {
             isAuthenticated = true
             print("✅ AuthenticationManager: User created successfully, isAuthenticated = \(isAuthenticated)")
             
+            // Generate a unique profile UUID
+            let profileUUID = UUID().uuidString
+            print("🆔 Generated profile UUID: \(profileUUID)")
+            
             // Store the email for future auto-population
             OnboardingDataAccess.storeLastLoggedInEmail(email)
             print("💾 Stored last logged-in email: \(email)")
             
+            // Store the profile UUID
+            OnboardingDataAccess.storeProfileUUID(profileUUID)
+            print("💾 Stored profile UUID: \(profileUUID)")
+            
             // Create user document in Firestore
-            try await createUserProfile(userId: result.user.uid, email: email)
+            try await createUserProfile(userId: result.user.uid, email: email, profileUUID: profileUUID)
             print("✅ AuthenticationManager: User profile created in Firestore")
         } catch {
             self.error = error.localizedDescription
@@ -104,12 +112,13 @@ class AuthenticationManager: ObservableObject {
         }
     }
     
-    private func createUserProfile(userId: String, email: String) async throws {
+    private func createUserProfile(userId: String, email: String, profileUUID: String) async throws {
         let db = Firestore.firestore()
         let userData: [String: Any] = [
             "email": email,
             "createdAt": FieldValue.serverTimestamp(),
-            "lastLogin": FieldValue.serverTimestamp()
+            "lastLogin": FieldValue.serverTimestamp(),
+            "profileUUID": profileUUID
         ]
         
         try await db.collection("users").document(userId).setData(userData)

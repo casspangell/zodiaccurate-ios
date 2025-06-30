@@ -30,6 +30,7 @@
 		897DCF492DFA405700E442FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 897DCF482DFA405700E442FD /* GoogleService-Info.plist */; };
 		897DCF4A2DFA405700E442FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 897DCF482DFA405700E442FD /* GoogleService-Info.plist */; };
 		897DCF4B2DFA405700E442FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 897DCF482DFA405700E442FD /* GoogleService-Info.plist */; };
+		89B0DF772E1341FD008BDEFC /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 89B0DF762E1341FD008BDEFC /* FirebaseDatabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,6 +105,7 @@
 				8959B29C2E10C0D200600C8A /* FirebaseStorage in Frameworks */,
 				8959B3312E10C24900600C8A /* StripePayments in Frameworks */,
 				8959B32D2E10C24900600C8A /* StripeIdentity in Frameworks */,
+				89B0DF772E1341FD008BDEFC /* FirebaseDatabase in Frameworks */,
 				8959B3332E10C24900600C8A /* StripePaymentsUI in Frameworks */,
 				8959B29A2E10C0D200600C8A /* FirebaseFirestoreCombine-Community in Frameworks */,
 				8959B28A2E10C0D200600C8A /* FirebaseAnalyticsCore in Frameworks */,
@@ -140,6 +142,7 @@
 				891445D42DF1F1BC00EF6FCA /* ZodiaccurateUITests */,
 				891445B92DF1F1BA00EF6FCA /* Products */,
 				897DCF482DFA405700E442FD /* GoogleService-Info.plist */,
+				89B0DF752E1341FD008BDEFC /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -151,6 +154,13 @@
 				891445D12DF1F1BC00EF6FCA /* ZodiaccurateUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		89B0DF752E1341FD008BDEFC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -753,6 +763,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8959B3212E10C24900600C8A /* XCRemoteSwiftPackageReference "stripe-ios" */;
 			productName = StripePaymentsUI;
+		};
+		89B0DF762E1341FD008BDEFC /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 89314C2B2E011C2E00D8A2B6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

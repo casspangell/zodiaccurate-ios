@@ -418,6 +418,29 @@ struct LoginView: View {
                             print("🔘 LoginView: Loading state changed from \(oldValue) to \(newValue)")
                         }
 
+                        // GitHub Secrets Debug Button
+                        Button(action: {
+                            Task {
+                                await retrieveGitHubSecrets()
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "key.fill")
+                                Text("Retrieve GitHub Secrets")
+                            }
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color.purple.opacity(0.3))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.purple.opacity(0.5), lineWidth: 1)
+                            )
+                        }
+                        .padding(.top, 8)
+
                         // Error message label (other errors)
                         if let error = authManager.error {
                             Text(error)
@@ -489,6 +512,101 @@ struct LoginView: View {
         } message: {
             Text("Enter your email address to receive a password reset link.")
         }
+    }
+    
+    // MARK: - GitHub Secrets Debug Function
+    
+    private func retrieveGitHubSecrets() async {
+        print("🔑 LoginView: Starting GitHub secrets retrieval...")
+        
+        // Get secrets from GitHubSecretManager
+        let githubSecretManager = GitHubSecretManager()
+        
+        // Check build environment secrets
+        print("🔑 LoginView: Checking build environment secrets...")
+        if let openAIKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"] {
+            print("✅ LoginView: OPENAI_API_KEY found in build environment")
+            print("   Length: \(openAIKey.count) characters")
+            print("   Starts with: \(String(openAIKey.prefix(7)))...")
+        } else {
+            print("❌ LoginView: OPENAI_API_KEY not found in build environment")
+        }
+        
+        if let firebaseURL = ProcessInfo.processInfo.environment["FIREBASE_URL"] {
+            print("✅ LoginView: FIREBASE_URL found in build environment")
+            print("   Value: \(firebaseURL)")
+        } else {
+            print("❌ LoginView: FIREBASE_URL not found in build environment")
+        }
+        
+        if let firebaseAPIKey = ProcessInfo.processInfo.environment["FIREBASE_API_KEY"] {
+            print("✅ LoginView: FIREBASE_API_KEY found in build environment")
+            print("   Length: \(firebaseAPIKey.count) characters")
+            print("   Starts with: \(String(firebaseAPIKey.prefix(10)))...")
+        } else {
+            print("❌ LoginView: FIREBASE_API_KEY not found in build environment")
+        }
+        
+        if let firebasePassword = ProcessInfo.processInfo.environment["FIREBASE_PASSWORD"] {
+            print("✅ LoginView: FIREBASE_PASSWORD found in build environment")
+            print("   Length: \(firebasePassword.count) characters")
+            print("   Starts with: \(String(firebasePassword.prefix(5)))...")
+        } else {
+            print("❌ LoginView: FIREBASE_PASSWORD not found in build environment")
+        }
+        
+        // Check keychain secrets
+        print("🔑 LoginView: Checking keychain secrets...")
+        if let keychainOpenAIKey = SecureKeychain.getAPIKey(for: "OpenAI_API_Key") {
+            print("✅ LoginView: OpenAI API key found in keychain")
+            print("   Length: \(keychainOpenAIKey.count) characters")
+            print("   Starts with: \(String(keychainOpenAIKey.prefix(7)))...")
+        } else {
+            print("❌ LoginView: OpenAI API key not found in keychain")
+        }
+        
+        if let keychainFirebaseURL = SecureKeychain.getAPIKey(for: "FIREBASE_URL") {
+            print("✅ LoginView: Firebase URL found in keychain")
+            print("   Value: \(keychainFirebaseURL)")
+        } else {
+            print("❌ LoginView: Firebase URL not found in keychain")
+        }
+        
+        if let keychainFirebaseAPIKey = SecureKeychain.getAPIKey(for: "FIREBASE_API_KEY") {
+            print("✅ LoginView: Firebase API key found in keychain")
+            print("   Length: \(keychainFirebaseAPIKey.count) characters")
+            let prefix = keychainFirebaseAPIKey.count > 10 ? String(keychainFirebaseAPIKey.prefix(10)) : keychainFirebaseAPIKey
+            print("   Starts with: \(prefix)...")
+        } else {
+            print("❌ LoginView: Firebase API key not found in keychain")
+        }
+        
+        if let keychainFirebasePassword = SecureKeychain.getAPIKey(for: "FIREBASE_PASSWORD") {
+            print("✅ LoginView: Firebase password found in keychain")
+            print("   Length: \(keychainFirebasePassword.count) characters")
+            print("   Starts with: \(String(keychainFirebasePassword.prefix(5)))...")
+        } else {
+            print("❌ LoginView: Firebase password not found in keychain")
+        }
+        
+        // Check APIConfig values
+        print("🔑 LoginView: Checking APIConfig values...")
+        print("   OpenAI API Key configured: \(APIConfig.isAPIKeyConfigured)")
+        print("   Firebase configured: \(APIConfig.isFirebaseConfigured)")
+        print("   All secrets configured: \(APIConfig.areAllSecretsConfigured)")
+        
+        // Check GitHubSecretManager status
+        print("🔑 LoginView: Checking GitHubSecretManager status...")
+        print("   GitHub secrets status: \(githubSecretManager.secretsStatus.description)")
+        print("   Secrets available: \(githubSecretManager.areSecretsAvailable())")
+        print("   Best source: \(githubSecretManager.getBestAvailableSecretsSource())")
+        
+        // Get detailed report
+        let report = githubSecretManager.getGitHubSecretsReport()
+        print("🔑 LoginView: Detailed GitHub Secrets Report:")
+        print(report)
+        
+        print("🔑 LoginView: GitHub secrets retrieval completed!")
     }
 }
 

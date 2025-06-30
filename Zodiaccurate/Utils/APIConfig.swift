@@ -28,7 +28,8 @@ struct APIConfig {
         }
         
         // 3. Fallback for development
-        return "YOUR_OPENAI_API_KEY_HERE"
+        // TODO: Replace with your actual OpenAI API key for development
+        return "sk-proj-your-actual-openai-api-key-here"
     }
     
     /// Get Firebase URL from GitHub Secrets
@@ -117,6 +118,14 @@ struct APIConfig {
     
     Get your API key from: https://platform.openai.com/api-keys
     """
+    
+    // MARK: - Development Helper
+    
+    /// Configure API key for development (call this once)
+    static func configureForDevelopment(openAIKey: String) {
+        SecureKeychain.saveAPIKey(openAIKey, for: "OpenAI_API_Key")
+        print("✅ OpenAI API key saved to keychain for development")
+    }
     
     // MARK: - Production Security Notes
     

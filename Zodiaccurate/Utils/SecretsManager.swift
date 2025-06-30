@@ -15,6 +15,9 @@ class SecretsManager: ObservableObject {
     @Published var isCheckingSecrets = false
     @Published var secretsStatus: SecretsStatus = .unknown
     @Published var errorMessage: String?
+    @Published var githubSecretsStatus: GitHubSecretManager.GitHubSecretsStatus = .unknown
+    
+    @StateObject var githubSecretManager = GitHubSecretManager()
     
     enum SecretsStatus {
         case unknown
@@ -60,8 +63,12 @@ class SecretsManager: ObservableObject {
         isCheckingSecrets = true
         errorMessage = nil
         
+        // Check GitHub Secrets status
+        githubSecretManager.checkGitHubSecretsStatus()
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.updateSecretsStatus()
+            self.githubSecretsStatus = self.githubSecretManager.secretsStatus
             self.isCheckingSecrets = false
         }
     }
@@ -69,6 +76,12 @@ class SecretsManager: ObservableObject {
     /// Save all available secrets to keychain
     func saveSecretsToKeychain() {
         SecureKeychain.saveAllSecrets()
+        
+        // Also sync GitHub Secrets to keychain if available
+        if githubSecretManager.validateSecretsConfiguration() {
+            githubSecretManager.syncSecretsToKeychain()
+        }
+        
         checkSecretsStatus()
     }
     
@@ -82,6 +95,11 @@ class SecretsManager: ObservableObject {
     func getSecretsReport() -> String {
         var report = "🔐 SECRETS STATUS REPORT\n"
         report += "========================\n\n"
+        
+        // GitHub Secrets Status
+        report += "🌐 GITHUB SECRETS:\n"
+        report += githubSecretManager.getGitHubSecretsReport()
+        report += "\n"
         
         // Check OpenAI
         let openAIStatus = APIConfig.isAPIKeyConfigured ? "✅" : "❌"
@@ -100,6 +118,9 @@ class SecretsManager: ObservableObject {
         // Check keychain
         let keychainStatus = SecureKeychain.areAllSecretsInKeychain() ? "✅" : "❌"
         report += "\(keychainStatus) Keychain Storage: \(keychainStatus == "✅" ? "Available" : "Not Available")\n"
+        
+        // Best available source
+        report += "\n📡 Best Available Source: \(githubSecretManager.getBestAvailableSecretsSource())\n"
         
         // Overall status
         let overallStatus = APIConfig.areAllSecretsConfigured ? "✅" : "❌"
@@ -150,6 +171,11 @@ struct SecretsDebugView: View {
                     
                     VStack(alignment: .leading, spacing: 8) {
                         StatusRow(
+                            title: "GitHub Secrets",
+                            isConfigured: secretsManager.githubSecretManager.validateSecretsConfiguration()
+                        )
+                        
+                        StatusRow(
                             title: "OpenAI API Key",
                             isConfigured: APIConfig.isAPIKeyConfigured
                         )
@@ -197,6 +223,24 @@ struct SecretsDebugView: View {
                         .cornerRadius(12)
                     }
                     .padding(.horizontal)
+                    
+                    Button(action: {
+                        secretsManager.githubSecretManager.syncSecretsToKeychain()
+                        secretsManager.checkSecretsStatus()
+                    }) {
+                        HStack {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                            Text("Sync GitHub Secrets")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.purple)
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    .disabled(!secretsManager.githubSecretManager.validateSecretsConfiguration())
                     
                     Button(action: {
                         secretsManager.clearSecretsFromKeychain()

@@ -61,6 +61,7 @@ class OnboardingAI: ObservableObject {
     
     private let apiKey: String
     private let baseURL: String
+    private let firebaseDatabaseService = FirebaseDatabaseService()
     
     init() {
         self.apiKey = APIConfig.openAIAPIKey
@@ -87,9 +88,15 @@ class OnboardingAI: ObservableObject {
             generatedHoroscope = horoscope
             print("✨ Generated welcome horoscope: \(horoscope)")
             
+            // Track horoscope generation in Firebase
+            await trackHoroscopeGeneration(type: "welcome", success: true)
+            
         } catch {
             self.error = error.localizedDescription
             print("❌ Error generating horoscope: \(error)")
+            
+            // Track failed horoscope generation
+            await trackHoroscopeGeneration(type: "welcome", success: false)
         }
         
         isLoading = false
@@ -97,22 +104,33 @@ class OnboardingAI: ObservableObject {
     
     /// Generate a daily horoscope for existing users
     func generateDailyHoroscope() async -> String? {
+        print("[OnboardingAI] generateDailyHoroscope() called")
         guard APIConfig.isAPIKeyConfigured else {
+            print("[OnboardingAI] API key not configured: \(APIConfig.apiKeyNotConfiguredMessage)")
             error = APIConfig.apiKeyNotConfiguredMessage
             return nil
         }
         
         do {
             let userData = collectUserData()
+            print("[OnboardingAI] Collected user data: \(userData)")
             let prompt = createDailyPrompt(with: userData)
+            print("[OnboardingAI] Created daily prompt: \n\(prompt)")
             let horoscope = try await callChatGPTAPI(prompt: prompt)
+            print("[OnboardingAI] Received daily horoscope: \n\(horoscope)")
             
-            print("✨ Generated daily horoscope: \(horoscope)")
+            // Track horoscope generation in Firebase
+            await trackHoroscopeGeneration(type: "daily", success: true)
+            
             return horoscope
             
         } catch {
             self.error = error.localizedDescription
-            print("❌ Error generating daily horoscope: \(error)")
+            print("[OnboardingAI] Error generating daily horoscope: \(error)")
+            
+            // Track failed horoscope generation
+            await trackHoroscopeGeneration(type: "daily", success: false)
+            
             return nil
         }
     }
@@ -207,6 +225,7 @@ class OnboardingAI: ObservableObject {
     }
     
     private func callChatGPTAPI(prompt: String) async throws -> String {
+        print("[OnboardingAI] callChatGPTAPI() called with prompt:\n\(prompt)")
         let requestBody = OpenAIChatGPTRequest(
             model: APIConfig.defaultModel,
             messages: [
@@ -218,6 +237,7 @@ class OnboardingAI: ObservableObject {
         )
         
         guard let url = URL(string: baseURL) else {
+            print("[OnboardingAI] Invalid API URL: \(baseURL)")
             throw OnboardingAIError.invalidURL
         }
         
@@ -227,31 +247,57 @@ class OnboardingAI: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         do {
-            request.httpBody = try JSONEncoder().encode(requestBody)
+            let encoded = try JSONEncoder().encode(requestBody)
+            request.httpBody = encoded
+            print("[OnboardingAI] Encoded request body: \n\(String(data: encoded, encoding: .utf8) ?? "<encoding failed>")")
         } catch {
+            print("[OnboardingAI] Encoding error: \(error)")
             throw OnboardingAIError.encodingError(error)
         }
         
         let (data, response) = try await URLSession.shared.data(for: request)
+        print("[OnboardingAI] Received response: \(response)")
+        print("[OnboardingAI] Raw response data: \n\(String(data: data, encoding: .utf8) ?? "<decoding failed>")")
         
         guard let httpResponse = response as? HTTPURLResponse else {
+            print("[OnboardingAI] Invalid HTTP response")
             throw OnboardingAIError.invalidResponse
         }
         
         guard httpResponse.statusCode == 200 else {
             let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            print("[OnboardingAI] API error: HTTP \(httpResponse.statusCode): \(errorMessage)")
             throw OnboardingAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
         }
         
         do {
             let chatGPTResponse = try JSONDecoder().decode(OpenAIChatGPTResponse.self, from: data)
+            print("[OnboardingAI] Decoded API response: \(chatGPTResponse)")
             guard let firstChoice = chatGPTResponse.choices.first else {
+                print("[OnboardingAI] No choices in API response")
                 throw OnboardingAIError.noResponse
             }
             
             return firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
         } catch {
+            print("[OnboardingAI] Decoding error: \(error)")
             throw OnboardingAIError.decodingError(error)
+        }
+    }
+    
+    // MARK: - Analytics
+    
+    /// Track horoscope generation in Firebase
+    private func trackHoroscopeGeneration(type: String, success: Bool) async {
+        // Get user ID from UserDefaults or other storage
+        if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
+            await firebaseDatabaseService.trackHoroscopeGeneration(
+                userId: userId,
+                horoscopeType: type,
+                success: success
+            )
+        } else {
+            print("⚠️ No user ID found for horoscope tracking")
         }
     }
 }

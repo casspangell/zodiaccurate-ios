@@ -17,6 +17,9 @@ struct ZodiaccurateApp: App {
     
     init() {
         FirebaseApp.configure()
+        
+        // Configure API key for development (remove this after first run)
+        // APIConfig.configureForDevelopment(openAIKey: "your-actual-api-key-here")
     }
     
     var body: some Scene {

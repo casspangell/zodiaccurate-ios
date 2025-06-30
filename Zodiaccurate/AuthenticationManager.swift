@@ -10,6 +10,7 @@ class AuthenticationManager: ObservableObject {
     @Published var error: String?
     
     private let auth = Auth.auth()
+    private let firebaseDatabaseService = FirebaseDatabaseService()
     
     init() {
         // Listen for auth state changes
@@ -31,6 +32,13 @@ class AuthenticationManager: ObservableObject {
             // Store the email for future auto-population
             OnboardingDataAccess.storeLastLoggedInEmail(email)
             print("💾 Stored last logged-in email: \(email)")
+            
+            // Store current user ID for tracking
+            UserDefaults.standard.set(result.user.uid, forKey: "currentUserId")
+            
+            // Update trial user last login
+            try await firebaseDatabaseService.updateTrialUserLastLogin(userId: result.user.uid)
+            
         } catch {
             self.error = error.localizedDescription
             throw error
@@ -63,9 +71,23 @@ class AuthenticationManager: ObservableObject {
             OnboardingDataAccess.storeProfileUUID(profileUUID)
             print("💾 Stored profile UUID: \(profileUUID)")
             
-            // Create user document in Firestore
+            // Store current user ID for tracking
+            UserDefaults.standard.set(result.user.uid, forKey: "currentUserId")
+            
+            // Save to trial_users table in Firebase Realtime Database
+            try await firebaseDatabaseService.saveTrialUser(
+                email: email,
+                userId: result.user.uid,
+                profileUUID: profileUUID
+            )
+            print("✅ AuthenticationManager: Trial user saved to Firebase Realtime Database")
+            
+            // Create user document in Firestore (keeping for backward compatibility)
             try await createUserProfile(userId: result.user.uid, email: email, profileUUID: profileUUID)
             print("✅ AuthenticationManager: User profile created in Firestore")
+            
+            // Save onboarding data to Firebase if pending
+            await savePendingOnboardingData(userId: result.user.uid, profileUUID: profileUUID)
         } catch {
             self.error = error.localizedDescription
             print("❌ AuthenticationManager: Sign up error - \(error.localizedDescription)")
@@ -122,5 +144,62 @@ class AuthenticationManager: ObservableObject {
         ]
         
         try await db.collection("users").document(userId).setData(userData)
+    }
+    
+    /// Save pending onboarding data to Firebase after authentication
+    private func savePendingOnboardingData(userId: String, profileUUID: String) async {
+        // Check if there's pending onboarding data to save
+        let hasPendingSave = UserDefaults.standard.bool(forKey: "pendingOnboardingFirebaseSave")
+        
+        if hasPendingSave {
+            print("📝 Saving pending onboarding data to Firebase...")
+            
+            do {
+                // Get onboarding data from UserDefaults
+                let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
+                let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
+                let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
+                let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+                
+                // Get responses
+                var responses: [(String, String, String)] = []
+                if let responsesData = UserDefaults.standard.data(forKey: "userResponses"),
+                   let responsesArray = try? JSONSerialization.jsonObject(with: responsesData) as? [[String: String]] {
+                    for response in responsesArray {
+                        if let question = response["question"],
+                           let key = response["key"],
+                           let answer = response["answer"] {
+                            responses.append((question, key, answer))
+                        }
+                    }
+                }
+                
+                // Create UserData object for Firebase
+                let userData = UserData(
+                    firstName: firstName,
+                    birthDate: birthDate,
+                    birthTime: birthTime,
+                    zodiacSign: zodiacSign,
+                    responses: responses
+                )
+                
+                // Save to Firebase
+                try await firebaseDatabaseService.saveOnboardingData(
+                    userId: userId,
+                    profileUUID: profileUUID,
+                    userData: userData
+                )
+                
+                // Clear the pending flag
+                UserDefaults.standard.removeObject(forKey: "pendingOnboardingFirebaseSave")
+                
+                print("✅ Pending onboarding data saved to Firebase successfully")
+                
+            } catch {
+                print("❌ Error saving pending onboarding data to Firebase: \(error.localizedDescription)")
+            }
+        } else {
+            print("📝 No pending onboarding data to save")
+        }
     }
 } 

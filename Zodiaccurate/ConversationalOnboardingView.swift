@@ -10,12 +10,14 @@ import SwiftData
 
 struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var authManager: AuthenticationManager
     @StateObject private var userDataManager: UserDataManager
+    @StateObject private var firebaseDatabaseService = FirebaseDatabaseService()
     @State private var messages: [ChatMessage] = []
     @State private var currentInput = ""
     @State private var currentStep = 0
     @State private var isTyping = false
-    @State private var userData = UserData()
+    @State private var userData = UserData(firstName: "", birthDate: "", birthTime: "", zodiacSign: "", responses: [])
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
     @State private var showInteractivePicker = false
@@ -711,6 +713,13 @@ struct ConversationalOnboardingView: View {
         // Mark onboarding as completed
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         
+        // Save onboarding data to Firebase Realtime Database
+        // Note: This will be saved after user authentication in AuthenticationManager
+        print("📝 Onboarding data prepared for Firebase save after authentication")
+        
+        // Store onboarding data temporarily for later Firebase save
+        UserDefaults.standard.set(true, forKey: "pendingOnboardingFirebaseSave")
+        
         print("✅ Onboarding data saved successfully!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
         print("🆔 Profile UUID saved: \(profileUUID)")
@@ -947,13 +956,7 @@ struct ConversationStep {
     }
 }
 
-struct UserData {
-    var firstName: String = ""
-    var birthDate: String = ""
-    var birthTime: String = ""
-    var zodiacSign: String = ""
-    var responses: [(String, String, String)] = [] // (question, key, answer)
-}
+
 
 let conversationSteps: [ConversationStep] = [
     ConversationStep(

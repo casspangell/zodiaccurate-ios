@@ -106,18 +106,29 @@ struct SettingsWidgetMenu: View {
                 }
             }
         }
-        .alert("Confirm Logout", isPresented: $showingLogoutConfirmation) {
-            Button("Cancel", role: .cancel) {
-                // Do nothing, just dismiss the alert
+        .overlay(
+            Group {
+                if showingLogoutConfirmation {
+                    ZodiacAlertView(
+                        title: "Confirm Logout",
+                        message: "Are you sure you want to log out? We can't notify you of your daily Zodiaccurate if you do.",
+                        primaryButtonTitle: "Log Out",
+                        secondaryButtonTitle: "Cancel",
+                        primaryButtonAction: {
+                            OnboardingDataAccess.clearOnboardingData()
+                            try? authManager.signOut()
+                            isPresented = false
+                            showingLogoutConfirmation = false
+                        },
+                        secondaryButtonAction: {
+                            showingLogoutConfirmation = false
+                        }
+                    )
+                    .transition(.opacity.combined(with: .scale))
+                    .animation(.easeInOut(duration: 0.3), value: showingLogoutConfirmation)
+                }
             }
-            Button("Log Out", role: .destructive) {
-                OnboardingDataAccess.clearOnboardingData()
-                try? authManager.signOut()
-                isPresented = false
-            }
-        } message: {
-            Text("Are you sure you want to log out? We can't notify you of your daily Zodiaccurate if you do.")
-        }
+        )
     }
 }
 

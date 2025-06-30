@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsWidgetMenu: View {
     @Binding var isPresented: Bool
     @EnvironmentObject var authManager: AuthenticationManager
-    @State private var notificationsEnabled = true
+    @StateObject private var notificationManager = NotificationManager()
     @State private var appearance: Int = 0 // 0: Auto, 1: Light, 2: Dark
     @State private var animateTiles = false
     @State private var graphData: [Double] = [50, 80, 60, 100, 55, 40, 45]
@@ -40,14 +40,23 @@ struct SettingsWidgetMenu: View {
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 16)
                 
+                // Notifications Toggle Widget
+                NotificationsToggleWidget(notificationManager: notificationManager)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 16)
+                
                 LazyVGrid(columns: columns, spacing: 20) {
-                    // Notifications Tile
-                    SettingsTile(icon: "bell.fill", color: .orange, label: "Notifications") {
-                        notificationsEnabled.toggle()
+                    // Profile Tile
+                    SettingsTile(icon: "person.crop.circle", color: .blue, label: "Profile") {
+                        // Edit profile action
                     }
                     // App Info Tile
                     SettingsTile(icon: "info.circle.fill", color: .teal, label: "App Info") {
                         // Show app info
+                    }
+                    // Update Credit Card Tile
+                    SettingsTile(icon: "creditcard.fill", color: .green, label: "Update Credit Card") {
+                        // Show credit card update
                     }
                     // Help Tile
                     SettingsTile(icon: "questionmark.circle.fill", color: .indigo, label: "Help") {
@@ -487,6 +496,94 @@ struct CreditCardStatusWidget: View {
         case .expired:
             // Handle update payment
             print("Update payment tapped")
+        }
+    }
+}
+
+struct NotificationsToggleWidget: View {
+    @ObservedObject var notificationManager: NotificationManager
+    @State private var showingPermissionAlert = false
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            // Bell Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.white.opacity(0.15),
+                                Color.white.opacity(0.08)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 64, height: 64)
+                    .shadow(color: Color.orange.opacity(0.2), radius: 8, x: 0, y: 4)
+                
+                Image(systemName: notificationManager.isNotificationsEnabled ? "bell.fill" : "bell.slash.fill")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(notificationManager.isNotificationsEnabled ? .orange : .gray)
+                    .animation(.easeInOut(duration: 0.2), value: notificationManager.isNotificationsEnabled)
+            }
+            
+            // Content
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Notifications")
+                    .font(.dmSansMedium(size: 18))
+                    .foregroundColor(.white)
+            }
+            
+            Spacer()
+            
+            // Toggle Switch
+            Toggle("", isOn: $notificationManager.isNotificationsEnabled)
+                .labelsHidden()
+                .toggleStyle(SwitchToggleStyle(tint: .orange))
+                .scaleEffect(0.9)
+                .onChange(of: notificationManager.isNotificationsEnabled) { oldValue, newValue in
+                    print("🔔 Toggle changed from \(oldValue) to \(newValue)")
+                    if newValue {
+                        // Request permission when turning on
+                        notificationManager.requestNotificationPermission()
+                    } else {
+                        // Cancel notifications when turning off
+                        notificationManager.cancelAllNotifications()
+                    }
+                }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0.12),
+                            Color.white.opacity(0.08)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.accentGold.opacity(0.3),
+                                    Color.accentPurple.opacity(0.2)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.15), radius: 16, x: 0, y: 8)
+        .onAppear {
+            print("🔔 NotificationsToggleWidget appeared, current status: \(notificationManager.isNotificationsEnabled)")
         }
     }
 } 

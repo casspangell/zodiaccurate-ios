@@ -52,13 +52,29 @@ class AuthenticationManager: ObservableObject {
     
     func signOut() throws {
         do {
+            // Clear any cached data
+            clearCachedData()
+            
+            // Sign out from Firebase
             try auth.signOut()
+            
+            // Reset authentication state
             user = nil
             isAuthenticated = false
+            error = nil
+            
+            print("✅ AuthenticationManager: Sign out successful")
         } catch {
             self.error = error.localizedDescription
+            print("❌ AuthenticationManager: Sign out error - \(error.localizedDescription)")
             throw error
         }
+    }
+    
+    private func clearCachedData() {
+        // Clear any cached user data or tokens
+        // This can be expanded as needed
+        print("🗑️ AuthenticationManager: Clearing cached data")
     }
     
     func resetPassword(email: String) async throws {

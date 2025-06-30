@@ -38,6 +38,7 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showLogin = false
     @State private var shouldStartWithRegistration = false
+    @State private var hasLoggedOut = false
     
     var body: some View {
         ZStack {
@@ -45,12 +46,18 @@ struct RootView: View {
                 SplashScreenView {
                     withAnimation(.easeInOut(duration: 0.7)) {
                         showSplash = false
-                        // Temporarily always show onboarding
-                        // if hasCompletedOnboarding {
-                        //     showLogin = true
-                        // } else {
+                        // If user just logged out, reset onboarding flag and show onboarding
+                        if hasLoggedOut {
+                            hasCompletedOnboarding = false
                             showOnboarding = true
-                        // }
+                        } else {
+                            // Temporarily always show onboarding
+                            // if hasCompletedOnboarding {
+                            //     showLogin = true
+                            // } else {
+                                showOnboarding = true
+                            // }
+                        }
                     }
                 }
                 .transition(.opacity)
@@ -83,5 +90,15 @@ struct RootView: View {
         .animation(.easeInOut(duration: 0.7), value: showOnboarding)
         .animation(.easeInOut(duration: 0.7), value: showLogin)
         .animation(.easeInOut(duration: 0.7), value: authManager.isAuthenticated)
+        .onChange(of: authManager.isAuthenticated) { oldValue, newValue in
+            // Handle logout - when user goes from authenticated to not authenticated
+            if oldValue == true && newValue == false {
+                print("🚪 User logged out, returning to splash screen")
+                hasLoggedOut = true
+                showSplash = true
+                showOnboarding = false
+                showLogin = false
+            }
+        }
     }
 }

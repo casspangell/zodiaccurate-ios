@@ -148,10 +148,7 @@ struct SettingsWidgetMenu: View {
                         primaryButtonTitle: "Log Out",
                         secondaryButtonTitle: "Cancel",
                         primaryButtonAction: {
-                            OnboardingDataAccess.clearOnboardingData()
-                            try? authManager.signOut()
-                            isPresented = false
-                            showingLogoutConfirmation = false
+                            performLogout()
                         },
                         secondaryButtonAction: {
                             showingLogoutConfirmation = false
@@ -166,6 +163,60 @@ struct SettingsWidgetMenu: View {
             withAnimation {
                 animateTiles = true
             }
+        }
+    }
+    
+    // MARK: - Logout Implementation
+    private func performLogout() {
+        print("🚪 Starting logout process...")
+        
+        // Cancel all notifications
+        notificationManager.cancelAllNotifications()
+        print("🔔 Notifications cancelled")
+        
+        // Clear all onboarding and user data
+        OnboardingDataAccess.clearOnboardingData()
+        print("🗑️ Onboarding data cleared")
+        
+        // Reset onboarding completion flag to force full flow on next login
+        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+        print("🔄 Onboarding flag reset")
+        
+        // Clear any additional UserDefaults data
+        clearAdditionalUserData()
+        print("🗑️ Additional user data cleared")
+        
+        // Sign out from Firebase Auth
+        do {
+            try authManager.signOut()
+            print("✅ Firebase sign out successful")
+        } catch {
+            print("❌ Firebase sign out error: \(error)")
+            // Continue with logout even if Firebase sign out fails
+        }
+        
+        // Close the settings menu
+        withAnimation(.easeInOut(duration: 0.3)) {
+            isPresented = false
+            showingLogoutConfirmation = false
+        }
+        
+        print("🚪 Logout process completed")
+    }
+    
+    private func clearAdditionalUserData() {
+        // Clear any additional UserDefaults keys that might be used
+        let additionalKeys = [
+            "userProfileImage",
+            "userPreferences",
+            "lastSyncDate",
+            "subscriptionStatus",
+            "trialEndDate",
+            "notificationSettings"
+        ]
+        
+        for key in additionalKeys {
+            UserDefaults.standard.removeObject(forKey: key)
         }
     }
 }

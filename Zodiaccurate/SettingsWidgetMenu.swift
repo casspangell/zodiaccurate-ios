@@ -95,6 +95,12 @@ struct SettingsWidgetMenu: View {
                         endPoint: .bottom
                     )
                 )
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(Color.indigo.opacity(0.7))
+                )
+                .padding(.horizontal, 8)
+                .offset(y: dragOffset)
                 .simultaneousGesture(
                     DragGesture()
                         .onChanged { (value: DragGesture.Value) in
@@ -125,18 +131,6 @@ struct SettingsWidgetMenu: View {
                         }
                 )
             }
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.indigo.opacity(0.7))
-            )
-            .padding(.horizontal, 8)
-            .offset(y: dragOffset)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .onAppear {
-                withAnimation {
-                    animateTiles = true
-                }
-            }
         }
         .overlay(
             Group {
@@ -161,6 +155,11 @@ struct SettingsWidgetMenu: View {
                 }
             }
         )
+        .onAppear {
+            withAnimation {
+                animateTiles = true
+            }
+        }
     }
 }
 

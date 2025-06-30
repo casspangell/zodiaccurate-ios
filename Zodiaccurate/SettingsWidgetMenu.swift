@@ -94,8 +94,8 @@ struct SettingsWidgetMenu: View {
                     LinearGradient(
                         gradient: Gradient(stops: [
                             .init(color: .clear, location: 0.0),
-                            .init(color: .white, location: 0.1),
-                            .init(color: .white, location: 0.9),
+                            .init(color: .white, location: 0.05),
+                            .init(color: .white, location: 0.95),
                             .init(color: .clear, location: 1.0)
                         ]),
                         startPoint: .top,

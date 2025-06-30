@@ -35,6 +35,11 @@ struct SettingsWidgetMenu: View {
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 8)
                 
+                // Credit Card Status Widget
+                CreditCardStatusWidget()
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 16)
+                
                 LazyVGrid(columns: columns, spacing: 20) {
                     // Profile Tile
                     SettingsTile(icon: "person.crop.circle", color: .blue, label: "Profile") {
@@ -43,23 +48,6 @@ struct SettingsWidgetMenu: View {
                     // Notifications Tile
                     SettingsTile(icon: "bell.fill", color: .orange, label: "Notifications") {
                         notificationsEnabled.toggle()
-                    }
-                    // Theme Tile
-                    SettingsTile(icon: "moon.fill", color: .purple, label: "Appearance") {
-                        // Cycle through appearance modes
-                        appearance = (appearance + 1) % 3
-                    }
-                    // Daily Horoscope Tile
-                    SettingsTile(icon: "sparkles", color: .yellow, label: "Horoscope") {
-                        // Show daily horoscope
-                    }
-                    // Streak Tile
-                    SettingsTile(icon: "flame.fill", color: .red, label: "Streak") {
-                        // Show check-in streak
-                    }
-                    // Compatibility Tile
-                    SettingsTile(icon: "heart.circle.fill", color: .pink, label: "Compatibility") {
-                        // Show compatibility
                     }
                     // App Info Tile
                     SettingsTile(icon: "info.circle.fill", color: .teal, label: "App Info") {
@@ -361,6 +349,152 @@ struct LineGraphWithDots: View {
                         .shadow(color: Color.cyan.opacity(0.5), radius: 4, x: 0, y: 2)
                 }
             }
+        }
+    }
+}
+
+// Credit Card Status Widget
+struct CreditCardStatusWidget: View {
+    @State private var subscriptionStatus: SubscriptionStatus = .trial // This would come from your subscription logic
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            // Credit Card Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.white.opacity(0.15),
+                                Color.white.opacity(0.08)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 64, height: 64)
+                    .shadow(color: Color.accentGold.opacity(0.2), radius: 8, x: 0, y: 4)
+                
+                Image(systemName: "creditcard.fill")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            
+            // Status Content
+            VStack(alignment: .leading, spacing: 8) {
+                Text(statusTitle)
+                    .font(.dmSansMedium(size: 18))
+                    .foregroundColor(.white)
+                
+                Text(statusDescription)
+                    .font(.dmSansMedium(size: 14))
+                    .foregroundColor(.white.opacity(0.8))
+                    .lineLimit(2)
+            }
+            
+            Spacer()
+            
+            // Action Button
+            Button(action: handleAction) {
+                Text(actionButtonText)
+                    .font(.dmSansMedium(size: 14))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(actionButtonColor)
+                    )
+                    .shadow(color: actionButtonColor.opacity(0.3), radius: 6, x: 0, y: 3)
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0.12),
+                            Color.white.opacity(0.08)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.accentGold.opacity(0.3),
+                                    Color.accentPurple.opacity(0.2)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.15), radius: 16, x: 0, y: 8)
+    }
+    
+    // Computed properties based on subscription status
+    private var statusTitle: String {
+        switch subscriptionStatus {
+        case .subscribed:
+            return "Payment Active"
+        case .trial:
+            return "Trial Period"
+        case .expired:
+            return "Payment Required"
+        }
+    }
+    
+    private var statusDescription: String {
+        switch subscriptionStatus {
+        case .subscribed:
+            return "Your subscription is active and will renew automatically"
+        case .trial:
+            return "Enjoy your free trial. Add payment method to continue"
+        case .expired:
+            return "Your trial has expired. Update payment to continue"
+        }
+    }
+    
+    private var actionButtonText: String {
+        switch subscriptionStatus {
+        case .subscribed:
+            return "Manage"
+        case .trial:
+            return "Add Card"
+        case .expired:
+            return "Update"
+        }
+    }
+    
+    private var actionButtonColor: Color {
+        switch subscriptionStatus {
+        case .subscribed:
+            return .blue
+        case .trial:
+            return .green
+        case .expired:
+            return .orange
+        }
+    }
+    
+    private func handleAction() {
+        switch subscriptionStatus {
+        case .subscribed:
+            // Handle manage subscription
+            print("Manage subscription tapped")
+        case .trial:
+            // Handle add payment method
+            print("Add payment method tapped")
+        case .expired:
+            // Handle update payment
+            print("Update payment tapped")
         }
     }
 } 

@@ -47,49 +47,47 @@ struct MainView: View {
                         .padding(.horizontal)
                         .zIndex(1)
 
-                        ScrollView {
-                            VStack(spacing: 20) {
-                                // User Profile Card
+                        VStack(spacing: 20) {
+                            // User Profile Card
+                            VStack(spacing: 16) {
+                                Text("Your Cosmic Profile")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.white)
+                                
+                                VStack(spacing: 12) {
+                                    ProfileRow(title: "Name", value: OnboardingDataAccess.firstName)
+                                    ProfileRow(title: "Birth Date", value: OnboardingDataAccess.birthDate)
+                                    ProfileRow(title: "Birth Time", value: OnboardingDataAccess.birthTime.isEmpty ? "Unknown" : OnboardingDataAccess.birthTime)
+                                    ProfileRow(title: "Zodiac Sign", value: OnboardingDataAccess.zodiacSign)
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+                            
+                            // Responses Section
+                            if !OnboardingDataAccess.responses.isEmpty {
                                 VStack(spacing: 16) {
-                                    Text("Your Cosmic Profile")
+                                    Text("Your Responses")
                                         .font(.title2)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.white)
                                     
                                     VStack(spacing: 12) {
-                                        ProfileRow(title: "Name", value: OnboardingDataAccess.firstName)
-                                        ProfileRow(title: "Birth Date", value: OnboardingDataAccess.birthDate)
-                                        ProfileRow(title: "Birth Time", value: OnboardingDataAccess.birthTime.isEmpty ? "Unknown" : OnboardingDataAccess.birthTime)
-                                        ProfileRow(title: "Zodiac Sign", value: OnboardingDataAccess.zodiacSign)
+                                        ForEach(OnboardingDataAccess.responses, id: \.0) { response in
+                                            ResponseRow(key: response.0, value: response.1)
+                                        }
                                     }
                                     .padding()
                                     .background(Color.white.opacity(0.1))
                                     .cornerRadius(12)
                                 }
                                 .padding(.horizontal)
-                                
-                                // Responses Section
-                                if !OnboardingDataAccess.responses.isEmpty {
-                                    VStack(spacing: 16) {
-                                        Text("Your Responses")
-                                            .font(.title2)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.white)
-                                        
-                                        VStack(spacing: 12) {
-                                            ForEach(OnboardingDataAccess.responses, id: \.0) { response in
-                                                ResponseRow(key: response.0, value: response.1)
-                                            }
-                                        }
-                                        .padding()
-                                        .background(Color.white.opacity(0.1))
-                                        .cornerRadius(12)
-                                    }
-                                    .padding(.horizontal)
-                                }
-                                
-                                Spacer()
                             }
+                            
+                            Spacer()
                         }
                         .padding(.top, 244) // Header height: 40 (top) + 180 (badge) + 24 (badge top padding) = 244
                     }

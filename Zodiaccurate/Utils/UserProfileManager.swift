@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 @MainActor
 class UserProfileManager: ObservableObject {
@@ -159,5 +160,40 @@ struct UserProfile {
     // Check if profile is complete
     var isComplete: Bool {
         return !firstName.isEmpty && !birthDate.isEmpty && !zodiacSign.isEmpty
+    }
+}
+
+// Subscription Status View Component
+struct SubscriptionStatusView: View {
+    let status: SubscriptionStatus
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Circle()
+                .fill(status.color)
+                .frame(width: 12, height: 12)
+                .shadow(color: status.color.opacity(0.5), radius: 4, x: 0, y: 2)
+            Text(status.rawValue)
+                .font(.dmSansMedium(size: 10))
+                .foregroundColor(.white.opacity(0.7))
+        }
+    }
+}
+
+// Subscription Status Enum
+enum SubscriptionStatus: String, CaseIterable {
+    case subscribed = "Subscribed"
+    case trial = "Trial"
+    case expired = "Expired"
+    
+    var color: Color {
+        switch self {
+        case .subscribed:
+            return .green
+        case .trial:
+            return .orange
+        case .expired:
+            return .red
+        }
     }
 } 

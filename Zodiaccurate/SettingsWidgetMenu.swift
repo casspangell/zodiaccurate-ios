@@ -117,11 +117,11 @@ struct UserBadgeWidget: View {
                 // User Info
                 VStack(alignment: .leading, spacing: 8) {
                     Text(OnboardingDataAccess.firstName)
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .font(.dmSansMedium(size: 22))
                         .foregroundColor(.white)
                     
                     Text(OnboardingDataAccess.zodiacSign.isEmpty ? OnboardingDataAccess.firstName : OnboardingDataAccess.zodiacSign)
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .font(.dmSansMedium(size: 16))
                         .foregroundColor(.white.opacity(0.8))
                 }
                 
@@ -133,17 +133,9 @@ struct UserBadgeWidget: View {
             VStack {
                 HStack {
                     Spacer()
-                    VStack(spacing: 4) {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 12, height: 12)
-                            .shadow(color: Color.green.opacity(0.5), radius: 4, x: 0, y: 2)
-                        Text("Active")
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                    .padding(.top, 12)
-                    .padding(.trailing, 12)
+                    SubscriptionStatusView(status: .trial)
+                        .padding(.top, 12)
+                        .padding(.trailing, 12)
                 }
                 Spacer()
             }
@@ -158,12 +150,12 @@ struct UserBadgeWidget: View {
                             Image(systemName: "calendar")
                                 .font(.system(size: 12))
                                 .foregroundColor(.white.opacity(0.6))
-                            Text("Member since")
-                                .font(.system(size: 12, weight: .regular, design: .rounded))
+                            Text("Member Since")
+                                .font(.dmSansMedium(size: 14))
                                 .foregroundColor(.white.opacity(0.6))
                         }
                         Text("\(getFormattedDate())")
-                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .font(.dmSansMedium(size: 14))
                             .foregroundColor(.white.opacity(0.6))
                     }
                     .padding(.bottom, 12)

@@ -41,10 +41,6 @@ struct SettingsWidgetMenu: View {
                     .padding(.bottom, 16)
                 
                 LazyVGrid(columns: columns, spacing: 20) {
-                    // Profile Tile
-                    SettingsTile(icon: "person.crop.circle", color: .blue, label: "Profile") {
-                        // Edit profile action
-                    }
                     // Notifications Tile
                     SettingsTile(icon: "bell.fill", color: .orange, label: "Notifications") {
                         notificationsEnabled.toggle()
@@ -52,10 +48,6 @@ struct SettingsWidgetMenu: View {
                     // App Info Tile
                     SettingsTile(icon: "info.circle.fill", color: .teal, label: "App Info") {
                         // Show app info
-                    }
-                    // Update Credit Card Tile
-                    SettingsTile(icon: "creditcard.fill", color: .green, label: "Update Credit Card") {
-                        // Show credit card update
                     }
                     // Help Tile
                     SettingsTile(icon: "questionmark.circle.fill", color: .indigo, label: "Help") {

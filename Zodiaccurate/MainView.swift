@@ -89,22 +89,6 @@ struct MainView: View {
                                 }
                                 
                                 Spacer()
-                                
-                                // Sign Out Button
-                                Button(action: {
-                                    // Clear onboarding data on sign out
-                                    OnboardingDataAccess.clearOnboardingData()
-                                    try? authManager.signOut()
-                                }) {
-                                    Text("Sign Out")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .frame(maxWidth: .infinity)
-                                        .background(Color.red.opacity(0.3))
-                                        .cornerRadius(12)
-                                }
-                                .padding(.horizontal)
-                                .padding(.bottom, 40)
                             }
                         }
                         .padding(.top, 244) // Header height: 40 (top) + 180 (badge) + 24 (badge top padding) = 244

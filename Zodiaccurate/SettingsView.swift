@@ -328,7 +328,7 @@ struct SettingsView: View {
                 HelpSupportView()
             }
             .sheet(isPresented: $showingSecretsDebug) {
-                SecretsDebugView()
+                ConfigDebugView()
             }
         }
     }

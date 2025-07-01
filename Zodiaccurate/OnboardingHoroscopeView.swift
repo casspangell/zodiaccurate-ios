@@ -56,19 +56,10 @@ struct OnboardingHoroscopeView: View {
                             VStack(spacing: 24) {
                                 // Enhanced loading view with cosmic elements
                                 ZStack {
-                                    // Background cosmic particles
-                                    ForEach(0..<12, id: \.self) { index in
-                                        Circle()
-                                            .fill(Color.white.opacity(0.3))
-                                            .frame(width: 4, height: 4)
-                                            .offset(x: CGFloat.random(in: -100...100), y: CGFloat.random(in: -100...100))
-                                            .animation(
-                                                Animation.easeInOut(duration: 2.0)
-                                                    .repeatForever(autoreverses: true)
-                                                    .delay(Double(index) * 0.2),
-                                                value: onboardingDataAccess.isGeneratingHoroscope
-                                            )
-                                    }
+                                    // Shimmering background
+                                    ShimmeringBackgroundView(isAnimating: true)
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .cornerRadius(12)
                                     
                                     // Main glass shard
                                     GlassShardLoadingView()
@@ -91,51 +82,66 @@ struct OnboardingHoroscopeView: View {
                             .frame(maxHeight: geo.size.height * 0.6)
                             .frame(maxWidth: .infinity)
                         } else if let horoscope = onboardingDataAccess.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                            // Show welcome message for newly generated horoscope
-                            if showWelcomeMessage {
-                                VStack(spacing: 12) {
-                                    Text("Welcome to Your Cosmic Journey!")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.center)
+                            ZStack {
+                                // Static shimmering background (animation stopped)
+                                ShimmeringBackgroundView(isAnimating: false)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .cornerRadius(12)
+                                
+                                VStack(spacing: 16) {
+                                    // Show welcome message for newly generated horoscope
+                                    if showWelcomeMessage {
+                                        VStack(spacing: 12) {
+                                            Text("Welcome to Your Cosmic Journey!")
+                                                .font(.headline)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.white)
+                                                .multilineTextAlignment(.center)
+                                            
+                                            Text("Your personalized horoscope has been crafted just for you.")
+                                                .font(.subheadline)
+                                                .foregroundColor(.white.opacity(0.8))
+                                                .multilineTextAlignment(.center)
+                                        }
+                                        .padding(.bottom, 8)
+                                    }
                                     
-                                    Text("Your personalized horoscope has been crafted just for you.")
-                                        .font(.subheadline)
+                                    ScrollView {
+                                        Text(horoscope)
+                                            .font(.body)
+                                            .foregroundColor(.white.opacity(0.9))
+                                            .lineSpacing(6)
+                                            .multilineTextAlignment(.leading)
+                                            .padding(.bottom, 16)
+                                    }
+                                    .frame(maxHeight: geo.size.height * 0.6)
+                                }
+                                .padding()
+                            }
+                        } else {
+                            // Fallback message if no horoscope is available
+                            ZStack {
+                                // Shimmering background for fallback state
+                                ShimmeringBackgroundView(isAnimating: true)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .cornerRadius(12)
+                                
+                                VStack(spacing: 16) {
+                                    Image(systemName: "sparkles")
+                                        .font(.largeTitle)
+                                        .foregroundColor(.purple)
+                                    
+                                    Text("Your personalized horoscope will appear here")
+                                        .font(.body)
                                         .foregroundColor(.white.opacity(0.8))
                                         .multilineTextAlignment(.center)
                                 }
-                                .padding(.bottom, 8)
-                            }
-                            
-                            ScrollView {
-                                Text(horoscope)
-                                    .font(.body)
-                                    .foregroundColor(.white.opacity(0.9))
-                                    .lineSpacing(6)
-                                    .multilineTextAlignment(.leading)
-                                    .padding(.bottom, 16)
-                            }
-                            .frame(maxHeight: geo.size.height * 0.6)
-                        } else {
-                            // Fallback message if no horoscope is available
-                            VStack(spacing: 16) {
-                                Image(systemName: "sparkles")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.purple)
-                                
-                                Text("Your personalized horoscope will appear here")
-                                    .font(.body)
-                                    .foregroundColor(.white.opacity(0.8))
-                                    .multilineTextAlignment(.center)
+                                .padding()
                             }
                             .frame(maxHeight: geo.size.height * 0.6)
                             .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding()
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(12)
                     .padding(.horizontal)
                     
                     Spacer()

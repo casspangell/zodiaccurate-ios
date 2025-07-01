@@ -14,18 +14,119 @@ import FirebaseAuth
 struct ZodiaccurateApp: App {
     @StateObject private var authManager = AuthenticationManager()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var shouldClearAuthData = false
     
     init() {
         FirebaseApp.configure()
         
+        // Check if this is the first launch after installation
+        shouldClearAuthData = checkFirstLaunchAfterInstallation()
+        
         // Configure API key for development (remove this after first run)
         // APIConfig.configureForDevelopment(openAIKey: "your-actual-api-key-here")
+    }
+    
+    private func checkFirstLaunchAfterInstallation() -> Bool {
+        let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
+        
+        if !hasLaunchedBefore {
+            // This is the first launch after installation
+            print("🚀 First launch after installation detected - clearing all data")
+            
+            // Clear all UserDefaults data
+            clearAllUserDefaults()
+            
+            // Clear Firebase Auth state
+            clearFirebaseAuthState()
+            
+            // Clear SwiftData
+            clearSwiftData()
+            
+            // Clear OnboardingDataAccess data
+            OnboardingDataAccess.clearAllData()
+            
+            // Clear keychain data
+            SecureKeychain.clearAllSecrets()
+            
+            // Mark that the app has been launched before
+            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            
+            print("✅ All data cleared for fresh installation")
+            return true
+        }
+        return false
+    }
+    
+    private func clearAllUserDefaults() {
+        // Get all UserDefaults keys
+        let domain = Bundle.main.bundleIdentifier!
+        UserDefaults.standard.removePersistentDomain(forName: domain)
+        
+        // Also clear any custom keys that might not be in the domain
+        let keysToRemove = [
+            "hasCompletedOnboarding",
+            "userFirstName",
+            "userBirthDate", 
+            "userBirthTime",
+            "userZodiacSign",
+            "userResponses",
+            "welcomeHoroscope",
+            "lastLoggedInEmail",
+            "profileUUID",
+            "currentUserId"
+        ]
+        
+        for key in keysToRemove {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+    }
+    
+    private func clearFirebaseAuthState() {
+        do {
+            try Auth.auth().signOut()
+            print("✅ Firebase Auth state cleared")
+        } catch {
+            print("⚠️ Error clearing Firebase Auth state: \(error)")
+        }
+    }
+    
+    private func clearSwiftData() {
+        // Clear SwiftData by deleting the container
+        do {
+            let container = try ModelContainer(for: UserDataModel.self, Item.self)
+            let context = ModelContext(container)
+            
+            // Delete all UserDataModel records
+            let userDescriptor = FetchDescriptor<UserDataModel>()
+            let userResults = try context.fetch(userDescriptor)
+            for user in userResults {
+                context.delete(user)
+            }
+            
+            // Delete all Item records
+            let itemDescriptor = FetchDescriptor<Item>()
+            let itemResults = try context.fetch(itemDescriptor)
+            for item in itemResults {
+                context.delete(item)
+            }
+            
+            try context.save()
+            print("✅ SwiftData cleared")
+        } catch {
+            print("⚠️ Error clearing SwiftData: \(error)")
+        }
     }
     
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(authManager)
+                .onAppear {
+                    if shouldClearAuthData {
+                        authManager.clearAllData()
+                        shouldClearAuthData = false
+                    }
+                }
         }
         .modelContainer(for: [UserDataModel.self, Item.self])
     }

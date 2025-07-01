@@ -30,6 +30,32 @@ class AuthenticationManager: ObservableObject {
         }
     }
     
+    /// Clear all authentication state and data (called on first launch after installation)
+    func clearAllData() {
+        print("🗑️ AuthenticationManager: Clearing all authentication data")
+        
+        // Clear Firebase Auth state
+        do {
+            try auth.signOut()
+            print("✅ Firebase Auth state cleared")
+        } catch {
+            print("⚠️ Error clearing Firebase Auth state: \(error)")
+        }
+        
+        // Reset all published properties
+        user = nil
+        isAuthenticated = false
+        isLoading = false
+        error = nil
+        horoscopeSavedToCoreData = false
+        shouldShowOnboardingHoroscope = false
+        
+        // Clear cached data
+        clearCachedData()
+        
+        print("✅ All authentication data cleared")
+    }
+    
     func setOnboardingDataAccess(_ dataAccess: OnboardingDataAccess) {
         self.onboardingDataAccess = dataAccess
     }
@@ -146,6 +172,9 @@ class AuthenticationManager: ObservableObject {
             // Clear any cached data
             clearCachedData()
             
+            // Clear all local data
+            clearAllLocalData()
+            
             // Sign out from Firebase
             try auth.signOut()
             
@@ -160,6 +189,28 @@ class AuthenticationManager: ObservableObject {
             print("❌ AuthenticationManager: Sign out error - \(error.localizedDescription)")
             throw error
         }
+    }
+    
+    private func clearAllLocalData() {
+        print("🗑️ AuthenticationManager: Clearing all local data")
+        
+        // Clear OnboardingDataAccess data
+        OnboardingDataAccess.clearAllData()
+        
+        // Clear keychain data
+        SecureKeychain.clearAllSecrets()
+        
+        // Clear additional UserDefaults keys
+        let additionalKeys = [
+            "currentUserId",
+            "hasLaunchedBefore"
+        ]
+        
+        for key in additionalKeys {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+        
+        print("✅ All local data cleared")
     }
     
     private func clearCachedData() {

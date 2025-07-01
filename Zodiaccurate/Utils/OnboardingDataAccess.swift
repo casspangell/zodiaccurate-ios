@@ -141,6 +141,23 @@ class OnboardingDataAccess: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
     }
     
+    // Clear all data (called on first launch after installation)
+    static func clearAllData() {
+        print("🗑️ OnboardingDataAccess: Clearing all data")
+        
+        // Clear all UserDefaults data
+        clearOnboardingData()
+        clearOnboardingCompletionFlag()
+        
+        // Clear additional keys
+        UserDefaults.standard.removeObject(forKey: "lastLoggedInEmail")
+        UserDefaults.standard.removeObject(forKey: "profileUUID")
+        UserDefaults.standard.removeObject(forKey: "currentUserId")
+        UserDefaults.standard.removeObject(forKey: "welcomeHoroscope")
+        
+        print("✅ OnboardingDataAccess: All data cleared")
+    }
+    
     // Store last logged-in email
     static func storeLastLoggedInEmail(_ email: String) {
         UserDefaults.standard.set(email, forKey: "lastLoggedInEmail")

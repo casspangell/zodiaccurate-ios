@@ -12,6 +12,9 @@ class OnboardingDataAccess: ObservableObject {
     @Published var userData: UserDataModel?
     private var modelContext: ModelContext
     
+    @Published var isGeneratingHoroscope: Bool = false
+    @Published var didGenerateHoroscope: Bool = false
+    
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         loadUserData()
@@ -23,31 +26,74 @@ class OnboardingDataAccess: ObservableObject {
     }
     
     // Load user data from SwiftData
-    private func loadUserData() {
-        let descriptor = FetchDescriptor<UserDataModel>()
-        do {
-            let results = try modelContext.fetch(descriptor)
-            userData = results.first
-        } catch {
-            print("❌ Error loading user data: \(error)")
+    func loadUserData() {
+        print("🔄 OnboardingDataAccess: Loading user data...")
+        
+        // Try to load data for the current user ID first
+        if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
+            loadUserData(for: userId)
+        } else {
+            // Fallback to loading any available data
+            let descriptor = FetchDescriptor<UserDataModel>()
+            do {
+                let results = try modelContext.fetch(descriptor)
+                userData = results.first
+                print("🔄 OnboardingDataAccess: Loaded user data (fallback) - firstName: \(userData?.firstName ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
+            } catch {
+                print("❌ Error loading user data: \(error)")
+            }
         }
     }
     
-    // Quick access methods for UserDefaults data
+    // Load user data for a specific user ID
+    func loadUserData(for userId: String) {
+        print("🔄 OnboardingDataAccess: Loading user data for userId: \(userId)")
+        let descriptor = FetchDescriptor<UserDataModel>(
+            predicate: #Predicate<UserDataModel> { user in
+                user.userId == userId
+            }
+        )
+        do {
+            let results = try modelContext.fetch(descriptor)
+            userData = results.first
+            print("🔄 OnboardingDataAccess: Loaded user data for userId \(userId) - firstName: \(userData?.firstName ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
+        } catch {
+            print("❌ Error loading user data for userId \(userId): \(error)")
+        }
+    }
+    
+    // Instance properties for Core Data access
+    var coreDataFirstName: String {
+        userData?.firstName ?? ""
+    }
+    var coreDataBirthDate: String {
+        userData?.birthDate ?? ""
+    }
+    var coreDataBirthTime: String {
+        userData?.birthTime ?? ""
+    }
+    var coreDataZodiacSign: String {
+        userData?.zodiacSign ?? ""
+    }
+    var coreDataWelcomeHoroscope: String? {
+        userData?.welcomeHoroscope
+    }
+    
+    // Static properties: UserDefaults only
     static var firstName: String {
         return UserDefaults.standard.string(forKey: "userFirstName") ?? ""
     }
-    
     static var birthDate: String {
         return UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
     }
-    
     static var birthTime: String {
         return UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
     }
-    
     static var zodiacSign: String {
         return UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+    }
+    static var welcomeHoroscope: String? {
+        return UserDefaults.standard.string(forKey: "welcomeHoroscope")
     }
     
     static var responses: [(String, String, String)] {
@@ -113,5 +159,26 @@ class OnboardingDataAccess: ObservableObject {
     // Get profile UUID
     static var profileUUID: String {
         return UserDefaults.standard.string(forKey: "profileUUID") ?? ""
+    }
+    
+    func setHoroscopeGenerationState(isGenerating: Bool, didGenerate: Bool = false) {
+        self.isGeneratingHoroscope = isGenerating
+        self.didGenerateHoroscope = didGenerate
+        print("🔄 OnboardingDataAccess: Horoscope state updated - generating: \(isGenerating), didGenerate: \(didGenerate)")
+    }
+    
+    /// Check if horoscope generation is currently in progress
+    var isHoroscopeGenerating: Bool {
+        return isGeneratingHoroscope
+    }
+    
+    /// Check if horoscope has been generated
+    var hasGeneratedHoroscope: Bool {
+        return didGenerateHoroscope
+    }
+    
+    /// Get the current horoscope generation status as a tuple
+    var horoscopeGenerationStatus: (isGenerating: Bool, didGenerate: Bool) {
+        return (isGeneratingHoroscope, didGenerateHoroscope)
     }
 } 

@@ -58,6 +58,7 @@ class OnboardingAI: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var generatedHoroscope: String?
+    var onHoroscopeGenerated: (() -> Void)?
     
     private let apiKey: String
     private let baseURL: String
@@ -90,6 +91,8 @@ class OnboardingAI: ObservableObject {
             
             // Track horoscope generation in Firebase
             await trackHoroscopeGeneration(type: "welcome", success: true)
+            
+            self.onHoroscopeGenerated?()
             
         } catch {
             self.error = error.localizedDescription
@@ -354,75 +357,83 @@ struct GeneratedHoroscopeView: View {
             VStack(spacing: 24) {
                 // Header
                 VStack(spacing: 8) {
-                    Text("✨ Your Cosmic Welcome ✨")
+                    Text("✨ Welcome to Zodiaccurate ✨")
                         .font(.title)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
-                    Text("The stars have a special message for you...")
+                    Text("Your cosmic journey is about to begin...")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                 }
                 .padding(.top, 40)
                 
-                // Horoscope content
+                // Content
                 ScrollView {
                     VStack(spacing: 20) {
-                        if onboardingAI.isLoading {
-                            VStack(spacing: 16) {
-                                ProgressView()
-                                    .scaleEffect(1.2)
-                                    .tint(.white)
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("🌟 What's Next?")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack(alignment: .top, spacing: 12) {
+                                    Image(systemName: "person.badge.plus")
+                                        .foregroundColor(.purple)
+                                        .font(.title3)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Create Your Account")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                        Text("Sign up to unlock your personalized cosmic insights")
+                                            .font(.subheadline)
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                }
                                 
-                                Text("Consulting the stars...")
-                                    .font(.headline)
-                                    .foregroundColor(.white.opacity(0.8))
+                                HStack(alignment: .top, spacing: 12) {
+                                    Image(systemName: "sparkles")
+                                        .foregroundColor(.yellow)
+                                        .font(.title3)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Get Your Welcome Horoscope")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                        Text("Receive a personalized horoscope crafted just for you")
+                                            .font(.subheadline)
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                }
                                 
-                                Text("✨ 🌟 ✨")
-                                    .font(.title2)
+                                HStack(alignment: .top, spacing: 12) {
+                                    Image(systemName: "calendar")
+                                        .foregroundColor(.blue)
+                                        .font(.title3)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Daily Cosmic Guidance")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                        Text("Access daily horoscopes and cosmic insights")
+                                            .font(.subheadline)
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                }
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 60)
-                        } else if let horoscope = onboardingAI.generatedHoroscope {
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text(horoscope)
-                                    .font(.body)
-                                    .foregroundColor(.white)
-                                    .lineSpacing(6)
-                                    .multilineTextAlignment(.leading)
-                            }
-                            .padding(24)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white.opacity(0.1))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                    )
-                            )
-                            .padding(.horizontal)
-                        } else if let error = onboardingAI.error {
-                            VStack(spacing: 16) {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.orange)
-                                
-                                Text("Cosmic Connection Issue")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                
-                                Text(error)
-                                    .font(.body)
-                                    .foregroundColor(.white.opacity(0.8))
-                                    .multilineTextAlignment(.center)
-                            }
-                            .padding(24)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.white.opacity(0.1))
-                            )
-                            .padding(.horizontal)
                         }
+                        .padding(24)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white.opacity(0.1))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        .padding(.horizontal)
                     }
                 }
                 
@@ -430,31 +441,29 @@ struct GeneratedHoroscopeView: View {
                 
                 // Action buttons
                 VStack(spacing: 16) {
-                    if onboardingAI.generatedHoroscope != nil {
-                        Button(action: {
-                            // TODO: Implement subscription flow
-                            print("🌟 User wants to subscribe!")
-                        }) {
-                            HStack {
-                                Image(systemName: "star.fill")
-                                Text("Unlock Daily Cosmic Insights")
-                                Image(systemName: "arrow.right")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.purple.gradient)
-                            .cornerRadius(12)
+                    Button(action: {
+                        // Navigate to sign up
+                        dismiss()
+                        onboardingAI.onHoroscopeGenerated?()
+                    }) {
+                        HStack {
+                            Image(systemName: "person.badge.plus")
+                            Text("Create Account to Continue")
+                            Image(systemName: "arrow.right")
                         }
-                        .padding(.horizontal)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.purple.gradient)
+                        .cornerRadius(12)
                     }
+                    .padding(.horizontal)
                     
                     Button(action: {
                         dismiss()
-                        onComplete()
                     }) {
-                        Text("Continue to App")
+                        Text("Maybe Later")
                             .font(.headline)
                             .foregroundColor(.white.opacity(0.8))
                             .frame(maxWidth: .infinity)
@@ -465,13 +474,6 @@ struct GeneratedHoroscopeView: View {
                     .padding(.horizontal)
                 }
                 .padding(.bottom, 40)
-            }
-        }
-        .onAppear {
-            if onboardingAI.generatedHoroscope == nil && !onboardingAI.isLoading {
-                Task {
-                    await onboardingAI.generateWelcomeHoroscope()
-                }
             }
         }
     }

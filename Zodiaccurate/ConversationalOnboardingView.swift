@@ -34,7 +34,7 @@ struct ConversationalOnboardingView: View {
     @State private var nebulaOpacity: Double = 0
     @State private var starFieldOpacity: Double = 0
     @State private var cosmicGlowOpacity: Double = 0
-    @State private var showGeneratedHoroscope = false
+
     var onComplete: () -> Void = {}
     
     init(onComplete: @escaping () -> Void = {}) {
@@ -290,7 +290,7 @@ struct ConversationalOnboardingView: View {
                                currentStep >= conversationSteps.count {
                                 Button(action: { 
                                     saveOnboardingData()
-                                    showGeneratedHoroscope = true
+                                    onComplete()
                                 }) {
                                     HStack {
                                         Image(systemName: "sparkles")
@@ -348,11 +348,7 @@ struct ConversationalOnboardingView: View {
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
             self.headerHeight = headerHeight
         }
-        .fullScreenCover(isPresented: $showGeneratedHoroscope) {
-            GeneratedHoroscopeView {
-                onComplete()
-            }
-        }
+
     }
     
     private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.1) {

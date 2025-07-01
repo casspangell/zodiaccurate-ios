@@ -18,13 +18,15 @@ final class UserDataModel {
     var userId: String?
     var createdAt: Date
     var updatedAt: Date
+    var welcomeHoroscope: String?
     
     init(firstName: String = "", 
          birthDate: String = "", 
          birthTime: String = "", 
          zodiacSign: String = "", 
          responses: [String] = [], 
-         userId: String? = nil) {
+         userId: String? = nil,
+         welcomeHoroscope: String? = nil) {
         self.firstName = firstName
         self.birthDate = birthDate
         self.birthTime = birthTime
@@ -34,6 +36,7 @@ final class UserDataModel {
         self.userId = userId
         self.createdAt = Date()
         self.updatedAt = Date()
+        self.welcomeHoroscope = welcomeHoroscope
     }
     
     // Computed property for array access

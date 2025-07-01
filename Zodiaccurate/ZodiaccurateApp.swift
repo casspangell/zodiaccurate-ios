@@ -77,7 +77,10 @@ struct RootView: View {
                     .transition(.opacity)
             }
             
-            if authManager.isAuthenticated {
+            if authManager.shouldShowOnboardingHoroscope {
+                OnboardingHoroscopeView()
+                    .transition(.opacity)
+            } else if authManager.isAuthenticated {
                 MainView()
                     .transition(.opacity)
             }
@@ -86,6 +89,7 @@ struct RootView: View {
         .animation(.easeInOut(duration: 0.7), value: showOnboarding)
         .animation(.easeInOut(duration: 0.7), value: showLogin)
         .animation(.easeInOut(duration: 0.7), value: authManager.isAuthenticated)
+        .animation(.easeInOut(duration: 0.7), value: authManager.shouldShowOnboardingHoroscope)
         .onChange(of: authManager.isAuthenticated) { oldValue, newValue in
             // Handle logout - when user goes from authenticated to not authenticated
             if oldValue == true && newValue == false {

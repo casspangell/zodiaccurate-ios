@@ -14,6 +14,7 @@ class AuthenticationManager: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var horoscopeSavedToCoreData = false
+    @Published var shouldShowOnboardingHoroscope = false
     
     private let auth = Auth.auth()
     private var onboardingDataAccess: OnboardingDataAccess?
@@ -87,17 +88,18 @@ class AuthenticationManager: ObservableObject {
             // Update Core Data with userId and profile
             updateCoreDataProfile(with: result.user.uid, modelContext: modelContext)
             
+            // Set flag to show onboarding horoscope view immediately
+            shouldShowOnboardingHoroscope = true
+            
             // Set loading state for horoscope
             onboardingDataAccess?.setHoroscopeGenerationState(isGenerating: true)
+            
             // Generate welcome horoscope after successful registration
             await generateWelcomeHoroscope(modelContext: modelContext)
             onboardingDataAccess?.setHoroscopeGenerationState(isGenerating: false, didGenerate: true)
             
             // Mark that horoscope has been saved to Core Data
             horoscopeSavedToCoreData = true
-            
-            // Note: isAuthenticated will be set to true when the user dismisses the alert
-            // This prevents automatic navigation to MainView
             
         } catch {
             self.error = error.localizedDescription
@@ -182,6 +184,7 @@ class AuthenticationManager: ObservableObject {
     func completeSignUp() {
         isAuthenticated = true
         horoscopeSavedToCoreData = false
+        shouldShowOnboardingHoroscope = false
         print("✅ AuthenticationManager: Sign-up completed, navigating to main app")
     }
     

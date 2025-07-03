@@ -48,29 +48,10 @@ struct OnboardingHoroscopeView: View {
                     // Horoscope Content
                     VStack(spacing: 20) {
                         if onboardingDataAccess?.isGeneratingHoroscope == true {
-                            VStack(spacing: 24) {
-                                // Enhanced loading view with cosmic elements
-                                ZStack {
-                                    // Celestial loading spinner
-                                    CelestialLoadingSpinner(size: .large)
-                                        .scaleEffect(1.2)
-                                }
-                                
-                                VStack(spacing: 12) {
-                                    Text("The cosmos are aligning for you...")
-                                        .font(.title3)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.white.opacity(0.9))
-                                        .multilineTextAlignment(.center)
-                                    
-                                    Text("Crafting your personalized cosmic journey")
-                                        .font(.subheadline)
-                                        .foregroundColor(.white.opacity(0.7))
-                                        .multilineTextAlignment(.center)
-                                }
-                            }
-                            .frame(maxHeight: geo.size.height * 0.6)
-                            .frame(maxWidth: .infinity)
+                            // Content is hidden when loading - overlay shows instead
+                            Color.clear
+                                .frame(maxHeight: geo.size.height * 0.6)
+                                .frame(maxWidth: .infinity)
                         } else if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
                             VStack(spacing: 16) {
                                 // Show welcome message for newly generated horoscope
@@ -106,10 +87,6 @@ struct OnboardingHoroscopeView: View {
                         } else {
                             // Fallback message if no horoscope is available
                             VStack(spacing: 24) {
-                                // Celestial loading spinner
-                                CelestialLoadingSpinner(size: .large)
-                                    .scaleEffect(1.2)
-                                
                                 VStack(spacing: 16) {
                                     Image(systemName: "sparkles")
                                         .font(.largeTitle)
@@ -149,6 +126,31 @@ struct OnboardingHoroscopeView: View {
                         .padding(.horizontal)
                         .padding(.bottom, 40)
                     }
+                }
+                
+                // Loading spinner overlay - appears on top of all content
+                if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
+                    VStack(spacing: 24) {
+                        // Celestial loading spinner
+                        CelestialLoadingSpinner(size: .large)
+                            .scaleEffect(1.2)
+                        
+                        VStack(spacing: 12) {
+                            Text("The cosmos are aligning for you...")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white.opacity(0.9))
+                                .multilineTextAlignment(.center)
+                            
+                            Text("Crafting your personalized cosmic journey")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black.opacity(0.5))
+                    .allowsHitTesting(false)
                 }
             }
         }

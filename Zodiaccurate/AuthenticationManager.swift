@@ -260,17 +260,22 @@ class AuthenticationManager: ObservableObject {
             }
         }
         
-        let onboardingAI = OnboardingAI()
-        await onboardingAI.generateWelcomeHoroscope()
-        
-        if let horoscope = onboardingAI.generatedHoroscope {
-            // Save to Core Data only (not UserDefaults)
-            if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
-                print("🔄 Attempting to save horoscope to Core Data for userId: \(userId)")
-                print("✅ Using provided model context, loading user data...")
-                let userDataManager = UserDataManager(modelContext: modelContext)
-                if let userDataModel = userDataManager.loadUserData(for: userId) {
-                    print("✅ Found user data model, updating horoscope...")
+        // Load user data from Core Data for horoscope generation
+        if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
+            let userDataManager = UserDataManager(modelContext: modelContext)
+            if let userDataModel = userDataManager.loadUserData(for: userId) {
+                let onboardingAI = OnboardingAI()
+                await onboardingAI.generateWelcomeHoroscope(
+                    firstName: userDataModel.firstName,
+                    birthDate: userDataModel.birthDate,
+                    birthTime: userDataModel.birthTime,
+                    zodiacSign: userDataModel.zodiacSign,
+                    responses: userDataModel.responseTuples
+                )
+                
+                if let horoscope = onboardingAI.generatedHoroscope {
+                    // Save to Core Data
+                    print("🔄 Attempting to save horoscope to Core Data for userId: \(userId)")
                     userDataModel.welcomeHoroscope = horoscope
                     do {
                         try modelContext.save()
@@ -286,14 +291,14 @@ class AuthenticationManager: ObservableObject {
                     } catch {
                         print("❌ Error saving welcome horoscope to Core Data: \(error)")
                     }
-                } else {
-                    print("❌ No user data model found for userId: \(userId)")
+                } else if let error = onboardingAI.error {
+                    print("❌ Failed to generate horoscope: \(error)")
                 }
             } else {
-                print("❌ No currentUserId found in UserDefaults")
+                print("❌ No user data model found for userId: \(userId)")
             }
-        } else if let error = onboardingAI.error {
-            print("❌ Failed to generate welcome horoscope: \(error)")
+        } else {
+            print("❌ No currentUserId found in UserDefaults")
         }
     }
 } 

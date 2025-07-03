@@ -4,13 +4,8 @@ import SwiftData
 struct OnboardingHoroscopeView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var authManager: AuthenticationManager
-    @StateObject private var onboardingDataAccess: OnboardingDataAccess
+    @State private var onboardingDataAccess: OnboardingDataAccess?
     @State private var showWelcomeMessage = true
-    
-    init() {
-        // Initialize with a temporary context - will be updated in onAppear
-        _onboardingDataAccess = StateObject(wrappedValue: OnboardingDataAccess(modelContext: ModelContext(try! ModelContainer(for: UserDataModel.self))))
-    }
     
     var body: some View {
         GeometryReader { geo in
@@ -21,7 +16,7 @@ struct OnboardingHoroscopeView: View {
                 VStack(spacing: 0) {
                     // Header with user info
                     VStack(spacing: 16) {
-                        if let userData = onboardingDataAccess.userData {
+                        if let userData = onboardingDataAccess?.userData {
                             VStack(spacing: 8) {
                                 Text("Welcome, \(userData.firstName)")
                                     .font(.title2)
@@ -52,17 +47,12 @@ struct OnboardingHoroscopeView: View {
                     
                     // Horoscope Content
                     VStack(spacing: 20) {
-                        if onboardingDataAccess.isGeneratingHoroscope {
+                        if onboardingDataAccess?.isGeneratingHoroscope == true {
                             VStack(spacing: 24) {
                                 // Enhanced loading view with cosmic elements
                                 ZStack {
-                                    // Shimmering background
-                                    ShimmeringBackgroundView(isAnimating: true)
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                        .cornerRadius(12)
-                                    
-                                    // Main glass shard
-                                    GlassShardLoadingView()
+                                    // Celestial loading spinner
+                                    CelestialLoadingSpinner(size: .large)
                                         .scaleEffect(1.2)
                                 }
                                 
@@ -81,50 +71,44 @@ struct OnboardingHoroscopeView: View {
                             }
                             .frame(maxHeight: geo.size.height * 0.6)
                             .frame(maxWidth: .infinity)
-                        } else if let horoscope = onboardingDataAccess.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                            ZStack {
-                                // Static shimmering background (animation stopped)
-                                ShimmeringBackgroundView(isAnimating: false)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .cornerRadius(12)
-                                
-                                VStack(spacing: 16) {
-                                    // Show welcome message for newly generated horoscope
-                                    if showWelcomeMessage {
-                                        VStack(spacing: 12) {
-                                            Text("Welcome to Your Cosmic Journey!")
-                                                .font(.headline)
-                                                .fontWeight(.semibold)
-                                                .foregroundColor(.white)
-                                                .multilineTextAlignment(.center)
-                                            
-                                            Text("Your personalized horoscope has been crafted just for you.")
-                                                .font(.subheadline)
-                                                .foregroundColor(.white.opacity(0.8))
-                                                .multilineTextAlignment(.center)
-                                        }
-                                        .padding(.bottom, 8)
+                        } else if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
+                            VStack(spacing: 16) {
+                                // Show welcome message for newly generated horoscope
+                                if showWelcomeMessage {
+                                    VStack(spacing: 12) {
+                                        Text("Welcome to Your Cosmic Journey!")
+                                            .font(.headline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                            .multilineTextAlignment(.center)
+                                        
+                                        Text("Your personalized horoscope has been crafted just for you.")
+                                            .font(.subheadline)
+                                            .foregroundColor(.white.opacity(0.8))
+                                            .multilineTextAlignment(.center)
                                     }
-                                    
-                                    ScrollView {
-                                        Text(horoscope)
-                                            .font(.body)
-                                            .foregroundColor(.white.opacity(0.9))
-                                            .lineSpacing(6)
-                                            .multilineTextAlignment(.leading)
-                                            .padding(.bottom, 16)
-                                    }
-                                    .frame(maxHeight: geo.size.height * 0.6)
+                                    .padding(.bottom, 8)
                                 }
-                                .padding()
+                                
+                                ScrollView {
+                                    Text(horoscope)
+                                        .font(.body)
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .lineSpacing(6)
+                                        .multilineTextAlignment(.leading)
+                                        .padding(.bottom, 16)
+                                }
+                                .frame(maxHeight: geo.size.height * 0.6)
                             }
+                            .padding()
+                            .background(Color.black.opacity(0.3))
+                            .cornerRadius(12)
                         } else {
                             // Fallback message if no horoscope is available
-                            ZStack {
-                                // Shimmering background for fallback state
-                                ShimmeringBackgroundView(isAnimating: true)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .cornerRadius(12)
+                            VStack(spacing: 24) {
+                                // Celestial loading spinner
+                                CelestialLoadingSpinner(size: .large)
+                                    .scaleEffect(1.2)
                                 
                                 VStack(spacing: 16) {
                                     Image(systemName: "sparkles")
@@ -136,8 +120,10 @@ struct OnboardingHoroscopeView: View {
                                         .foregroundColor(.white.opacity(0.8))
                                         .multilineTextAlignment(.center)
                                 }
-                                .padding()
                             }
+                            .padding()
+                            .background(Color.black.opacity(0.3))
+                            .cornerRadius(12)
                             .frame(maxHeight: geo.size.height * 0.6)
                             .frame(maxWidth: .infinity)
                         }
@@ -147,7 +133,7 @@ struct OnboardingHoroscopeView: View {
                     Spacer()
                     
                     // Continue Button
-                    if let horoscope = onboardingDataAccess.coreDataWelcomeHoroscope, !horoscope.isEmpty {
+                    if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
                         Button(action: {
                             navigateToMain()
                         }) {
@@ -169,11 +155,18 @@ struct OnboardingHoroscopeView: View {
         .navigationBarHidden(true)
         .onAppear {
             print("OnboardingHoroscopeView appeared, setting up data access...")
-            onboardingDataAccess.updateModelContext(modelContext)
-            onboardingDataAccess.loadUserData()
+            
+            // Initialize OnboardingDataAccess with the correct ModelContext
+            if onboardingDataAccess == nil {
+                onboardingDataAccess = OnboardingDataAccess(modelContext: modelContext)
+            } else {
+                onboardingDataAccess?.updateModelContext(modelContext)
+            }
+            
+            onboardingDataAccess?.loadUserData()
             
             // Check if horoscope is already generated
-            if let horoscope = onboardingDataAccess.coreDataWelcomeHoroscope, !horoscope.isEmpty {
+            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
                 print("Horoscope already exists, showing welcome message")
                 showWelcomeMessage = true
                 
@@ -186,7 +179,7 @@ struct OnboardingHoroscopeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .horoscopeGenerated)) { _ in
             // Reload data when horoscope is generated
             print("Horoscope generated notification received, reloading data...")
-            onboardingDataAccess.loadUserData()
+            onboardingDataAccess?.loadUserData()
             showWelcomeMessage = true
             
             // Hide welcome message after 5 seconds
@@ -194,7 +187,6 @@ struct OnboardingHoroscopeView: View {
                 showWelcomeMessage = false
             }
         }
-
     }
     
     private func navigateToMain() {

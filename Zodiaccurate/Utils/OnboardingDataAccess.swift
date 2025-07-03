@@ -33,12 +33,14 @@ class OnboardingDataAccess: ObservableObject {
         if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
             loadUserData(for: userId)
         } else {
-            // Fallback to loading any available data
-            let descriptor = FetchDescriptor<UserDataModel>()
+            // During onboarding, user is anonymous - load the most recent data
+            let descriptor = FetchDescriptor<UserDataModel>(
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            )
             do {
                 let results = try modelContext.fetch(descriptor)
                 userData = results.first
-                print("🔄 OnboardingDataAccess: Loaded user data (fallback) - firstName: \(userData?.firstName ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
+                print("🔄 OnboardingDataAccess: Loaded most recent user data (anonymous) - firstName: \(userData?.firstName ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
             } catch {
                 print("❌ Error loading user data: \(error)")
             }
@@ -79,19 +81,28 @@ class OnboardingDataAccess: ObservableObject {
         userData?.welcomeHoroscope
     }
     
-    // Static properties: UserDefaults only
+    // Static properties: UserDefaults only (for flags and app state)
+    static var hasCompletedOnboarding: Bool {
+        return UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    }
+    
+    // Static fallback properties for backward compatibility (read from UserDefaults)
     static var firstName: String {
         return UserDefaults.standard.string(forKey: "userFirstName") ?? ""
     }
+    
     static var birthDate: String {
         return UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
     }
+    
     static var birthTime: String {
         return UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
     }
+    
     static var zodiacSign: String {
         return UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
     }
+    
     static var welcomeHoroscope: String? {
         return UserDefaults.standard.string(forKey: "welcomeHoroscope")
     }
@@ -110,29 +121,67 @@ class OnboardingDataAccess: ObservableObject {
         }
     }
     
-    static var hasCompletedOnboarding: Bool {
-        return UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    // Instance properties for Core Data access (replaces static UserDefaults properties)
+    var firstName: String {
+        return userData?.firstName ?? ""
     }
     
-    // Get a specific response with question
-    static func getResponse(for key: String) -> (question: String, answer: String)? {
+    var birthDate: String {
+        return userData?.birthDate ?? ""
+    }
+    
+    var birthTime: String {
+        return userData?.birthTime ?? ""
+    }
+    
+    var zodiacSign: String {
+        return userData?.zodiacSign ?? ""
+    }
+    
+    var welcomeHoroscope: String? {
+        return userData?.welcomeHoroscope
+    }
+    
+    var responses: [(String, String, String)] {
+        return userData?.responseTuples ?? []
+    }
+    
+    // Get a specific response with question (instance method for Core Data)
+    func getResponse(for key: String) -> (question: String, answer: String)? {
         let response = responses.first { $0.1 == key }
         guard let response = response else { return nil }
         return (question: response.0, answer: response.2)
     }
     
-    // Get just the answer for a key (backward compatibility)
+    // Get just the answer for a key (instance method for Core Data)
+    func getAnswer(for key: String) -> String? {
+        return getResponse(for: key)?.answer
+    }
+    
+    // Static methods for backward compatibility (fallback to UserDefaults)
+    static func getResponse(for key: String) -> (question: String, answer: String)? {
+        // Fallback to UserDefaults for static access
+        if let data = UserDefaults.standard.data(forKey: "userResponses"),
+           let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] {
+            for response in jsonArray {
+                if let question = response["question"], 
+                   let responseKey = response["key"], 
+                   let answer = response["answer"],
+                   responseKey == key {
+                    return (question: question, answer: answer)
+                }
+            }
+        }
+        return nil
+    }
+    
     static func getAnswer(for key: String) -> String? {
         return getResponse(for: key)?.answer
     }
     
-    // Clear all onboarding data (useful for testing or logout)
+    // Clear onboarding data flags (user data is now in Core Data)
     static func clearOnboardingData() {
-        UserDefaults.standard.removeObject(forKey: "userFirstName")
-        UserDefaults.standard.removeObject(forKey: "userBirthDate")
-        UserDefaults.standard.removeObject(forKey: "userBirthTime")
-        UserDefaults.standard.removeObject(forKey: "userZodiacSign")
-        UserDefaults.standard.removeObject(forKey: "userResponses")
+        // User data is now stored in Core Data, so we only clear flags
         // Note: hasCompletedOnboarding is preserved and managed separately
     }
     
@@ -145,7 +194,7 @@ class OnboardingDataAccess: ObservableObject {
     static func clearAllData() {
         print("🗑️ OnboardingDataAccess: Clearing all data")
         
-        // Clear all UserDefaults data
+        // Clear flags and app state (user data is in Core Data)
         clearOnboardingData()
         clearOnboardingCompletionFlag()
         

@@ -462,9 +462,8 @@ struct SplashScreenView: View {
                     magneticPulse = 0.1
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    let hasCompletedOnboarding = OnboardingDataAccess.hasCompletedOnboarding
-                    print("🎯 SplashScreen: hasCompletedOnboarding = \(hasCompletedOnboarding)")
-                    onFinish(hasCompletedOnboarding)
+                    print("🎯 SplashScreen: Directing to OnboardingHoroscopeView")
+                    onFinish(false) // Always pass false to trigger onboarding flow
                 }
             }
             .transition(.opacity)

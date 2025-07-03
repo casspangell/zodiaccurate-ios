@@ -144,17 +144,11 @@ struct RootView: View {
     var body: some View {
         ZStack {
             if showSplash {
-                SplashScreenView { hasCompletedOnboarding in
+                SplashScreenView { _ in
                     withAnimation(.easeInOut(duration: 0.7)) {
                         showSplash = false
-                        // Always check the actual onboarding completion status
-                        // The hasLoggedOut flag doesn't affect navigation after splash
-                        if hasCompletedOnboarding {
-                            showLogin = true
-                            shouldStartWithRegistration = false // Existing user should sign in
-                        } else {
-                            showOnboarding = true
-                        }
+                        // Always show onboarding flow when coming from splash
+                        showOnboarding = true
                     }
                 }
                 .transition(.opacity)

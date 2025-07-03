@@ -11,7 +11,7 @@ import SwiftData
 struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var authManager: AuthenticationManager
-    @StateObject private var userDataManager: UserDataManager
+    @State private var userDataManager: UserDataManager?
     @StateObject private var firebaseDatabaseService = FirebaseDatabaseService()
     @State private var messages: [ChatMessage] = []
     @State private var currentInput = ""
@@ -34,13 +34,12 @@ struct ConversationalOnboardingView: View {
     @State private var nebulaOpacity: Double = 0
     @State private var starFieldOpacity: Double = 0
     @State private var cosmicGlowOpacity: Double = 0
+    @State private var showOnboardingHoroscope = false
 
     var onComplete: () -> Void = {}
     
     init(onComplete: @escaping () -> Void = {}) {
         self.onComplete = onComplete
-        // Initialize UserDataManager with a temporary context - will be updated in onAppear
-        self._userDataManager = StateObject(wrappedValue: UserDataManager(modelContext: ModelContext(try! ModelContainer(for: UserDataModel.self))))
     }
     
     // Calculate dynamic offsets
@@ -63,7 +62,11 @@ struct ConversationalOnboardingView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea(.all, edges: .all)
             
-            VStack(spacing: 0) {
+            if showOnboardingHoroscope {
+                OnboardingHoroscopeView()
+                    .transition(.opacity)
+            } else {
+                VStack(spacing: 0) {
                 // Header ZStack - positioned on top
                 ZStack {
                     // Dark header background with gradient fade
@@ -290,7 +293,7 @@ struct ConversationalOnboardingView: View {
                                currentStep >= conversationSteps.count {
                                 Button(action: { 
                                     saveOnboardingData()
-                                    onComplete()
+                                    showOnboardingHoroscope = true
                                 }) {
                                     HStack {
                                         Image(systemName: "sparkles")
@@ -337,17 +340,23 @@ struct ConversationalOnboardingView: View {
                 .zIndex(1)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill entire screen
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure full screen coverage
         .ignoresSafeArea(.all, edges: .all) // Ignore all safe areas
         .onAppear {
-            // Set up UserDataManager with the correct model context
-            userDataManager.updateModelContext(modelContext)
+            // Initialize UserDataManager with the correct model context
+            if userDataManager == nil {
+                userDataManager = UserDataManager(modelContext: modelContext)
+            } else {
+                userDataManager?.updateModelContext(modelContext)
+            }
             startConversation()
         }
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
             self.headerHeight = headerHeight
         }
+        .animation(.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
 
     }
     
@@ -447,17 +456,17 @@ struct ConversationalOnboardingView: View {
         let wordCount = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.count
         let characterCount = text.count
         
-        // Base delay for very short messages
-        let baseDelay: Double = 1.5
+        // Reduced base delay for more responsive feel
+        let baseDelay: Double = 0.8
         
-        // Additional delay based on word count (more natural for reading)
-        let wordDelay = Double(wordCount) * 0.15
+        // Reduced word delay for faster responses
+        let wordDelay = Double(wordCount) * 0.08
         
-        // Additional delay for very long messages (character-based)
-        let characterDelay = characterCount > 200 ? Double(characterCount - 200) * 0.01 : 0
+        // Reduced character delay for long messages
+        let characterDelay = characterCount > 200 ? Double(characterCount - 200) * 0.005 : 0
         
-        // Cap the maximum delay to prevent it from being too long
-        let maxDelay: Double = 8.0
+        // Reduced maximum delay cap
+        let maxDelay: Double = 4.0
         let calculatedDelay = baseDelay + wordDelay + characterDelay
         
         return min(calculatedDelay, maxDelay)
@@ -487,7 +496,7 @@ struct ConversationalOnboardingView: View {
                 }
                 
                 // Show input field or interactive picker after message appears
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     withAnimation {
                         showSecondaryElements = true
                         if conversationSteps[0].inputType == "text" {
@@ -530,7 +539,7 @@ struct ConversationalOnboardingView: View {
         currentStep += 1
         
         // Add AI response after delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             if currentStep < conversationSteps.count {
                 let nextMessage = conversationSteps[currentStep].message
                 let personalizedMessage = personalizeMessage(nextMessage, with: userData.firstName)
@@ -559,7 +568,7 @@ struct ConversationalOnboardingView: View {
             }
             
             // Show input field or interactive picker after message appears
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation {
                     showSecondaryElements = true
                     if currentStep < conversationSteps.count {
@@ -689,28 +698,16 @@ struct ConversationalOnboardingView: View {
         print("💾 Saving onboarding data...")
         print("👤 User data: \(userData)")
         
-        // Save the user data locally
-        userDataManager.saveUserData(userData)
+        // Save the user data to Core Data only
+        userDataManager?.saveUserData(userData)
         
-        // Also save to UserDefaults for quick access
-        UserDefaults.standard.set(userData.firstName, forKey: "userFirstName")
-        UserDefaults.standard.set(userData.birthDate, forKey: "userBirthDate")
-        UserDefaults.standard.set(userData.birthTime, forKey: "userBirthTime")
-        UserDefaults.standard.set(userData.zodiacSign, forKey: "userZodiacSign")
-        
-        // Save responses as JSON
-        let responsesData = try? JSONSerialization.data(withJSONObject: userData.responses.map { ["question": $0.0, "key": $0.1, "answer": $0.2] })
-        UserDefaults.standard.set(responsesData, forKey: "userResponses")
-        
-        // Mark onboarding as completed
+        // Save flags to UserDefaults
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.set(true, forKey: "pendingOnboardingFirebaseSave")
         
         // Save onboarding data to Firebase Realtime Database
         // Note: This will be saved after user authentication in AuthenticationManager
         print("📝 Onboarding data prepared for Firebase save after authentication")
-        
-        // Store onboarding data temporarily for later Firebase save
-        UserDefaults.standard.set(true, forKey: "pendingOnboardingFirebaseSave")
         
         print("✅ Onboarding data saved successfully!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")

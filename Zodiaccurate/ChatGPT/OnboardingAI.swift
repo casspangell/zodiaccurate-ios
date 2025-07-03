@@ -105,6 +105,42 @@ class OnboardingAI: ObservableObject {
         isLoading = false
     }
     
+    /// Generate a welcome horoscope with provided user data (for Core Data integration)
+    func generateWelcomeHoroscope(firstName: String, birthDate: String, birthTime: String, zodiacSign: String, responses: [(String, String, String)]) async {
+        print("[OnboardingAI] generateWelcomeHoroscope() called with provided data")
+        guard APIConfig.isAPIKeyConfigured else {
+            print("[OnboardingAI] API key not configured: \(APIConfig.apiKeyNotConfiguredMessage)")
+            error = APIConfig.apiKeyNotConfiguredMessage
+            return
+        }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let userData = createUserDataDict(firstName: firstName, birthDate: birthDate, birthTime: birthTime, zodiacSign: zodiacSign, responses: responses)
+            let prompt = createWelcomePrompt(with: userData)
+            let horoscope = try await callChatGPTAPI(prompt: prompt)
+            
+            generatedHoroscope = horoscope
+            print("✨ Generated welcome horoscope: \(horoscope)")
+            
+            // Track horoscope generation in Firebase
+            await trackHoroscopeGeneration(type: "welcome", success: true)
+            
+            self.onHoroscopeGenerated?()
+            
+        } catch {
+            self.error = error.localizedDescription
+            print("❌ Error generating horoscope: \(error)")
+            
+            // Track failed horoscope generation
+            await trackHoroscopeGeneration(type: "welcome", success: false)
+        }
+        
+        isLoading = false
+    }
+    
     /// Generate a daily horoscope for existing users
     func generateDailyHoroscope() async -> String? {
         print("[OnboardingAI] generateDailyHoroscope() called")
@@ -140,12 +176,44 @@ class OnboardingAI: ObservableObject {
     
     // MARK: - Private Methods
     
+    private func createUserDataDict(firstName: String, birthDate: String, birthTime: String, zodiacSign: String, responses: [(String, String, String)]) -> [String: Any] {
+        var userData: [String: Any] = [
+            "firstName": firstName,
+            "birthDate": birthDate,
+            "birthTime": birthTime,
+            "zodiacSign": zodiacSign,
+            "hasCompletedOnboarding": OnboardingDataAccess.hasCompletedOnboarding
+        ]
+        
+        // Add user responses
+        var responseDict: [String: String] = [:]
+        for (question, key, answer) in responses {
+            responseDict[key] = answer
+        }
+        userData["responses"] = responseDict
+        
+        return userData
+    }
+    
     private func collectUserData() -> [String: Any] {
-        let firstName = OnboardingDataAccess.firstName
-        let birthDate = OnboardingDataAccess.birthDate
-        let birthTime = OnboardingDataAccess.birthTime
-        let zodiacSign = OnboardingDataAccess.zodiacSign
-        let responses = OnboardingDataAccess.responses
+        // For now, we'll use UserDefaults as a fallback, but this should be updated
+        // to accept data as parameters when called from views with ModelContext access
+        let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
+        let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
+        let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
+        let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+        
+        // Get responses from UserDefaults for now
+        var responses: [(String, String, String)] = []
+        if let data = UserDefaults.standard.data(forKey: "userResponses"),
+           let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] {
+            responses = jsonArray.compactMap { dict in
+                guard let question = dict["question"], 
+                      let key = dict["key"], 
+                      let answer = dict["answer"] else { return nil }
+                return (question, key, answer)
+            }
+        }
         
         var userData: [String: Any] = [
             "firstName": firstName,

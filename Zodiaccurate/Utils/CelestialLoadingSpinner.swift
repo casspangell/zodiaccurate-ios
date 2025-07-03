@@ -61,33 +61,55 @@ struct CelestialLoadingSpinner: View {
                 .scaleEffect(1.0 + 0.2 * sin(animationPhase * 2))
                 .animation(.easeInOut(duration: 3).repeatForever(autoreverses: false), value: animationPhase)
             
-            // First orbiting circle (Cosmic Purple - fastest)
-            CelestialOrb(
+            // First orbiting ring (largest - fastest)
+            CelestialRing(
                 size: size.circleSize,
                 orbitRadius: size.orbitRadius,
                 speed: 1.0,
                 phase: animationPhase,
-                color: Color.purple,
                 scale: size.scale
             )
             
-            // Second orbiting circle (Deep Blue - medium speed, reverse direction)
-            CelestialOrb(
+            // Second orbiting ring (medium - reverse direction)
+            CelestialRing(
                 size: size.circleSize * 0.8,
                 orbitRadius: size.orbitRadius * 0.7,
                 speed: -0.7,
                 phase: animationPhase,
-                color: Color.blue,
                 scale: size.scale
             )
             
-            // Third orbiting circle (Soft Pink - slowest)
-            CelestialOrb(
+            // Third orbiting ring (largest - slowest)
+            CelestialRing(
                 size: size.circleSize * 1.2,
                 orbitRadius: size.orbitRadius * 1.3,
                 speed: 0.5,
                 phase: animationPhase,
-                color: Color.pink,
+                scale: size.scale
+            )
+            
+            // Small white stars
+            CelestialStar(
+                size: size.circleSize * 0.3,
+                orbitRadius: size.orbitRadius * 0.4,
+                speed: 1.5,
+                phase: animationPhase,
+                scale: size.scale
+            )
+            
+            CelestialStar(
+                size: size.circleSize * 0.2,
+                orbitRadius: size.orbitRadius * 1.1,
+                speed: -1.2,
+                phase: animationPhase,
+                scale: size.scale
+            )
+            
+            CelestialStar(
+                size: size.circleSize * 0.25,
+                orbitRadius: size.orbitRadius * 0.6,
+                speed: 0.8,
+                phase: animationPhase,
                 scale: size.scale
             )
         }
@@ -132,6 +154,61 @@ struct CelestialOrb: View {
                 y: orbitRadius * sin(phase * speed)
             )
             .opacity(0.8 + 0.2 * sin(phase * speed * 2))
+    }
+}
+
+struct CelestialRing: View {
+    let size: CGFloat
+    let orbitRadius: CGFloat
+    let speed: Double
+    let phase: Double
+    let scale: CGFloat
+    
+    var body: some View {
+        Circle()
+            .stroke(Color.white.opacity(0.8), lineWidth: 1.5)
+            .frame(width: size * 2, height: size * 2)
+            .shadow(color: Color.white.opacity(0.4), radius: size * 0.3, x: 0, y: 0)
+            .scaleEffect(scale * (1.0 + 0.15 * sin(phase * speed * 2)))
+            .offset(
+                x: orbitRadius * cos(phase * speed),
+                y: orbitRadius * sin(phase * speed)
+            )
+            .opacity(0.6 + 0.3 * sin(phase * speed * 1.5))
+    }
+}
+
+struct CelestialStar: View {
+    let size: CGFloat
+    let orbitRadius: CGFloat
+    let speed: Double
+    let phase: Double
+    let scale: CGFloat
+    
+    var body: some View {
+        ZStack {
+            // Star shape using multiple rotated rectangles
+            ForEach(0..<4, id: \.self) { index in
+                Rectangle()
+                    .fill(Color.white.opacity(0.9))
+                    .frame(width: size * 0.3, height: size)
+                    .rotationEffect(.degrees(Double(index) * 45))
+            }
+            
+            // Central dot
+            Circle()
+                .fill(Color.white.opacity(0.9))
+                .frame(width: size * 0.4, height: size * 0.4)
+        }
+        .frame(width: size * 2, height: size * 2)
+        .shadow(color: Color.white.opacity(0.6), radius: size * 0.4, x: 0, y: 0)
+        .scaleEffect(scale * (1.0 + 0.2 * sin(phase * speed * 2.5)))
+        .offset(
+            x: orbitRadius * cos(phase * speed),
+            y: orbitRadius * sin(phase * speed)
+        )
+        .opacity(0.7 + 0.3 * sin(phase * speed * 1.8))
+        .rotationEffect(.degrees(phase * speed * 30))
     }
 }
 

@@ -5,9 +5,18 @@ struct ZodiacAlertView: View {
     let title: String
     let message: String
     let primaryButtonTitle: String
-    let secondaryButtonTitle: String
     let primaryButtonAction: () -> Void
-    let secondaryButtonAction: () -> Void
+    let secondaryButtonTitle: String?
+    let secondaryButtonAction: (() -> Void)?
+    
+    init(title: String, message: String, primaryButtonTitle: String, primaryButtonAction: @escaping () -> Void, secondaryButtonTitle: String? = nil, secondaryButtonAction: (() -> Void)? = nil) {
+        self.title = title
+        self.message = message
+        self.primaryButtonTitle = primaryButtonTitle
+        self.primaryButtonAction = primaryButtonAction
+        self.secondaryButtonTitle = secondaryButtonTitle
+        self.secondaryButtonAction = secondaryButtonAction
+    }
     
     var body: some View {
         ZStack {
@@ -15,7 +24,7 @@ struct ZodiacAlertView: View {
             VisualEffectBlur(blurStyle: UIBlurEffect.Style.systemUltraThinMaterialDark)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    secondaryButtonAction()
+                    secondaryButtonAction?()
                 }
             
             // Alert content
@@ -58,7 +67,7 @@ struct ZodiacAlertView: View {
                 
                 // Buttons
                 VStack(spacing: 12) {
-                    // Primary button (Log Out)
+                    // Primary button
                     Button(action: primaryButtonAction) {
                         Text(primaryButtonTitle)
                             .font(.dmSansSemibold(size: 16))
@@ -81,21 +90,23 @@ struct ZodiacAlertView: View {
                             )
                     }
                     
-                    // Secondary button (Cancel)
-                    Button(action: secondaryButtonAction) {
-                        Text(secondaryButtonTitle)
-                            .font(.dmSansMedium(size: 16))
-                            .foregroundColor(.white.opacity(0.8))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .fill(Color.white.opacity(0.1))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                    )
-                            )
+                    // Secondary button (optional)
+                    if let secondaryButtonTitle = secondaryButtonTitle, let secondaryButtonAction = secondaryButtonAction {
+                        Button(action: secondaryButtonAction) {
+                            Text(secondaryButtonTitle)
+                                .font(.dmSansMedium(size: 16))
+                                .foregroundColor(.white.opacity(0.8))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .fill(Color.white.opacity(0.1))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                        )
+                                )
+                        }
                     }
                 }
             }

@@ -146,10 +146,10 @@ struct SettingsWidgetMenu: View {
                         title: "Confirm Logout",
                         message: "Are you sure you want to log out? We can't notify you of your daily Zodiaccurate if you do.",
                         primaryButtonTitle: "Log Out",
-                        secondaryButtonTitle: "Cancel",
                         primaryButtonAction: {
                             performLogout()
                         },
+                        secondaryButtonTitle: "Cancel",
                         secondaryButtonAction: {
                             showingLogoutConfirmation = false
                         }

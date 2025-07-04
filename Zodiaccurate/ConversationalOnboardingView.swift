@@ -355,13 +355,9 @@ struct ConversationalOnboardingView: View {
                     title: "Horoscope Generation Failed",
                     message: zodiacAlertMessage,
                     primaryButtonTitle: "Try Again",
-                    secondaryButtonTitle: "Cancel",
                     primaryButtonAction: {
                         showZodiacAlert = false
                         Task { await generateWelcomeHoroscope() }
-                    },
-                    secondaryButtonAction: {
-                        showZodiacAlert = false
                     }
                 )
             }

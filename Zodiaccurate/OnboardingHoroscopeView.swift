@@ -108,8 +108,8 @@ struct OnboardingHoroscopeView: View {
                 // Loading spinner overlay - appears on top of all content
                 if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
                     VStack(spacing: 24) {
-                        // Celestial loading spinner
-                        CelestialLoadingSpinner(size: .large)
+                        // Zodiac loading spinner
+                        ZodiacLoadingSpinner(size: .large)
                             .scaleEffect(1.2)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

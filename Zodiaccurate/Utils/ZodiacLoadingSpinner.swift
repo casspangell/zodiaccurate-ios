@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CelestialLoadingSpinner: View {
+struct ZodiacLoadingSpinner: View {
     enum Size {
         case small, medium, large
         
@@ -43,23 +43,58 @@ struct CelestialLoadingSpinner: View {
     
     var body: some View {
         ZStack {
-            // Central glow effect
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color.purple.opacity(0.4),
-                            Color.purple.opacity(0.1),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 2,
-                        endRadius: size.orbitRadius * 0.8
+            // Central pulsating bubble with ripples
+            ZStack {
+                // Multiple ripple layers
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.purple.opacity(0.95),
+                                    Color.purple.opacity(0.8),
+                                    Color.blue.opacity(0.6),
+                                    Color.purple.opacity(0.4)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2
+                        )
+                        .frame(width: size.orbitRadius * (0.8 + Double(index) * 0.3), 
+                               height: size.orbitRadius * (0.8 + Double(index) * 0.3))
+                        .scaleEffect(1.0 + 0.3 * sin(animationPhase * 1.5 + Double(index) * 0.5))
+                        .opacity(0.95 - Double(index) * 0.2)
+                        .animation(.easeInOut(duration: 2 + Double(index) * 0.5).repeatForever(autoreverses: true), value: animationPhase)
+                }
+                
+                // Central glow effect
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.purple.opacity(0.95),
+                                Color.purple.opacity(0.8),
+                                Color.blue.opacity(0.6),
+                                Color.purple.opacity(0.3),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 2,
+                            endRadius: size.orbitRadius * 0.6
+                        )
                     )
-                )
-                .frame(width: size.orbitRadius * 1.6, height: size.orbitRadius * 1.6)
-                .scaleEffect(1.0 + 0.2 * sin(animationPhase * 2))
-                .animation(.easeInOut(duration: 3).repeatForever(autoreverses: false), value: animationPhase)
+                    .frame(width: size.orbitRadius * 1.2, height: size.orbitRadius * 1.2)
+                    .scaleEffect(1.0 + 0.4 * sin(animationPhase * 2))
+                    .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animationPhase)
+                
+                // Inner core
+                Circle()
+                    .fill(Color.purple.opacity(0.9))
+                    .frame(width: size.orbitRadius * 0.6, height: size.orbitRadius * 0.6)
+                    .scaleEffect(1.0 + 0.2 * sin(animationPhase * 3))
+                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: animationPhase)
+            }
             
             // First orbiting ring (largest - fastest)
             CelestialRing(
@@ -215,9 +250,9 @@ struct CelestialStar: View {
 // MARK: - Preview
 #Preview {
     VStack(spacing: 40) {
-        CelestialLoadingSpinner(size: .small)
-        CelestialLoadingSpinner(size: .medium)
-        CelestialLoadingSpinner(size: .large)
+        ZodiacLoadingSpinner(size: .small)
+        ZodiacLoadingSpinner(size: .medium)
+        ZodiacLoadingSpinner(size: .large)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(Color.backgroundPrimary)

@@ -294,6 +294,11 @@ struct ConversationalOnboardingView: View {
                                 Button(action: { 
                                     saveOnboardingData()
                                     showOnboardingHoroscope = true
+                                    
+                                    // Generate horoscope on background thread
+                                    Task {
+                                        await generateWelcomeHoroscope()
+                                    }
                                 }) {
                                     HStack {
                                         Image(systemName: "sparkles")
@@ -706,6 +711,82 @@ struct ConversationalOnboardingView: View {
         
         print("✅ Onboarding data saved successfully to Core Data!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
+    }
+    
+    private func generateWelcomeHoroscope() async {
+        print("✨ Starting welcome horoscope generation...")
+        
+        let onboardingAI = OnboardingAI()
+        await onboardingAI.generateWelcomeHoroscope(
+            firstName: userData.firstName,
+            birthDate: userData.birthDate,
+            birthTime: userData.birthTime,
+            zodiacSign: userData.zodiacSign,
+            responses: userData.responses
+        )
+        
+        if let horoscope = onboardingAI.generatedHoroscope {
+            print("🎉 Welcome Horoscope Generated Successfully!")
+            print("📜 Horoscope Content:")
+            print(String(repeating: "=", count: 50))
+            print(horoscope)
+            print(String(repeating: "=", count: 50))
+            
+            // Save horoscope to Core Data
+            await saveHoroscopeToCoreData(horoscope)
+            
+        } else if let error = onboardingAI.error {
+            print("❌ Failed to generate horoscope: \(error)")
+        } else {
+            print("⚠️ Horoscope generation completed but no result received")
+        }
+    }
+    
+    private func saveHoroscopeToCoreData(_ horoscope: String) async {
+        print("💾 Saving horoscope to Core Data...")
+        
+        // Ensure we have a UserDataManager
+        if userDataManager == nil {
+            userDataManager = UserDataManager(modelContext: modelContext)
+        }
+        
+        // Load the existing user data from Core Data
+        if let existingUserData = userDataManager?.loadUserData() {
+            print("📝 Updating existing user data with horoscope...")
+            existingUserData.welcomeHoroscope = horoscope
+            existingUserData.updatedAt = Date()
+            
+            do {
+                try modelContext.save()
+                print("✅ Horoscope saved to Core Data successfully!")
+                print("🌟 Horoscope length: \(horoscope.count) characters")
+            } catch {
+                print("❌ Error saving horoscope to Core Data: \(error)")
+            }
+        } else {
+            print("⚠️ No existing user data found in Core Data, creating new entry...")
+            
+            // Create a new UserDataModel with the horoscope
+            let responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
+            let userDataModel = UserDataModel(
+                firstName: userData.firstName,
+                birthDate: userData.birthDate,
+                birthTime: userData.birthTime,
+                zodiacSign: userData.zodiacSign,
+                responses: responses,
+                userId: nil,
+                welcomeHoroscope: horoscope
+            )
+            
+            modelContext.insert(userDataModel)
+            
+            do {
+                try modelContext.save()
+                print("✅ New user data with horoscope saved to Core Data successfully!")
+            } catch {
+                print("❌ Error saving new user data with horoscope to Core Data: \(error)")
+            }
+        }
     }
 }
 

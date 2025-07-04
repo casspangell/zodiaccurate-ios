@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import Combine
 
 struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
@@ -26,6 +27,7 @@ struct ConversationalOnboardingView: View {
     @State private var showSecondaryElements = false
     @State private var keyboardHeight: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
+    @State private var textFieldFrame: CGRect = .zero
     @State private var currentProfileImage = "logo"
     @State private var isAcquiringBadge = false
     @State private var badgeScale: CGFloat = 1.0
@@ -38,6 +40,7 @@ struct ConversationalOnboardingView: View {
     @State private var showOnboardingHoroscope = false
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
+    @FocusState private var isTextFieldFocused: Bool
 
     var onComplete: () -> Void = {}
     
@@ -58,12 +61,39 @@ struct ConversationalOnboardingView: View {
         return max(headerHeight * 0.67, 80) // Overlap with profile image, minimum 80
     }
     
+    // Calculate intelligent keyboard offset
+    private var intelligentKeyboardOffset: CGFloat {
+        guard keyboardHeight > 0 else { return 0 }
+        
+        // Get screen height
+        let screenHeight = UIScreen.main.bounds.height
+        
+        // Calculate the bottom position of the text field relative to screen
+        let textFieldBottom = textFieldFrame.maxY
+        
+        // Calculate available space above keyboard
+        let keyboardTop = screenHeight - keyboardHeight
+        let availableSpace = keyboardTop - textFieldBottom
+        
+        // If text field is below keyboard, calculate how much to move up
+        if availableSpace < 0 {
+            // Add some padding (20 points) to ensure text field is comfortably above keyboard
+            return abs(availableSpace) + 20
+        }
+        
+        return 0
+    }
+    
     var body: some View {
         ZStack {
             // Background layers - ensure full screen coverage
             BackgroundView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea(.all, edges: .all)
+                .onTapGesture {
+                    // Dismiss keyboard when tapping background
+                    isTextFieldFocused = false
+                }
             
             if showOnboardingHoroscope {
                 OnboardingHoroscopeView()
@@ -196,7 +226,11 @@ struct ConversationalOnboardingView: View {
                                 showInputField: showInputField,
                                 showSecondaryElements: showSecondaryElements,
                                 currentInput: $currentInput,
-                                onSend: { handleUserInput(input: currentInput) }
+                                onSend: { handleUserInput(input: currentInput) },
+                                isTextFieldFocused: $isTextFieldFocused,
+                                onFrameChange: { frame in
+                                    textFieldFrame = frame
+                                }
                             )
                             
                             // Complete Button
@@ -252,7 +286,7 @@ struct ConversationalOnboardingView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill remaining space
-                .offset(y: -scrollViewOffset)
+                .offset(y: -scrollViewOffset - intelligentKeyboardOffset) // Intelligent keyboard offset
                 .zIndex(1)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill entire screen
@@ -308,7 +342,9 @@ struct ConversationalOnboardingView: View {
             self.headerHeight = headerHeight
         }
         .animation(Animation.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
-
+        .onReceive(Publishers.keyboardHeight) { keyboardHeight in
+            self.keyboardHeight = keyboardHeight
+        }
     }
     
     private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.1) {
@@ -855,18 +891,19 @@ struct InputSection: View {
     @Binding var currentInput: String
     let currentStep: ConversationStep
     let onSend: () -> Void
-    @FocusState private var isTextFieldFocused: Bool
+    let isTextFieldFocused: FocusState<Bool>.Binding
+    let onFrameChange: (CGRect) -> Void
     
     var body: some View {
         HStack {
             TextField(currentStep.placeholder, text: $currentInput)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
-                .focused($isTextFieldFocused)
+                .focused(isTextFieldFocused)
                 .onSubmit {
                     onSend()
                 }
                 .onTapGesture {
-                    isTextFieldFocused = true
+                    isTextFieldFocused.wrappedValue = true
                 }
         
             Button(action: onSend) {
@@ -877,8 +914,19 @@ struct InputSection: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
+        .background(
+            GeometryReader { geometry in
+                Color.clear
+                    .onAppear {
+                        onFrameChange(geometry.frame(in: .global))
+                    }
+                    .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                        onFrameChange(newFrame)
+                    }
+            }
+        )
         .onTapGesture {
-            isTextFieldFocused = true
+            isTextFieldFocused.wrappedValue = true
         }
     }
 }
@@ -1146,6 +1194,8 @@ struct ChatInputView: View {
     let showSecondaryElements: Bool
     let currentInput: Binding<String>
     let onSend: () -> Void
+    let isTextFieldFocused: FocusState<Bool>.Binding
+    let onFrameChange: (CGRect) -> Void
     
     var body: some View {
         if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
@@ -1156,7 +1206,9 @@ struct ChatInputView: View {
             InputSection(
                 currentInput: currentInput,
                 currentStep: conversationSteps[currentStep],
-                onSend: onSend
+                onSend: onSend,
+                isTextFieldFocused: isTextFieldFocused,
+                onFrameChange: onFrameChange
             )
             .background(Color.white.opacity(0.08))
             .cornerRadius(12)

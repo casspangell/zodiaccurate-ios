@@ -12,7 +12,7 @@ struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var authManager: AuthenticationManager
     @State private var userDataManager: UserDataManager?
-    @StateObject private var firebaseDatabaseService = FirebaseDatabaseService()
+    // Removed Firebase integration - only using Core Data
     @State private var messages: [ChatMessage] = []
     @State private var currentInput = ""
     @State private var currentStep = 0
@@ -695,21 +695,16 @@ struct ConversationalOnboardingView: View {
     }
     
     private func saveOnboardingData() {
-        print("💾 Saving onboarding data...")
+        print("💾 Saving onboarding data to Core Data...")
         print("👤 User data: \(userData)")
         
         // Save the user data to Core Data only
         userDataManager?.saveUserData(userData)
         
-        // Save flags to UserDefaults
+        // Save completion flag to UserDefaults
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-        UserDefaults.standard.set(true, forKey: "pendingOnboardingFirebaseSave")
         
-        // Save onboarding data to Firebase Realtime Database
-        // Note: This will be saved after user authentication in AuthenticationManager
-        print("📝 Onboarding data prepared for Firebase save after authentication")
-        
-        print("✅ Onboarding data saved successfully!")
+        print("✅ Onboarding data saved successfully to Core Data!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
     }
 }

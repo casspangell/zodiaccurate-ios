@@ -27,12 +27,6 @@ struct OnboardingHoroscopeView: View {
                                     .font(.dmSansMedium(size: 20))
                                     .foregroundColor(.white.opacity(0.8))
                             }
-                        } else {
-                            VStack(spacing: 8) {
-                                Text("Please wait while we create your first Zodiaccurate.")
-                                    .font(.dmSansSemibold(size: 24))
-                                    .foregroundColor(.white)
-                            }
                         }
                     }
                     .padding(.top, 60)

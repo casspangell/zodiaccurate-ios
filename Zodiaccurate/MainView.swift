@@ -187,6 +187,9 @@ struct MainView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .zIndex(300)
                 }
+                
+                // Stardust earning animation (global overlay)
+                StardustEarningAnimationOverlay()
             }
         }
     }

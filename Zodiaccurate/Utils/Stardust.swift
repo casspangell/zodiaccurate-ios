@@ -98,7 +98,12 @@ class StardustManager: ObservableObject {
     @Published var recentTransactions: [StardustTransaction] = []
     @Published var isLoading: Bool = false
     
-    private var modelContext: ModelContext
+    // Animation state
+    @Published var showEarningAnimation: Bool = false
+    @Published var earningAnimationAmount: Int = 0
+    @Published var earningAnimationType: StardustTransactionType = .achievement
+    
+    var modelContext: ModelContext
     private var balanceModel: StardustBalance?
     
     init(modelContext: ModelContext) {
@@ -111,7 +116,7 @@ class StardustManager: ObservableObject {
     // MARK: - Balance Management
     
     /// Load the current stardust balance from Core Data
-    private func loadBalance() {
+    func loadBalance() {
         print("🪙 StardustManager: Loading stardust balance...")
         
         let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
@@ -219,6 +224,11 @@ class StardustManager: ObservableObject {
             }
             
             saveContext()
+            
+            // Trigger earning animation
+            earningAnimationAmount = amount
+            earningAnimationType = type
+            showEarningAnimation = true
             
             print("✅ StardustManager: Earned \(amount) stardust. New balance: \(newBalance)")
         } catch {

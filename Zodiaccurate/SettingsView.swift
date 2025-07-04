@@ -418,6 +418,7 @@ struct SettingsInputField: View {
     let title: String
     @Binding var text: String
     let placeholder: String
+    @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -428,6 +429,13 @@ struct SettingsInputField: View {
             TextField(placeholder, text: $text)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .foregroundColor(.black)
+                .focused($isTextFieldFocused)
+                .onTapGesture {
+                    isTextFieldFocused = true
+                }
+        }
+        .onTapGesture {
+            isTextFieldFocused = true
         }
     }
 }
@@ -605,6 +613,7 @@ struct HelpSupportView: View {
                     .padding(.bottom, 40)
                 }
             }
+            .keyboardAdaptive()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

@@ -110,7 +110,7 @@ struct ConversationalOnboardingView: View {
                                 .scaleEffect(badgeScale)
                                 .rotationEffect(.degrees(badgeRotation))
                                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                                .animation(.easeInOut(duration: 0.8), value: badgeRotation)
+                                .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
                             
                             CosmicBadgeEffects(
                                 badgeScale: badgeScale,
@@ -307,13 +307,13 @@ struct ConversationalOnboardingView: View {
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
             self.headerHeight = headerHeight
         }
-        .animation(.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
+        .animation(Animation.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
 
     }
     
     private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.1) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.easeInOut(duration: 0.4)) {
+            withAnimation(Animation.easeInOut(duration: 0.4)) {
                 // Scroll to show the latest content smoothly
                 if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
                     proxy.scrollTo("bottom", anchor: .bottom)
@@ -328,7 +328,7 @@ struct ConversationalOnboardingView: View {
     
     private func scrollToShowInput(proxy: ScrollViewProxy, delay: Double = 0.3) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.easeInOut(duration: 0.8)) {
+            withAnimation(Animation.easeInOut(duration: 0.8)) {
                 proxy.scrollTo("inputSection", anchor: .center)
             }
         }
@@ -336,7 +336,7 @@ struct ConversationalOnboardingView: View {
     
     private func scrollToShowPicker(proxy: ScrollViewProxy, delay: Double = 0.3) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.easeInOut(duration: 0.8)) {
+            withAnimation(Animation.easeInOut(duration: 0.8)) {
                 proxy.scrollTo("interactivePicker", anchor: .center)
             }
         }
@@ -344,7 +344,7 @@ struct ConversationalOnboardingView: View {
     
     private func scrollToShowTyping(proxy: ScrollViewProxy, delay: Double = 0.1) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.easeInOut(duration: 0.4)) {
+            withAnimation(Animation.easeInOut(duration: 0.4)) {
                 // Scroll to show typing indicator
                 proxy.scrollTo("typingIndicator", anchor: .center)
             }
@@ -590,22 +590,22 @@ struct ConversationalOnboardingView: View {
         isAcquiringBadge = true
         
         // Phase 1 & 2: Build up cosmic effects and scale up badge
-        withAnimation(.easeInOut(duration: 0.8)) { cosmicGlowOpacity = 1.0 }
+                    withAnimation(Animation.easeInOut(duration: 0.8)) { cosmicGlowOpacity = 1.0 }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                 badgeScale = 1.3
                 badgeRotation = 15
             }
-            withAnimation(.easeInOut(duration: 1.0)) { nebulaOpacity = 1.0 }
+            withAnimation(Animation.easeInOut(duration: 1.0)) { nebulaOpacity = 1.0 }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.easeInOut(duration: 0.8)) {
+            withAnimation(Animation.easeInOut(duration: 0.8)) {
                 starFieldOpacity = 1.0
                 cosmicParticlesOpacity = 1.0
             }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-            withAnimation(.easeInOut(duration: 0.3)) { sparkleOpacity = 1.0 }
+            withAnimation(Animation.easeInOut(duration: 0.3)) { sparkleOpacity = 1.0 }
         }
 
         // Phase 3: Funnel effect - spin and shrink
@@ -630,7 +630,7 @@ struct ConversationalOnboardingView: View {
         
         // Phase 5: Fade out all cosmic effects
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
-            withAnimation(.easeInOut(duration: 0.8)) {
+            withAnimation(Animation.easeInOut(duration: 0.8)) {
                 sparkleOpacity = 0.0
                 cosmicParticlesOpacity = 0.0
                 starFieldOpacity = 0.0
@@ -855,15 +855,20 @@ struct InputSection: View {
     @Binding var currentInput: String
     let currentStep: ConversationStep
     let onSend: () -> Void
+    @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         HStack {
             TextField(currentStep.placeholder, text: $currentInput)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .focused($isTextFieldFocused)
                 .onSubmit {
                     onSend()
                 }
-            
+                .onTapGesture {
+                    isTextFieldFocused = true
+                }
+        
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
                     .foregroundColor(.accentGold)
@@ -872,6 +877,9 @@ struct InputSection: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
+        .onTapGesture {
+            isTextFieldFocused = true
+        }
     }
 }
 

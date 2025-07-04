@@ -36,6 +36,8 @@ struct ConversationalOnboardingView: View {
     @State private var starFieldOpacity: Double = 0
     @State private var cosmicGlowOpacity: Double = 0
     @State private var showOnboardingHoroscope = false
+    @State private var showZodiacAlert = false
+    @State private var zodiacAlertMessage = ""
 
     var onComplete: () -> Void = {}
     
@@ -347,6 +349,22 @@ struct ConversationalOnboardingView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill entire screen
             }
+            
+            if showZodiacAlert {
+                ZodiacAlertView(
+                    title: "Horoscope Generation Failed",
+                    message: zodiacAlertMessage,
+                    primaryButtonTitle: "Try Again",
+                    secondaryButtonTitle: "Cancel",
+                    primaryButtonAction: {
+                        showZodiacAlert = false
+                        Task { await generateWelcomeHoroscope() }
+                    },
+                    secondaryButtonAction: {
+                        showZodiacAlert = false
+                    }
+                )
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure full screen coverage
         .ignoresSafeArea(.all, edges: .all) // Ignore all safe areas
@@ -358,9 +376,14 @@ struct ConversationalOnboardingView: View {
                 userDataManager?.updateModelContext(modelContext)
             }
             
-            // Initialize StardustManager
+            // Initialize StardustManager with error handling
             if stardustManager == nil {
-                stardustManager = StardustManager(modelContext: modelContext)
+                do {
+                    stardustManager = StardustManager(modelContext: modelContext)
+                    print("✅ StardustManager initialized successfully")
+                } catch {
+                    print("❌ Error initializing StardustManager: \(error)")
+                }
             }
             
             startConversation()
@@ -727,6 +750,8 @@ struct ConversationalOnboardingView: View {
         if let stardustManager = stardustManager {
             stardustManager.earnOnboardingReward()
             print("🪙 Awarded onboarding stardust reward")
+        } else {
+            print("⚠️ StardustManager not available for onboarding reward")
         }
         
         print("✅ Onboarding data saved successfully to Core Data!")
@@ -764,6 +789,13 @@ struct ConversationalOnboardingView: View {
             
         } else if let error = onboardingAI.error {
             print("❌ ConversationalOnboardingView: Failed to generate horoscope: \(error)")
+            await MainActor.run {
+                zodiacAlertMessage = error
+                showZodiacAlert = true
+                isTyping = false
+                showInputField = true
+                showSecondaryElements = true
+            }
         } else {
             print("⚠️ ConversationalOnboardingView: Horoscope generation completed but no result received")
         }
@@ -798,6 +830,8 @@ struct ConversationalOnboardingView: View {
                 if let stardustManager = stardustManager {
                     stardustManager.earnHoroscopeGenerationReward()
                     print("🪙 Awarded horoscope generation stardust reward")
+                } else {
+                    print("⚠️ StardustManager not available for horoscope reward")
                 }
                 
                 // Post notification to update OnboardingHoroscopeView
@@ -835,6 +869,8 @@ struct ConversationalOnboardingView: View {
                 if let stardustManager = stardustManager {
                     stardustManager.earnHoroscopeGenerationReward()
                     print("🪙 Awarded horoscope generation stardust reward")
+                } else {
+                    print("⚠️ StardustManager not available for horoscope reward")
                 }
                 
                 // Post notification to update OnboardingHoroscopeView

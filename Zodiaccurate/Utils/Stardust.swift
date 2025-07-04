@@ -103,7 +103,9 @@ class StardustManager: ObservableObject {
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+        print("🪙 StardustManager: Initializing...")
         loadBalance()
+        print("🪙 StardustManager: Initialization complete")
     }
     
     // MARK: - Balance Management
@@ -115,6 +117,8 @@ class StardustManager: ObservableObject {
         let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
                     UserDefaults.standard.string(forKey: "onboardingUUID")
         
+        print("🪙 StardustManager: Using userId: \(userId ?? "nil")")
+        
         let descriptor = FetchDescriptor<StardustBalance>(
             predicate: #Predicate<StardustBalance> { balance in
                 balance.userId == userId
@@ -123,6 +127,8 @@ class StardustManager: ObservableObject {
         
         do {
             let results = try modelContext.fetch(descriptor)
+            print("🪙 StardustManager: Found \(results.count) balance records")
+            
             if let balance = results.first {
                 self.balanceModel = balance
                 self.currentBalance = balance.balance
@@ -131,6 +137,7 @@ class StardustManager: ObservableObject {
                 print("✅ StardustManager: Loaded balance - \(balance.balance) stardust")
             } else {
                 // Create new balance for user
+                print("🆕 StardustManager: Creating new balance for user")
                 let newBalance = StardustBalance(userId: userId, balance: 0)
                 modelContext.insert(newBalance)
                 self.balanceModel = newBalance
@@ -141,6 +148,10 @@ class StardustManager: ObservableObject {
             loadRecentTransactions()
         } catch {
             print("❌ StardustManager: Error loading balance: \(error)")
+            // Set default values on error
+            self.currentBalance = 0
+            self.totalEarned = 0
+            self.totalSpent = 0
         }
     }
     
@@ -179,36 +190,40 @@ class StardustManager: ObservableObject {
         
         print("🪙 StardustManager: Earning \(amount) stardust (\(type.displayName))")
         
-        let newBalance = currentBalance + amount
-        currentBalance = newBalance
-        totalEarned += amount
-        
-        // Update balance model
-        balanceModel?.balance = newBalance
-        balanceModel?.totalEarned = totalEarned
-        balanceModel?.lastUpdated = Date()
-        
-        // Create transaction record
-        let transaction = StardustTransaction(
-            userId: UserDefaults.standard.string(forKey: "currentUserId") ?? 
-                   UserDefaults.standard.string(forKey: "onboardingUUID"),
-            amount: amount,
-            type: type,
-            description: description,
-            balanceAfterTransaction: newBalance
-        )
-        
-        modelContext.insert(transaction)
-        
-        // Update recent transactions
-        recentTransactions.insert(transaction, at: 0)
-        if recentTransactions.count > 20 {
-            recentTransactions = Array(recentTransactions.prefix(20))
+        do {
+            let newBalance = currentBalance + amount
+            currentBalance = newBalance
+            totalEarned += amount
+            
+            // Update balance model
+            balanceModel?.balance = newBalance
+            balanceModel?.totalEarned = totalEarned
+            balanceModel?.lastUpdated = Date()
+            
+            // Create transaction record
+            let transaction = StardustTransaction(
+                userId: UserDefaults.standard.string(forKey: "currentUserId") ?? 
+                       UserDefaults.standard.string(forKey: "onboardingUUID"),
+                amount: amount,
+                type: type,
+                description: description,
+                balanceAfterTransaction: newBalance
+            )
+            
+            modelContext.insert(transaction)
+            
+            // Update recent transactions
+            recentTransactions.insert(transaction, at: 0)
+            if recentTransactions.count > 20 {
+                recentTransactions = Array(recentTransactions.prefix(20))
+            }
+            
+            saveContext()
+            
+            print("✅ StardustManager: Earned \(amount) stardust. New balance: \(newBalance)")
+        } catch {
+            print("❌ StardustManager: Error earning stardust: \(error)")
         }
-        
-        saveContext()
-        
-        print("✅ StardustManager: Earned \(amount) stardust. New balance: \(newBalance)")
     }
     
     /// Spend stardust

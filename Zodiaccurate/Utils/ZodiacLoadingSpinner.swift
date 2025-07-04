@@ -65,7 +65,6 @@ struct ZodiacLoadingSpinner: View {
                                height: size.orbitRadius * (0.8 + Double(index) * 0.3))
                         .scaleEffect(1.0 + 0.3 * sin(animationPhase * 1.5 + Double(index) * 0.5))
                         .opacity(0.95 - Double(index) * 0.2)
-                        .animation(.easeInOut(duration: 2 + Double(index) * 0.5).repeatForever(autoreverses: true), value: animationPhase)
                 }
                 
                 // Central glow effect
@@ -86,14 +85,12 @@ struct ZodiacLoadingSpinner: View {
                     )
                     .frame(width: size.orbitRadius * 1.2, height: size.orbitRadius * 1.2)
                     .scaleEffect(1.0 + 0.4 * sin(animationPhase * 2))
-                    .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animationPhase)
                 
                 // Inner core
                 Circle()
                     .fill(Color.purple.opacity(0.9))
                     .frame(width: size.orbitRadius * 0.6, height: size.orbitRadius * 0.6)
                     .scaleEffect(1.0 + 0.2 * sin(animationPhase * 3))
-                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: animationPhase)
             }
             
             // First orbiting ring (largest - fastest)

@@ -14,36 +14,85 @@ class OnboardingDataAccess: ObservableObject {
     
     @Published var isGeneratingHoroscope: Bool = false
     @Published var didGenerateHoroscope: Bool = false
+    @Published var dataRefreshTrigger: Bool = false
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        loadUserData()
+        // Don't automatically load data on init to prevent duplicate loading
+        // Data will be loaded when explicitly called by views
     }
     
     func updateModelContext(_ newContext: ModelContext) {
         self.modelContext = newContext
-        loadUserData()
+        // Don't automatically load data when updating context to prevent duplicate loading
+        // Data will be loaded when explicitly called by views
+    }
+    
+    // Refresh the context and reload data
+    func refreshAndLoadUserData() {
+        print("🔄 OnboardingDataAccess: Refreshing context and reloading data...")
+        
+        // Add a longer delay to ensure any pending saves have completed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.loadUserData()
+        }
     }
     
     // Load user data from SwiftData
     func loadUserData() {
         print("🔄 OnboardingDataAccess: Loading user data...")
         
-        // Try to load data for the current user ID first
+        // Try to load data for the current user ID first (Firebase UID)
         if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
+            print("🔄 OnboardingDataAccess: Found Firebase userId in UserDefaults: \(userId)")
             loadUserData(for: userId)
-        } else {
-            // During onboarding, user is anonymous - load the most recent data
-            let descriptor = FetchDescriptor<UserDataModel>(
-                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-            )
-            do {
-                let results = try modelContext.fetch(descriptor)
-                userData = results.first
-                print("🔄 OnboardingDataAccess: Loaded most recent user data (anonymous) - firstName: \(userData?.firstName ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
-            } catch {
-                print("❌ Error loading user data: \(error)")
+            return
+        }
+        
+        // Try to load data for onboarding UUID
+        if let onboardingUUID = UserDefaults.standard.string(forKey: "onboardingUUID") {
+            print("🔄 OnboardingDataAccess: Found onboarding UUID in UserDefaults: \(onboardingUUID)")
+            loadUserData(for: onboardingUUID)
+            return
+        }
+        
+        print("🔄 OnboardingDataAccess: No specific userId found, loading most recent data (anonymous)")
+        // During onboarding, user is anonymous - load the most recent data
+        let descriptor = FetchDescriptor<UserDataModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        do {
+            let results = try modelContext.fetch(descriptor)
+            
+            // Debug: Print all results to see what's in the database
+            print("🔍 OnboardingDataAccess: Found \(results.count) total user data records:")
+            for (index, result) in results.enumerated() {
+                print("   Record \(index): firstName=\(result.firstName), userId=\(result.userId ?? "nil"), horoscope=\(result.welcomeHoroscope?.prefix(30) ?? "nil")")
             }
+            
+            // Prioritize records with horoscopes when there are multiple records
+            if results.count > 1 {
+                // First, try to find a record with a horoscope
+                if let recordWithHoroscope = results.first(where: { $0.welcomeHoroscope != nil && !$0.welcomeHoroscope!.isEmpty }) {
+                    userData = recordWithHoroscope
+                    print("🔄 OnboardingDataAccess: Found record with horoscope - firstName: \(userData?.firstName ?? "nil"), userId: \(userData?.userId ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
+                } else {
+                    // Fall back to most recent record
+                    userData = results.first
+                    print("🔄 OnboardingDataAccess: No horoscope found, using most recent record - firstName: \(userData?.firstName ?? "nil"), userId: \(userData?.userId ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
+                }
+            } else {
+                // Only one record, use it
+                userData = results.first
+                print("🔄 OnboardingDataAccess: Single record found - firstName: \(userData?.firstName ?? "nil"), userId: \(userData?.userId ?? "nil"), horoscope: \(userData?.welcomeHoroscope?.prefix(50) ?? "nil")")
+            }
+            
+            // Trigger view refresh immediately
+            DispatchQueue.main.async {
+                self.dataRefreshTrigger.toggle()
+            }
+        } catch {
+            print("❌ Error loading user data: \(error)")
         }
     }
     

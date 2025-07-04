@@ -6,6 +6,7 @@ struct OnboardingHoroscopeView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @State private var onboardingDataAccess: OnboardingDataAccess?
     @State private var showWelcomeMessage = true
+    @State private var refreshTrigger = false
     
     var body: some View {
         GeometryReader { geo in
@@ -14,41 +15,25 @@ struct OnboardingHoroscopeView: View {
                 MainCelestialBackground()
                 
                 VStack(spacing: 0) {
-                    // Header with user info
-                    VStack(spacing: 16) {
-                        if let userData = onboardingDataAccess?.userData {
-                            VStack(spacing: 8) {
-                                Text("Welcome, \(userData.firstName)")
-                                    .font(.title2)
-                                    .font(.dmSansSemibold(size: 24))
-                                    .foregroundColor(.white)
-                                
-                                Text("Your Cosmic Journey Begins")
-                                    .font(.dmSansMedium(size: 20))
-                                    .foregroundColor(.white.opacity(0.8))
-                            }
-                        }
-                    }
-                    .padding(.top, 60)
-                    .padding(.horizontal)
-                    
+                    // Top padding for safe area
                     Spacer()
+                        .frame(height: 60)
                     
                     // Horoscope Content
-                    VStack(spacing: 20) {
+                    VStack(spacing: 0) {
                         if onboardingDataAccess?.isGeneratingHoroscope == true {
                             // Content is hidden when loading - overlay shows instead
                             Color.clear
-                                .frame(maxHeight: geo.size.height * 0.6)
+                                .frame(maxHeight: geo.size.height * 0.7)
                                 .frame(maxWidth: .infinity)
                         } else if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                            VStack(spacing: 16) {
+                            VStack(spacing: 20) {
                                 // Show welcome message for newly generated horoscope
                                 if showWelcomeMessage {
                                     VStack(spacing: 12) {
                                         Text("Welcome to Your Cosmic Journey!")
-                                            .font(.headline)
-                                            .fontWeight(.semibold)
+                                            .font(.title2)
+                                            .fontWeight(.bold)
                                             .foregroundColor(.white)
                                             .multilineTextAlignment(.center)
                                         
@@ -57,26 +42,34 @@ struct OnboardingHoroscopeView: View {
                                             .foregroundColor(.white.opacity(0.8))
                                             .multilineTextAlignment(.center)
                                     }
-                                    .padding(.bottom, 8)
+                                    .padding(.bottom, 16)
                                 }
                                 
+                                // Horoscope text with full screen utilization
                                 ScrollView {
                                     Text(horoscope)
                                         .font(.body)
-                                        .foregroundColor(.white.opacity(0.9))
-                                        .lineSpacing(6)
+                                        .foregroundColor(.white.opacity(0.95))
+                                        .lineSpacing(8)
                                         .multilineTextAlignment(.leading)
-                                        .padding(.bottom, 16)
+                                        .padding(.horizontal, 8)
+                                        .padding(.bottom, 20)
                                 }
-                                .frame(maxHeight: geo.size.height * 0.6)
+                                .frame(maxHeight: geo.size.height * 0.65)
                             }
-                            .padding()
-                            .background(Color.black.opacity(0.3))
-                            .cornerRadius(12)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 20)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.black.opacity(0.4))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                    )
+                            )
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.trailing)
+                    .padding(.horizontal, 20)
                     
                     Spacer()
                     
@@ -85,17 +78,26 @@ struct OnboardingHoroscopeView: View {
                         Button(action: {
                             navigateToMain()
                         }) {
-                            Text("Continue to App")
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.purple.opacity(0.8))
-                                .cornerRadius(12)
+                            HStack {
+                                Text("Continue to App")
+                                Image(systemName: "arrow.right")
+                            }
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.purple.opacity(0.8))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                    )
+                            )
                         }
-                        .padding(.horizontal)
-                        .padding(.bottom, 40)
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 50)
                     }
                 }
                 
@@ -113,6 +115,12 @@ struct OnboardingHoroscopeView: View {
             }
         }
         .navigationBarHidden(true)
+        .onChange(of: refreshTrigger) { _, _ in
+            // This will trigger a view refresh when refreshTrigger changes
+        }
+        .onChange(of: onboardingDataAccess?.dataRefreshTrigger) { _, _ in
+            // This will trigger a view refresh when data is refreshed
+        }
         .onAppear {
             print("OnboardingHoroscopeView appeared, setting up data access...")
             
@@ -123,6 +131,7 @@ struct OnboardingHoroscopeView: View {
                 onboardingDataAccess?.updateModelContext(modelContext)
             }
             
+            // Load user data and trigger refresh
             onboardingDataAccess?.loadUserData()
             
             // Check if horoscope is already generated
@@ -137,23 +146,38 @@ struct OnboardingHoroscopeView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("horoscopeGenerated"))) { _ in
-            // Reload data when horoscope is generated
-            print("🎉 OnboardingHoroscopeView: Horoscope generated notification received, reloading data...")
-            onboardingDataAccess?.loadUserData()
-            showWelcomeMessage = true
-            
-            // Check if horoscope is now available
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                    print("✅ OnboardingHoroscopeView: Horoscope loaded successfully, length: \(horoscope.count) characters")
-                } else {
-                    print("⚠️ OnboardingHoroscopeView: Horoscope still not available after reload")
+            // Only refresh if the horoscope is not already present
+            if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
+                print("🎉 OnboardingHoroscopeView: Horoscope generated notification received, reloading data...")
+                onboardingDataAccess?.refreshAndLoadUserData()
+                showWelcomeMessage = true
+
+                // Check if horoscope is now available with multiple retries
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
+                        print("✅ OnboardingHoroscopeView: Horoscope loaded successfully, length: \(horoscope.count) characters")
+                        refreshTrigger.toggle() // Trigger view refresh
+                    } else {
+                        print("⚠️ OnboardingHoroscopeView: Horoscope not available after first reload, trying again...")
+                        // Try again after a longer delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            onboardingDataAccess?.loadUserData()
+                            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
+                                print("✅ OnboardingHoroscopeView: Horoscope loaded successfully on second attempt, length: \(horoscope.count) characters")
+                                refreshTrigger.toggle() // Trigger view refresh
+                            } else {
+                                print("⚠️ OnboardingHoroscopeView: Horoscope still not available after second reload")
+                            }
+                        }
+                    }
                 }
-            }
-            
-            // Hide welcome message after 5 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                showWelcomeMessage = false
+
+                // Hide welcome message after 5 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    showWelcomeMessage = false
+                }
+            } else {
+                print("🎉 OnboardingHoroscopeView: Horoscope already present, skipping refresh.")
             }
         }
     }
@@ -161,6 +185,12 @@ struct OnboardingHoroscopeView: View {
     private func navigateToMain() {
         print("Navigating to MainView...")
         authManager.completeSignUp()
+    }
+    
+    private func forceRefresh() {
+        print("🔄 OnboardingHoroscopeView: Forcing refresh...")
+        onboardingDataAccess?.loadUserData()
+        refreshTrigger.toggle()
     }
 }
 

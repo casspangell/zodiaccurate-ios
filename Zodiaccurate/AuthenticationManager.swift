@@ -142,6 +142,38 @@ class AuthenticationManager: ObservableObject {
         print("🔄 updateCoreDataProfile called for userId: \(userId)")
         print("✅ Using provided model context for profile update")
         let userDataManager = UserDataManager(modelContext: modelContext)
+        
+        // Check if there's existing onboarding data with a temporary UUID
+        if let onboardingUUID = UserDefaults.standard.string(forKey: "onboardingUUID") {
+            print("🔄 Found onboarding UUID: \(onboardingUUID), updating existing data...")
+            
+            // Try to load existing user data with the onboarding UUID
+            if let existingUserData = userDataManager.loadUserData(for: onboardingUUID) {
+                print("✅ Found existing user data from onboarding, updating userId...")
+                
+                // Update the userId from onboarding UUID to Firebase UID
+                existingUserData.userId = userId
+                
+                do {
+                    try modelContext.save()
+                    print("✅ Successfully updated userId from \(onboardingUUID) to \(userId)")
+                    
+                    // Clear the onboarding UUID since we've migrated to Firebase UID
+                    UserDefaults.standard.removeObject(forKey: "onboardingUUID")
+                    print("🗑️ Cleared onboarding UUID from UserDefaults")
+                    
+                    return
+                } catch {
+                    print("❌ Error updating userId in Core Data: \(error)")
+                }
+            } else {
+                print("⚠️ No existing user data found for onboarding UUID: \(onboardingUUID)")
+            }
+        }
+        
+        // Fallback: Create new user data if no onboarding data exists
+        print("🔄 Creating new user data with Firebase UID...")
+        
         // Gather profile data from UserDefaults
         let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
         let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
@@ -245,7 +277,7 @@ class AuthenticationManager: ObservableObject {
     
     /// Generate welcome horoscope after successful registration
     private func generateWelcomeHoroscope(modelContext: ModelContext) async {
-        print("✨ Generating welcome horoscope after registration...")
+        print("✨ AuthenticationManager: Checking if horoscope generation is needed...")
         
         // Check if we have onboarding data
         guard OnboardingDataAccess.hasCompletedOnboarding else {
@@ -253,16 +285,41 @@ class AuthenticationManager: ObservableObject {
             return
         }
         
-        // Check if welcome horoscope already exists in Core Data
-        if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
-            let userDataManager = UserDataManager(modelContext: modelContext)
-            if let userDataModel = userDataManager.loadUserData(for: userId),
-               let existingHoroscope = userDataModel.welcomeHoroscope,
+        // Check if welcome horoscope already exists in Core Data (for any user, not just current user)
+        let userDataManager = UserDataManager(modelContext: modelContext)
+        let descriptor = FetchDescriptor<UserDataModel>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        
+        do {
+            let results = try modelContext.fetch(descriptor)
+            if let existingUserData = results.first,
+               let existingHoroscope = existingUserData.welcomeHoroscope,
                !existingHoroscope.isEmpty {
-                print("✅ Welcome horoscope already exists in Core Data, skipping generation")
+                print("✅ Welcome horoscope already exists in Core Data from onboarding, skipping generation")
+                
+                // Update the existing user data with the current userId if needed
+                if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
+                    existingUserData.userId = userId
+                    try modelContext.save()
+                    print("✅ Updated existing user data with userId: \(userId)")
+                }
+                
+                // Post notification to update UI
+                DispatchQueue.main.async {
+                    print("🔄 Posting horoscopeGenerated notification for existing horoscope...")
+                    self.onboardingDataAccess?.loadUserData()
+                    NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
+                    print("✅ horoscopeGenerated notification posted successfully")
+                }
                 return
             }
+        } catch {
+            print("❌ Error checking for existing horoscope: \(error)")
         }
+        
+        // Only generate horoscope if none exists
+        print("🔄 No existing horoscope found, generating new one...")
         
         // Load user data from Core Data for horoscope generation
         if let userId = UserDefaults.standard.string(forKey: "currentUserId") {

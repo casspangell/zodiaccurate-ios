@@ -65,8 +65,22 @@ class OnboardingAI: ObservableObject {
     private let firebaseDatabaseService = FirebaseDatabaseService()
     
     init() {
+        print("🔍 [OnboardingAI] ===== INITIALIZATION DEBUG =====")
+        print("🔍 [OnboardingAI] APIConfig.isAPIKeyConfigured: \(APIConfig.isAPIKeyConfigured)")
+        print("🔍 [OnboardingAI] APIConfig.openAIAPIKey length: \(APIConfig.openAIAPIKey.count)")
+        print("🔍 [OnboardingAI] APIConfig.openAIAPIKey prefix: \(APIConfig.openAIAPIKey.prefix(10))...")
+        print("🔍 [OnboardingAI] APIConfig.openAIBaseURL: \(APIConfig.openAIBaseURL)")
+        print("🔍 [OnboardingAI] APIConfig.defaultModel: \(APIConfig.defaultModel)")
+        print("🔍 [OnboardingAI] APIConfig.defaultTemperature: \(APIConfig.defaultTemperature)")
+        print("🔍 [OnboardingAI] APIConfig.maxTokens: \(APIConfig.maxTokens)")
+        
         self.apiKey = APIConfig.openAIAPIKey
         self.baseURL = APIConfig.openAIBaseURL
+        
+        print("🔍 [OnboardingAI] Instance variables set:")
+        print("   - apiKey length: \(self.apiKey.count)")
+        print("   - baseURL: \(self.baseURL)")
+        print("🔍 [OnboardingAI] ===== INITIALIZATION DEBUG END =====")
     }
     
     // MARK: - Public Methods
@@ -108,31 +122,38 @@ class OnboardingAI: ObservableObject {
     /// Generate a welcome horoscope with provided user data (for Core Data integration)
     func generateWelcomeHoroscope(firstName: String, birthDate: String, birthTime: String, zodiacSign: String, responses: [(String, String, String)]) async {
         print("[OnboardingAI] generateWelcomeHoroscope() called with provided data")
-        guard APIConfig.isAPIKeyConfigured else {
-            print("[OnboardingAI] API key not configured: \(APIConfig.apiKeyNotConfiguredMessage)")
-            error = APIConfig.apiKeyNotConfiguredMessage
-            return
-        }
+        
+        // Test network connectivity first
+        await testNetworkConnectivity()
         
         isLoading = true
         error = nil
         
-        do {
-            let userData = createUserDataDict(firstName: firstName, birthDate: birthDate, birthTime: birthTime, zodiacSign: zodiacSign, responses: responses)
-            let prompt = createWelcomePrompt(with: userData)
-            let horoscope = try await callChatGPTAPI(prompt: prompt)
-            
-            generatedHoroscope = horoscope
-            print("✨ Generated welcome horoscope: \(horoscope)")
-            
-            // Track horoscope generation in Firebase
-            await trackHoroscopeGeneration(type: "welcome", success: true)
-            
-            self.onHoroscopeGenerated?()
-            
-        } catch {
-            self.error = error.localizedDescription
-            print("❌ Error generating horoscope: \(error)")
+        // Only generate horoscope via API - no fallback
+        if APIConfig.isAPIKeyConfigured {
+            do {
+                let userData = createUserDataDict(firstName: firstName, birthDate: birthDate, birthTime: birthTime, zodiacSign: zodiacSign, responses: responses)
+                let prompt = createWelcomePrompt(with: userData)
+                let horoscope = try await callChatGPTAPI(prompt: prompt)
+                
+                generatedHoroscope = horoscope
+                print("✨ Generated welcome horoscope via API: \(horoscope)")
+                
+                // Track horoscope generation in Firebase
+                await trackHoroscopeGeneration(type: "welcome", success: true)
+                
+                self.onHoroscopeGenerated?()
+                
+            } catch {
+                self.error = "Unable to generate horoscope. Please check your internet connection and try again."
+                print("❌ API Error generating horoscope: \(error)")
+                
+                // Track failed horoscope generation
+                await trackHoroscopeGeneration(type: "welcome", success: false)
+            }
+        } else {
+            self.error = APIConfig.apiKeyNotConfiguredMessage
+            print("[OnboardingAI] API key not configured: \(APIConfig.apiKeyNotConfiguredMessage)")
             
             // Track failed horoscope generation
             await trackHoroscopeGeneration(type: "welcome", success: false)
@@ -296,7 +317,16 @@ class OnboardingAI: ObservableObject {
     }
     
     private func callChatGPTAPI(prompt: String) async throws -> String {
-        print("[OnboardingAI] callChatGPTAPI() called with prompt:\n\(prompt)")
+        print("🔍 [OnboardingAI] ===== API CALL DEBUG START =====")
+        print("🔍 [OnboardingAI] callChatGPTAPI() called with prompt length: \(prompt.count) characters")
+        print("🔍 [OnboardingAI] API Key configured: \(!apiKey.isEmpty ? "YES" : "NO")")
+        print("🔍 [OnboardingAI] API Key length: \(apiKey.count) characters")
+        print("🔍 [OnboardingAI] API Key prefix: \(apiKey.prefix(10))...")
+        print("🔍 [OnboardingAI] Base URL: \(baseURL)")
+        print("🔍 [OnboardingAI] Model: \(APIConfig.defaultModel)")
+        print("🔍 [OnboardingAI] Temperature: \(APIConfig.defaultTemperature)")
+        print("🔍 [OnboardingAI] Max Tokens: \(APIConfig.maxTokens)")
+        
         let requestBody = OpenAIChatGPTRequest(
             model: APIConfig.defaultModel,
             messages: [
@@ -308,51 +338,261 @@ class OnboardingAI: ObservableObject {
         )
         
         guard let url = URL(string: baseURL) else {
-            print("[OnboardingAI] Invalid API URL: \(baseURL)")
+            print("❌ [OnboardingAI] Invalid API URL: \(baseURL)")
             throw OnboardingAIError.invalidURL
         }
+        
+        print("🔍 [OnboardingAI] URL created successfully: \(url)")
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30.0 // 30 second timeout
+        
+        print("🔍 [OnboardingAI] Request headers set:")
+        print("   - Authorization: Bearer \(apiKey.prefix(10))...")
+        print("   - Content-Type: application/json")
+        print("   - Timeout: 30.0 seconds")
         
         do {
             let encoded = try JSONEncoder().encode(requestBody)
             request.httpBody = encoded
-            print("[OnboardingAI] Encoded request body: \n\(String(data: encoded, encoding: .utf8) ?? "<encoding failed>")")
+            print("🔍 [OnboardingAI] Request body encoded successfully, size: \(encoded.count) bytes")
+            print("🔍 [OnboardingAI] Request body preview: \(String(data: encoded, encoding: .utf8)?.prefix(200) ?? "<encoding failed>")...")
         } catch {
-            print("[OnboardingAI] Encoding error: \(error)")
+            print("❌ [OnboardingAI] Encoding error: \(error)")
             throw OnboardingAIError.encodingError(error)
         }
         
-        let (data, response) = try await URLSession.shared.data(for: request)
-        print("[OnboardingAI] Received response: \(response)")
-        print("[OnboardingAI] Raw response data: \n\(String(data: data, encoding: .utf8) ?? "<decoding failed>")")
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            print("[OnboardingAI] Invalid HTTP response")
-            throw OnboardingAIError.invalidResponse
+        // Try with retry logic
+        for attempt in 1...3 {
+            do {
+                print("🔍 [OnboardingAI] ===== API ATTEMPT \(attempt)/3 =====")
+                print("🔍 [OnboardingAI] Starting network request to: \(url)")
+                print("🔍 [OnboardingAI] Request method: \(request.httpMethod ?? "Unknown")")
+                print("🔍 [OnboardingAI] Request body size: \(request.httpBody?.count ?? 0) bytes")
+                
+                let startTime = Date()
+                let (data, response) = try await URLSession.shared.data(for: request)
+                let endTime = Date()
+                let duration = endTime.timeIntervalSince(startTime)
+                
+                print("✅ [OnboardingAI] Network request completed successfully!")
+                print("🔍 [OnboardingAI] Request duration: \(String(format: "%.2f", duration)) seconds")
+                print("🔍 [OnboardingAI] Response received: \(response)")
+                print("🔍 [OnboardingAI] Response data size: \(data.count) bytes")
+                
+                // Log response headers if available
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("🔍 [OnboardingAI] HTTP Status Code: \(httpResponse.statusCode)")
+                    print("🔍 [OnboardingAI] Response Headers:")
+                    for (key, value) in httpResponse.allHeaderFields {
+                        print("   - \(key): \(value)")
+                    }
+                }
+                
+                print("🔍 [OnboardingAI] Raw response data preview: \(String(data: data, encoding: .utf8)?.prefix(500) ?? "<decoding failed>")...")
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    print("❌ [OnboardingAI] Invalid HTTP response type")
+                    throw OnboardingAIError.invalidResponse
+                }
+                
+                guard httpResponse.statusCode == 200 else {
+                    let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+                    print("❌ [OnboardingAI] API error: HTTP \(httpResponse.statusCode): \(errorMessage)")
+                    throw OnboardingAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
+                }
+                
+                do {
+                    let chatGPTResponse = try JSONDecoder().decode(OpenAIChatGPTResponse.self, from: data)
+                    print("✅ [OnboardingAI] Successfully decoded API response")
+                    print("🔍 [OnboardingAI] Response has \(chatGPTResponse.choices.count) choices")
+                    
+                    guard let firstChoice = chatGPTResponse.choices.first else {
+                        print("❌ [OnboardingAI] No choices in API response")
+                        throw OnboardingAIError.noResponse
+                    }
+                    
+                    let horoscopeContent = firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
+                    print("✅ [OnboardingAI] Horoscope content length: \(horoscopeContent.count) characters")
+                    print("🔍 [OnboardingAI] Horoscope preview: \(horoscopeContent.prefix(100))...")
+                    print("🔍 [OnboardingAI] ===== API CALL DEBUG END =====")
+                    
+                    return horoscopeContent
+                } catch {
+                    print("❌ [OnboardingAI] Decoding error: \(error)")
+                    print("🔍 [OnboardingAI] Raw data that failed to decode: \(String(data: data, encoding: .utf8) ?? "<unable to decode>")")
+                    throw OnboardingAIError.decodingError(error)
+                }
+            } catch {
+                print("❌ [OnboardingAI] ===== API ATTEMPT \(attempt) FAILED =====")
+                print("❌ [OnboardingAI] Error type: \(type(of: error))")
+                print("❌ [OnboardingAI] Error description: \(error.localizedDescription)")
+                
+                // Detailed error analysis
+                if let urlError = error as? URLError {
+                    print("🔍 [OnboardingAI] URL Error Details:")
+                    print("   - Code: \(urlError.code.rawValue)")
+                    print("   - Description: \(urlError.localizedDescription)")
+                    print("   - Failure URL: \(urlError.failingURL?.absoluteString ?? "Unknown")")
+                    
+                    // Common URL error codes
+                    switch urlError.code {
+                    case .notConnectedToInternet:
+                        print("🔍 [OnboardingAI] Issue: No internet connection")
+                    case .networkConnectionLost:
+                        print("🔍 [OnboardingAI] Issue: Network connection was lost")
+                    case .timedOut:
+                        print("🔍 [OnboardingAI] Issue: Request timed out")
+                    case .cannotFindHost:
+                        print("🔍 [OnboardingAI] Issue: Cannot find host")
+                    case .cannotConnectToHost:
+                        print("🔍 [OnboardingAI] Issue: Cannot connect to host")
+                    case .dnsLookupFailed:
+                        print("🔍 [OnboardingAI] Issue: DNS lookup failed")
+                    default:
+                        print("🔍 [OnboardingAI] Issue: Other network error")
+                    }
+                }
+                
+                if attempt < 3 {
+                    // Wait before retrying (exponential backoff)
+                    let delay = Double(attempt) * 2.0
+                    print("⏳ [OnboardingAI] Waiting \(delay) seconds before retry...")
+                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                } else {
+                    // All attempts failed
+                    print("💥 [OnboardingAI] All API attempts failed - giving up")
+                    print("🔍 [OnboardingAI] ===== API CALL DEBUG END =====")
+                    throw error
+                }
+            }
         }
         
-        guard httpResponse.statusCode == 200 else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            print("[OnboardingAI] API error: HTTP \(httpResponse.statusCode): \(errorMessage)")
-            throw OnboardingAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
+        // This should never be reached, but Swift requires it for compilation
+        throw OnboardingAIError.apiError("All retry attempts failed")
+    }
+    
+    // MARK: - Network Connectivity Test
+    
+    /// Test basic network connectivity to OpenAI API
+    private func testNetworkConnectivity() async {
+        print("🔍 [OnboardingAI] ===== NETWORK CONNECTIVITY TEST =====")
+        
+        guard let url = URL(string: "https://api.openai.com/v1/models") else {
+            print("❌ [OnboardingAI] Invalid test URL")
+            return
         }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 30.0 // Increased timeout for simulator
         
         do {
-            let chatGPTResponse = try JSONDecoder().decode(OpenAIChatGPTResponse.self, from: data)
-            print("[OnboardingAI] Decoded API response: \(chatGPTResponse)")
-            guard let firstChoice = chatGPTResponse.choices.first else {
-                print("[OnboardingAI] No choices in API response")
-                throw OnboardingAIError.noResponse
-            }
+            print("🔍 [OnboardingAI] Testing basic connectivity to OpenAI API...")
+            let (_, response) = try await URLSession.shared.data(for: request)
             
-            return firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let httpResponse = response as? HTTPURLResponse {
+                print("✅ [OnboardingAI] Network connectivity test successful!")
+                print("🔍 [OnboardingAI] HTTP Status: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode == 401 {
+                    print("❌ [OnboardingAI] API Key authentication failed - check your API key")
+                } else if httpResponse.statusCode == 200 {
+                    print("✅ [OnboardingAI] API Key is valid and working")
+                } else {
+                    print("⚠️ [OnboardingAI] Unexpected status code: \(httpResponse.statusCode)")
+                }
+            }
         } catch {
-            print("[OnboardingAI] Decoding error: \(error)")
-            throw OnboardingAIError.decodingError(error)
+            print("❌ [OnboardingAI] Network connectivity test failed: \(error)")
+            if let urlError = error as? URLError {
+                print("🔍 [OnboardingAI] URL Error Code: \(urlError.code.rawValue)")
+                print("🔍 [OnboardingAI] URL Error Description: \(urlError.localizedDescription)")
+            }
+        }
+        
+        print("🔍 [OnboardingAI] ===== NETWORK TEST END =====")
+    }
+    
+    // MARK: - Fallback Horoscope Generation
+    
+    /// Generate a fallback horoscope when API is unavailable
+    private func generateFallbackHoroscope(firstName: String, zodiacSign: String, responses: [(String, String, String)]) -> String {
+        let intuition = responses.first { $0.1 == "intuition" }?.2 ?? ""
+        let energy = responses.first { $0.1 == "energy" }?.2 ?? ""
+        let dreams = responses.first { $0.1 == "dreams" }?.2 ?? ""
+        
+        let zodiacTraits = getZodiacTraits(for: zodiacSign)
+        let cosmicEnergy = getCosmicEnergy(from: energy)
+        let intuitiveInsight = getIntuitiveInsight(from: intuition)
+        let dreamGuidance = getDreamGuidance(from: dreams)
+        
+        return """
+        ✨ Welcome to your cosmic journey, \(firstName)! ✨
+
+        As a \(zodiacSign), you carry the unique energy of \(zodiacTraits). The stars have aligned to bring you here, and I can sense the powerful cosmic connection that drew you to Zodiaccurate.
+
+        \(intuitiveInsight)
+
+        \(cosmicEnergy)
+
+        \(dreamGuidance)
+
+        Your cosmic signature is extraordinary, \(firstName). The universe has been trying to communicate with you, and now you're ready to receive its messages. Your journey with Zodiaccurate will unlock daily insights that will guide you through life's cosmic currents.
+
+        The stars are speaking to you, \(firstName). Are you ready to listen? 🌟
+        """
+    }
+    
+    private func getZodiacTraits(for sign: String) -> String {
+        switch sign.lowercased() {
+        case "aries": return "the bold pioneer, ruled by Mars"
+        case "taurus": return "the grounded earth sign, ruled by Venus"
+        case "gemini": return "the curious communicator, ruled by Mercury"
+        case "cancer": return "the intuitive nurturer, ruled by the Moon"
+        case "leo": return "the radiant leader, ruled by the Sun"
+        case "virgo": return "the analytical perfectionist, ruled by Mercury"
+        case "libra": return "the harmonious diplomat, ruled by Venus"
+        case "scorpio": return "the mysterious transformer, ruled by Pluto"
+        case "sagittarius": return "the adventurous philosopher, ruled by Jupiter"
+        case "capricorn": return "the ambitious achiever, ruled by Saturn"
+        case "aquarius": return "the innovative visionary, ruled by Uranus"
+        case "pisces": return "the mystical dreamer, ruled by Neptune"
+        default: return "a unique cosmic being"
+        }
+    }
+    
+    private func getCosmicEnergy(from energy: String) -> String {
+        if energy.lowercased().contains("absorb") || energy.lowercased().contains("empath") {
+            return "I can see you're an energy absorber - you naturally take in the emotions and vibes around you. This is a powerful gift. Your sensitivity allows you to navigate the unseen currents of energy that flow through our world."
+        } else if energy.lowercased().contains("drawn") || energy.lowercased().contains("magnetic") {
+            return "Your magnetic energy draws people to you like moths to a flame. You have a natural charisma that lights up any room you enter. This is the universe's way of saying you're meant to lead and inspire others."
+        } else {
+            return "Your energy signature is beautifully balanced - you have the rare ability to both give and receive cosmic energy in perfect harmony. This makes you a natural bridge between different worlds and perspectives."
+        }
+    }
+    
+    private func getIntuitiveInsight(from intuition: String) -> String {
+        if intuition.lowercased().contains("gut") || intuition.lowercased().contains("feeling") {
+            return "Your intuitive gifts are extraordinary. Those 'gut feelings' you experience are actually messages from the universe, guiding you toward your highest path. Trust these cosmic whispers - they're your inner compass."
+        } else if intuition.lowercased().contains("dream") || intuition.lowercased().contains("vision") {
+            return "Your intuitive abilities manifest through dreams and visions. The universe speaks to you in the language of symbols and metaphors. Pay attention to these nocturnal messages - they hold the keys to your destiny."
+        } else {
+            return "Your intuition is a powerful cosmic tool that's been developing throughout your life. Even if you don't always recognize it, you're receiving guidance from the stars every day."
+        }
+    }
+    
+    private func getDreamGuidance(from dreams: String) -> String {
+        if dreams.lowercased().contains("future") || dreams.lowercased().contains("prophetic") {
+            return "Your dreams are not just random thoughts - they're glimpses into possible futures and cosmic guidance. The universe is showing you the paths that lie ahead, helping you make choices that align with your soul's purpose."
+        } else if dreams.lowercased().contains("symbol") || dreams.lowercased().contains("meaning") {
+            return "The symbols in your dreams are the universe's way of communicating with you. Each image, color, and scenario carries deep meaning about your journey and the guidance you need right now."
+        } else {
+            return "Your dreams are a sacred space where the universe can speak directly to your soul. They hold wisdom about your past, present, and future - all waiting to be discovered."
         }
     }
     

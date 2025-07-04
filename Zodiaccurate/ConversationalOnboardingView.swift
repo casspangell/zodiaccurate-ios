@@ -703,18 +703,32 @@ struct ConversationalOnboardingView: View {
         print("💾 Saving onboarding data to Core Data...")
         print("👤 User data: \(userData)")
         
-        // Save the user data to Core Data only
-        userDataManager?.saveUserData(userData)
+        // Generate a temporary UUID for onboarding
+        let onboardingUUID = UUID().uuidString
+        print("🆔 Generated onboarding UUID: \(onboardingUUID)")
+        
+        // Store the onboarding UUID for later use
+        UserDefaults.standard.set(onboardingUUID, forKey: "onboardingUUID")
+        
+        // Save the user data to Core Data with the temporary UUID
+        userDataManager?.saveUserData(userData, userId: onboardingUUID)
         
         // Save completion flag to UserDefaults
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         
         print("✅ Onboarding data saved successfully to Core Data!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
+        print("🆔 Onboarding UUID stored: \(onboardingUUID)")
     }
     
     private func generateWelcomeHoroscope() async {
-        print("✨ Starting welcome horoscope generation...")
+        print("✨ ConversationalOnboardingView: Starting welcome horoscope generation...")
+        print("📊 User data for horoscope generation:")
+        print("   - First Name: \(userData.firstName)")
+        print("   - Birth Date: \(userData.birthDate)")
+        print("   - Birth Time: \(userData.birthTime)")
+        print("   - Zodiac Sign: \(userData.zodiacSign)")
+        print("   - Responses count: \(userData.responses.count)")
         
         let onboardingAI = OnboardingAI()
         await onboardingAI.generateWelcomeHoroscope(
@@ -726,7 +740,7 @@ struct ConversationalOnboardingView: View {
         )
         
         if let horoscope = onboardingAI.generatedHoroscope {
-            print("🎉 Welcome Horoscope Generated Successfully!")
+            print("🎉 ConversationalOnboardingView: Welcome Horoscope Generated Successfully!")
             print("📜 Horoscope Content:")
             print(String(repeating: "=", count: 50))
             print(horoscope)
@@ -736,9 +750,9 @@ struct ConversationalOnboardingView: View {
             await saveHoroscopeToCoreData(horoscope)
             
         } else if let error = onboardingAI.error {
-            print("❌ Failed to generate horoscope: \(error)")
+            print("❌ ConversationalOnboardingView: Failed to generate horoscope: \(error)")
         } else {
-            print("⚠️ Horoscope generation completed but no result received")
+            print("⚠️ ConversationalOnboardingView: Horoscope generation completed but no result received")
         }
     }
     
@@ -750,9 +764,14 @@ struct ConversationalOnboardingView: View {
             userDataManager = UserDataManager(modelContext: modelContext)
         }
         
+        // Get the onboarding UUID if it exists
+        let onboardingUUID = UserDefaults.standard.string(forKey: "onboardingUUID")
+        print("🆔 Using onboarding UUID for horoscope save: \(onboardingUUID ?? "nil")")
+        
         // Load the existing user data from Core Data
-        if let existingUserData = userDataManager?.loadUserData() {
+        if let existingUserData = userDataManager?.loadUserData(for: onboardingUUID) {
             print("📝 Updating existing user data with horoscope...")
+            print("🔍 Before update - firstName: \(existingUserData.firstName), horoscope: \(existingUserData.welcomeHoroscope?.prefix(30) ?? "nil")")
             existingUserData.welcomeHoroscope = horoscope
             existingUserData.updatedAt = Date()
             
@@ -760,6 +779,7 @@ struct ConversationalOnboardingView: View {
                 try modelContext.save()
                 print("✅ Horoscope saved to Core Data successfully!")
                 print("🌟 Horoscope length: \(horoscope.count) characters")
+                print("🔍 After save - firstName: \(existingUserData.firstName), horoscope: \(existingUserData.welcomeHoroscope?.prefix(30) ?? "nil")")
                 
                 // Post notification to update OnboardingHoroscopeView
                 await MainActor.run {
@@ -781,7 +801,7 @@ struct ConversationalOnboardingView: View {
                 birthTime: userData.birthTime,
                 zodiacSign: userData.zodiacSign,
                 responses: responses,
-                userId: nil,
+                userId: onboardingUUID,
                 welcomeHoroscope: horoscope
             )
             
@@ -790,6 +810,7 @@ struct ConversationalOnboardingView: View {
             do {
                 try modelContext.save()
                 print("✅ New user data with horoscope saved to Core Data successfully!")
+                print("🔍 New record - firstName: \(userDataModel.firstName), horoscope: \(userDataModel.welcomeHoroscope?.prefix(30) ?? "nil")")
                 
                 // Post notification to update OnboardingHoroscopeView
                 await MainActor.run {

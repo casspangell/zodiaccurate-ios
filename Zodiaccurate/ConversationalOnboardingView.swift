@@ -760,6 +760,13 @@ struct ConversationalOnboardingView: View {
                 try modelContext.save()
                 print("✅ Horoscope saved to Core Data successfully!")
                 print("🌟 Horoscope length: \(horoscope.count) characters")
+                
+                // Post notification to update OnboardingHoroscopeView
+                await MainActor.run {
+                    print("📢 ConversationalOnboardingView: Posting horoscopeGenerated notification...")
+                    NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
+                    print("✅ ConversationalOnboardingView: horoscopeGenerated notification posted successfully")
+                }
             } catch {
                 print("❌ Error saving horoscope to Core Data: \(error)")
             }
@@ -783,6 +790,13 @@ struct ConversationalOnboardingView: View {
             do {
                 try modelContext.save()
                 print("✅ New user data with horoscope saved to Core Data successfully!")
+                
+                // Post notification to update OnboardingHoroscopeView
+                await MainActor.run {
+                    print("📢 ConversationalOnboardingView: Posting horoscopeGenerated notification...")
+                    NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
+                    print("✅ ConversationalOnboardingView: horoscopeGenerated notification posted successfully")
+                }
             } catch {
                 print("❌ Error saving new user data with horoscope to Core Data: \(error)")
             }

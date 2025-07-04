@@ -2,11 +2,6 @@ import SwiftUI
 import FirebaseAuth
 import SwiftData
 
-// MARK: - Notification Names
-extension Notification.Name {
-    static let horoscopeGenerated = Notification.Name("horoscopeGenerated")
-}
-
 @MainActor
 class AuthenticationManager: ObservableObject {
     @Published var user: User?
@@ -18,15 +13,24 @@ class AuthenticationManager: ObservableObject {
     
     private let auth = Auth.auth()
     private var onboardingDataAccess: OnboardingDataAccess?
+    private var authStateListener: AuthStateDidChangeListenerHandle?
     
     init() {
         // Listen for authentication state changes
-        auth.addStateDidChangeListener { [weak self] _, user in
+        authStateListener = auth.addStateDidChangeListener { [weak self] _, user in
             DispatchQueue.main.async {
                 self?.user = user
                 self?.isAuthenticated = user != nil
                 print("🔄 AuthenticationManager: Auth state changed - isAuthenticated: \(user != nil)")
             }
+        }
+    }
+    
+    deinit {
+        // Remove the auth state listener when the manager is deallocated
+        if let listener = authStateListener {
+            auth.removeStateDidChangeListener(listener)
+            print("🔄 AuthenticationManager: Auth state listener removed")
         }
     }
     
@@ -285,7 +289,7 @@ class AuthenticationManager: ObservableObject {
                             print("🔄 Posting horoscopeGenerated notification...")
                             self.onboardingDataAccess?.loadUserData()
                             // Post notification to refresh MainView UI
-                            NotificationCenter.default.post(name: .horoscopeGenerated, object: nil)
+                            NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
                             print("✅ horoscopeGenerated notification posted successfully")
                         }
                     } catch {

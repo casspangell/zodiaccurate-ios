@@ -136,11 +136,20 @@ struct OnboardingHoroscopeView: View {
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .horoscopeGenerated)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("horoscopeGenerated"))) { _ in
             // Reload data when horoscope is generated
-            print("Horoscope generated notification received, reloading data...")
+            print("🎉 OnboardingHoroscopeView: Horoscope generated notification received, reloading data...")
             onboardingDataAccess?.loadUserData()
             showWelcomeMessage = true
+            
+            // Check if horoscope is now available
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
+                    print("✅ OnboardingHoroscopeView: Horoscope loaded successfully, length: \(horoscope.count) characters")
+                } else {
+                    print("⚠️ OnboardingHoroscopeView: Horoscope still not available after reload")
+                }
+            }
             
             // Hide welcome message after 5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {

@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Combine
 import Speech
+import AVFoundation
 
 struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
@@ -44,6 +45,7 @@ struct ConversationalOnboardingView: View {
     @StateObject private var tutorialManager = TutorialManager()
     @State private var isRecording = false
     @FocusState private var isTextFieldFocused: Bool
+    @State private var showMicrophoneAlert = false
 
     var onComplete: () -> Void = {}
     
@@ -344,14 +346,10 @@ struct ConversationalOnboardingView: View {
                 userDataManager?.updateModelContext(modelContext)
             }
             
-            // Initialize StardustManager with error handling
+            // Initialize StardustManager (no do-catch needed)
             if stardustManager == nil {
-                do {
-                    stardustManager = StardustManager(modelContext: modelContext)
-                    print("✅ StardustManager initialized successfully")
-                } catch {
-                    print("❌ Error initializing StardustManager: \(error)")
-                }
+                stardustManager = StardustManager(modelContext: modelContext)
+                print("✅ StardustManager initialized successfully")
             }
             
             startConversation()
@@ -362,6 +360,16 @@ struct ConversationalOnboardingView: View {
         .animation(Animation.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
         .onReceive(Publishers.keyboardHeight) { keyboardHeight in
             self.keyboardHeight = keyboardHeight
+        }
+        .alert("Microphone Access Needed", isPresented: $showMicrophoneAlert) {
+            Button("Open Settings") {
+                if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(appSettings)
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Microphone access is required to use voice input. Please enable microphone access in Settings.")
         }
     }
     
@@ -529,7 +537,47 @@ struct ConversationalOnboardingView: View {
         if isRecording {
             stopSpeechRecognition()
         } else {
-            startSpeechRecognition()
+            checkMicrophoneAndSpeechPermissions()
+        }
+    }
+    
+    private func checkMicrophoneAndSpeechPermissions() {
+        if #available(iOS 17.0, *) {
+            AVAudioApplication.requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    handleMicrophonePermissionResult(granted: granted)
+                }
+            }
+        } else {
+            AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                DispatchQueue.main.async {
+                    handleMicrophonePermissionResult(granted: granted)
+                }
+            }
+        }
+    }
+
+    private func handleMicrophonePermissionResult(granted: Bool) {
+        if granted {
+            SFSpeechRecognizer.requestAuthorization { status in
+                DispatchQueue.main.async {
+                    switch status {
+                    case .authorized:
+                        self.isRecording = true
+                        self.tutorialManager.microphonePulse = true
+                        self.startRecording()
+                    case .denied, .restricted:
+                        self.showMicrophoneAlert = true
+                    case .notDetermined:
+                        // Permission dialog will be shown automatically
+                        break
+                    @unknown default:
+                        break
+                    }
+                }
+            }
+        } else {
+            self.showMicrophoneAlert = true
         }
     }
     
@@ -985,7 +1033,10 @@ struct InputSection: View {
                 isFocused: isTextFieldFocused,
                 onSubmit: onSend,
                 onTap: { isTextFieldFocused.wrappedValue = true },
-                onSpeech: onSpeechStart,
+                onSpeech: {
+                    isTextFieldFocused.wrappedValue = false // Dismiss keyboard
+                    onSpeechStart()
+                },
                 isRecording: isRecording,
                 showTutorial: showTutorial,
                 microphonePulse: microphonePulse

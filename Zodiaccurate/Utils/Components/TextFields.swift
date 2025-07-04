@@ -361,10 +361,24 @@ struct TTSInputTextField: View {
             TextField(placeholder, text: $text)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .focused(isFocused)
-                .onSubmit { onSubmit() }
-                .onTapGesture { onTap() }
+                .onSubmit { 
+                    print("🔵 DEBUG: TextField onSubmit triggered")
+                    onSubmit() 
+                }
+                .submitLabel(.send)
+                .accessibilityLabel("Message input field")
+                .accessibilityHint("Type your message and tap return to send")
+                .onChange(of: isFocused.wrappedValue) { _, newValue in
+                    print("🔵 DEBUG: TextField focus changed to: \(newValue)")
+                }
+                .frame(maxWidth: .infinity)
             
-            Button(action: onSpeech) {
+            Button(action: {
+                print("🔵 DEBUG: Microphone button action triggered")
+                // Unfocus the text field when microphone is tapped
+                isFocused.wrappedValue = false
+                onSpeech()
+            }) {
                 ZStack {
                     // Outer glow ring
                     Circle()
@@ -387,7 +401,12 @@ struct TTSInputTextField: View {
                         // No scale animation
                 }
             }
+            .buttonStyle(PlainButtonStyle())
             .id("microphoneButton")
+            .frame(width: 50, height: 50)
+            .onTapGesture {
+                print("🔵 DEBUG: Microphone button tap gesture detected")
+            }
             // Removed tutorial bubble overlay here
             .overlay(
                 // Spotlight effect
@@ -411,6 +430,7 @@ struct TTSInputTextField: View {
                             .opacity(microphonePulse ? 0.6 : 0.0)
                             .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: microphonePulse)
                             .zIndex(1002)
+                            .allowsHitTesting(false) // Don't intercept taps
                     }
                 }
             )

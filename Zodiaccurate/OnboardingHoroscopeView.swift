@@ -20,23 +20,18 @@ struct OnboardingHoroscopeView: View {
                             VStack(spacing: 8) {
                                 Text("Welcome, \(userData.firstName)")
                                     .font(.title2)
-                                    .fontWeight(.semibold)
+                                    .font(.dmSansSemibold(size: 24))
                                     .foregroundColor(.white)
                                 
                                 Text("Your Cosmic Journey Begins")
-                                    .font(.subheadline)
+                                    .font(.dmSansMedium(size: 20))
                                     .foregroundColor(.white.opacity(0.8))
                             }
                         } else {
                             VStack(spacing: 8) {
-                                Text("Welcome to Your Cosmic Journey")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
+                                Text("Please wait while we create your first Zodiaccurate.")
+                                    .font(.dmSansSemibold(size: 24))
                                     .foregroundColor(.white)
-                                
-                                Text("Your personalized horoscope awaits")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white.opacity(0.8))
                             }
                         }
                     }
@@ -63,7 +58,7 @@ struct OnboardingHoroscopeView: View {
                                             .foregroundColor(.white)
                                             .multilineTextAlignment(.center)
                                         
-                                        Text("Your personalized horoscope has been crafted just for you.")
+                                        Text("Your personalized Zodiaccurate has been crafted just for you.")
                                             .font(.subheadline)
                                             .foregroundColor(.white.opacity(0.8))
                                             .multilineTextAlignment(.center)
@@ -84,28 +79,10 @@ struct OnboardingHoroscopeView: View {
                             .padding()
                             .background(Color.black.opacity(0.3))
                             .cornerRadius(12)
-                        } else {
-                            // Fallback message if no horoscope is available
-                            VStack(spacing: 24) {
-                                VStack(spacing: 16) {
-                                    Image(systemName: "sparkles")
-                                        .font(.largeTitle)
-                                        .foregroundColor(.purple)
-                                    
-                                    Text("Your personalized horoscope will appear here")
-                                        .font(.body)
-                                        .foregroundColor(.white.opacity(0.8))
-                                        .multilineTextAlignment(.center)
-                                }
-                            }
-                            .padding()
-                            .background(Color.black.opacity(0.3))
-                            .cornerRadius(12)
-                            .frame(maxHeight: geo.size.height * 0.6)
-                            .frame(maxWidth: .infinity)
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.trailing)
                     
                     Spacer()
                     
@@ -134,19 +111,6 @@ struct OnboardingHoroscopeView: View {
                         // Celestial loading spinner
                         CelestialLoadingSpinner(size: .large)
                             .scaleEffect(1.2)
-                        
-                        VStack(spacing: 12) {
-                            Text("The cosmos are aligning for you...")
-                                .font(.title3)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white.opacity(0.9))
-                                .multilineTextAlignment(.center)
-                            
-                            Text("Crafting your personalized cosmic journey")
-                                .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.7))
-                                .multilineTextAlignment(.center)
-                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.black.opacity(0.5))

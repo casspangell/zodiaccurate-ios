@@ -12,6 +12,7 @@ struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var authManager: AuthenticationManager
     @State private var userDataManager: UserDataManager?
+    @State private var stardustManager: StardustManager?
     // Removed Firebase integration - only using Core Data
     @State private var messages: [ChatMessage] = []
     @State private var currentInput = ""
@@ -356,6 +357,12 @@ struct ConversationalOnboardingView: View {
             } else {
                 userDataManager?.updateModelContext(modelContext)
             }
+            
+            // Initialize StardustManager
+            if stardustManager == nil {
+                stardustManager = StardustManager(modelContext: modelContext)
+            }
+            
             startConversation()
         }
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
@@ -716,6 +723,12 @@ struct ConversationalOnboardingView: View {
         // Save completion flag to UserDefaults
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         
+        // Award stardust for completing onboarding
+        if let stardustManager = stardustManager {
+            stardustManager.earnOnboardingReward()
+            print("🪙 Awarded onboarding stardust reward")
+        }
+        
         print("✅ Onboarding data saved successfully to Core Data!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
         print("🆔 Onboarding UUID stored: \(onboardingUUID)")
@@ -781,6 +794,12 @@ struct ConversationalOnboardingView: View {
                 print("🌟 Horoscope length: \(horoscope.count) characters")
                 print("🔍 After save - firstName: \(existingUserData.firstName), horoscope: \(existingUserData.welcomeHoroscope?.prefix(30) ?? "nil")")
                 
+                // Award stardust for horoscope generation
+                if let stardustManager = stardustManager {
+                    stardustManager.earnHoroscopeGenerationReward()
+                    print("🪙 Awarded horoscope generation stardust reward")
+                }
+                
                 // Post notification to update OnboardingHoroscopeView
                 await MainActor.run {
                     print("📢 ConversationalOnboardingView: Posting horoscopeGenerated notification...")
@@ -811,6 +830,12 @@ struct ConversationalOnboardingView: View {
                 try modelContext.save()
                 print("✅ New user data with horoscope saved to Core Data successfully!")
                 print("🔍 New record - firstName: \(userDataModel.firstName), horoscope: \(userDataModel.welcomeHoroscope?.prefix(30) ?? "nil")")
+                
+                // Award stardust for horoscope generation
+                if let stardustManager = stardustManager {
+                    stardustManager.earnHoroscopeGenerationReward()
+                    print("🪙 Awarded horoscope generation stardust reward")
+                }
                 
                 // Post notification to update OnboardingHoroscopeView
                 await MainActor.run {

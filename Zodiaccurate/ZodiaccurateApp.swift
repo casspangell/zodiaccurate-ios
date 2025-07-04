@@ -128,7 +128,7 @@ struct ZodiaccurateApp: App {
                     }
                 }
         }
-        .modelContainer(for: [UserDataModel.self, Item.self])
+        .modelContainer(for: [UserDataModel.self, Item.self, StardustBalance.self, StardustTransaction.self])
     }
 }
 

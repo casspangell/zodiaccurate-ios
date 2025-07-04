@@ -31,13 +31,13 @@ struct OnboardingHoroscopeView: View {
                                 // Show welcome message for newly generated horoscope
                                 if showWelcomeMessage {
                                     VStack(spacing: 12) {
-                                        Text("Welcome to Your Cosmic Journey!")
+                                        Text("Welcome to Zodiaccurate!")
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.white)
                                             .multilineTextAlignment(.center)
                                         
-                                        Text("Your personalized Zodiaccurate has been crafted just for you.")
+                                        Text("We've just barely tasted the waters...")
                                             .font(.subheadline)
                                             .foregroundColor(.white.opacity(0.8))
                                             .multilineTextAlignment(.center)

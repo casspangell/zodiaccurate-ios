@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import Speech
 
 struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
@@ -40,6 +41,8 @@ struct ConversationalOnboardingView: View {
     @State private var showOnboardingHoroscope = false
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
+    @StateObject private var tutorialManager = TutorialManager()
+    @State private var isRecording = false
     @FocusState private var isTextFieldFocused: Bool
 
     var onComplete: () -> Void = {}
@@ -216,8 +219,11 @@ struct ConversationalOnboardingView: View {
                                 },
                                 onUnknownTime: {
                                     handleUserInput(input: "Unknown")
-                                }
+                                },
+                                tutorialManager: tutorialManager
                             )
+                            
+
                             
                             // Input
                             ChatInputView(
@@ -230,8 +236,12 @@ struct ConversationalOnboardingView: View {
                                 isTextFieldFocused: $isTextFieldFocused,
                                 onFrameChange: { frame in
                                     textFieldFrame = frame
-                                }
+                                },
+                                onSpeechStart: handleSpeechInput,
+                                isRecording: isRecording,
+                                tutorialManager: tutorialManager
                             )
+                            .id("inputSection")
                             
                             // Complete Button
                             if (currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal && messages.count > 0 && messages.last?.isUser == false) ||
@@ -264,7 +274,7 @@ struct ConversationalOnboardingView: View {
                             // Bottom anchor with safe area padding
                             Color.clear
                                 .frame(height: 1)
-                                .padding(.bottom, 50) // Add some bottom padding
+                                .padding(.bottom, 12) // Ensure minimum 12px padding from bottom
                                 .id("bottom")
                         }
                         .padding(.horizontal)
@@ -282,6 +292,14 @@ struct ConversationalOnboardingView: View {
                     .onChange(of: isTyping) { _, newValue in
                         if newValue {
                             scrollToShowTyping(proxy: proxy)
+                        }
+                    }
+                    .onChange(of: tutorialManager.showVoiceTutorial) { _, newValue in
+                        if newValue {
+                            // Scroll to show input section when tutorial appears
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                scrollToShowInput(proxy: proxy, delay: 0.0)
+                            }
                         }
                     }
                 }
@@ -365,7 +383,7 @@ struct ConversationalOnboardingView: View {
     private func scrollToShowInput(proxy: ScrollViewProxy, delay: Double = 0.3) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             withAnimation(Animation.easeInOut(duration: 0.8)) {
-                proxy.scrollTo("inputSection", anchor: .center)
+                proxy.scrollTo("inputSection", anchor: .bottom)
             }
         }
     }
@@ -488,6 +506,11 @@ struct ConversationalOnboardingView: View {
                         showSecondaryElements = true
                         if conversationSteps[0].inputType == "text" {
                             showInputField = true
+                            
+                            // Start speech tutorial immediately with the text field
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                startSpeechTutorial()
+                            }
                         } else if conversationSteps[0].inputType == "date" || 
                                 conversationSteps[0].inputType == "time" {
                             showInteractivePicker = true
@@ -498,8 +521,59 @@ struct ConversationalOnboardingView: View {
         }
     }
     
+    private func startSpeechTutorial() {
+        tutorialManager.startSpeechTutorial()
+    }
+    
+    private func handleSpeechInput() {
+        if isRecording {
+            stopSpeechRecognition()
+        } else {
+            startSpeechRecognition()
+        }
+    }
+    
+    private func startSpeechRecognition() {
+        // Request speech recognition authorization
+        SFSpeechRecognizer.requestAuthorization { status in
+            DispatchQueue.main.async {
+                switch status {
+                case .authorized:
+                    self.isRecording = true
+                    self.tutorialManager.microphonePulse = true
+                    self.startRecording()
+                case .denied, .restricted, .notDetermined:
+                    print("Speech recognition not authorized")
+                @unknown default:
+                    break
+                }
+            }
+        }
+    }
+    
+    private func stopSpeechRecognition() {
+        isRecording = false
+        tutorialManager.microphonePulse = false
+        // Stop recording logic would go here
+    }
+    
+    private func startRecording() {
+        // Speech recognition implementation would go here
+        // For now, we'll simulate it with a timer
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            if self.isRecording {
+                self.stopSpeechRecognition()
+                // Simulate speech input
+                self.currentInput = "Hello, this is a test"
+            }
+        }
+    }
+    
     private func handleUserInput(input: String) {
         guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        // Stop tutorial when user provides input
+        tutorialManager.stopTutorial()
         
         // Hide interactive elements when user provides input
         showInteractivePicker = false
@@ -561,6 +635,11 @@ struct ConversationalOnboardingView: View {
                     if currentStep < conversationSteps.count {
                         if conversationSteps[currentStep].inputType == "text" {
                             showInputField = true
+                            
+                            // Start speech tutorial immediately with the text field
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                startSpeechTutorial()
+                            }
                         } else if conversationSteps[currentStep].inputType == "date" || 
                                 conversationSteps[currentStep].inputType == "time" {
                             showInteractivePicker = true
@@ -893,19 +972,39 @@ struct InputSection: View {
     let onSend: () -> Void
     let isTextFieldFocused: FocusState<Bool>.Binding
     let onFrameChange: (CGRect) -> Void
+    let onSpeechStart: () -> Void
+    let isRecording: Bool
+    let showTutorial: Bool
+    let microphonePulse: Bool
     
     var body: some View {
-        HStack {
-            TextField(currentStep.placeholder, text: $currentInput)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .focused(isTextFieldFocused)
-                .onSubmit {
-                    onSend()
+        HStack(spacing: 12) {
+            TTSInputTextField(
+                text: $currentInput,
+                placeholder: currentStep.placeholder,
+                isFocused: isTextFieldFocused,
+                onSubmit: onSend,
+                onTap: { isTextFieldFocused.wrappedValue = true },
+                onSpeech: onSpeechStart,
+                isRecording: isRecording,
+                showTutorial: showTutorial,
+                microphonePulse: microphonePulse
+            )
+            .background(
+                GeometryReader { geometry in
+                    Color.clear
+                        .onAppear {
+                            onFrameChange(geometry.frame(in: .global))
+                        }
+                        .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                            onFrameChange(newFrame)
+                        }
                 }
-                .onTapGesture {
-                    isTextFieldFocused.wrappedValue = true
-                }
-        
+            )
+            .onTapGesture {
+                isTextFieldFocused.wrappedValue = true
+            }
+            
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
                     .foregroundColor(.accentGold)
@@ -914,20 +1013,6 @@ struct InputSection: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
-        .background(
-            GeometryReader { geometry in
-                Color.clear
-                    .onAppear {
-                        onFrameChange(geometry.frame(in: .global))
-                    }
-                    .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                        onFrameChange(newFrame)
-                    }
-            }
-        )
-        .onTapGesture {
-            isTextFieldFocused.wrappedValue = true
-        }
     }
 }
 
@@ -1143,6 +1228,7 @@ struct ChatContentView: View {
     let onDateSelected: (Date) -> Void
     let onTimeSelected: (Date) -> Void
     let onUnknownTime: () -> Void
+    let tutorialManager: TutorialManager // <-- Add this
     
     var body: some View {
         VStack(spacing: 16) {
@@ -1153,6 +1239,7 @@ struct ChatContentView: View {
                 .id(message.id)
                 .transition(.opacity)
             }
+            // Remove the tutorial popup from here
             
             if currentStep < conversationSteps.count {
                 let showPicker = !conversationSteps[currentStep].isFinal &&
@@ -1181,6 +1268,7 @@ struct ChatContentView: View {
                 .id("chatBottom")
         }
         .padding(.horizontal)
+        .padding(.bottom, 12) // Ensure minimum 12px padding from bottom
         .animation(.easeInOut(duration: 0.3), value: messages)
         .animation(.easeInOut(duration: 0.3), value: showSecondaryElements)
     }
@@ -1196,6 +1284,9 @@ struct ChatInputView: View {
     let onSend: () -> Void
     let isTextFieldFocused: FocusState<Bool>.Binding
     let onFrameChange: (CGRect) -> Void
+    let onSpeechStart: () -> Void
+    let isRecording: Bool
+    let tutorialManager: TutorialManager
     
     var body: some View {
         if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
@@ -1203,19 +1294,35 @@ struct ChatInputView: View {
                             showInputField &&
                             showSecondaryElements
             
-            InputSection(
-                currentInput: currentInput,
-                currentStep: conversationSteps[currentStep],
-                onSend: onSend,
-                isTextFieldFocused: isTextFieldFocused,
-                onFrameChange: onFrameChange
-            )
-            .background(Color.white.opacity(0.08))
-            .cornerRadius(12)
-            .padding(.horizontal)
-            .transition(.opacity)
-            .opacity(isVisible ? 1 : 0)
-            .allowsHitTesting(isVisible)
+            VStack(spacing: 0) {
+                // Input section
+                InputSection(
+                    currentInput: currentInput,
+                    currentStep: conversationSteps[currentStep],
+                    onSend: onSend,
+                    isTextFieldFocused: isTextFieldFocused,
+                    onFrameChange: onFrameChange,
+                    onSpeechStart: onSpeechStart,
+                    isRecording: isRecording,
+                    showTutorial: tutorialManager.showSpeechTutorial,
+                    microphonePulse: tutorialManager.microphonePulse
+                )
+                .background(Color.white.opacity(0.08))
+                .cornerRadius(12)
+                .padding(.horizontal)
+                .transition(.opacity)
+                .opacity(isVisible ? 1 : 0)
+                .allowsHitTesting(isVisible)
+                
+                // Voice tutorial view below the input section (points upward)
+                if tutorialManager.showVoiceTutorial && isVisible {
+                    TutorialBubble.voice(arrowPosition: .top, pulse: tutorialManager.microphonePulse, onDismiss: { tutorialManager.stopTutorial() })
+                        .padding(.top, 8)
+                        .zIndex(1000)
+                        .transition(.opacity)
+                }
+            }
+            .padding(.bottom, 12) // Ensure minimum 12px padding from bottom
         }
     }
 }
@@ -1330,6 +1437,8 @@ private struct CosmicBadgeEffects: View {
         }
     }
 }
+
+
 
 #Preview {
     ConversationalOnboardingView()

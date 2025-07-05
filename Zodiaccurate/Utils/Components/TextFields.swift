@@ -1,4 +1,5 @@
 import SwiftUI
+import Speech
 // Make sure SpeechTutorialBubble is available in the project
 // import the file or module if needed
 // If SpeechTutorialBubble is in another file, ensure it is accessible here
@@ -12,9 +13,9 @@ enum TutorialType {
     var title: String {
         switch self {
         case .speech:
-            return "🎤 Try voice input!"
+            return "Try voice input!"
         case .voice:
-            return "🎤 Voice input available"
+            return "Voice input available"
         case .custom(let title, _, _):
             return title
         }
@@ -377,7 +378,20 @@ struct TTSInputTextField: View {
                 print("🔵 DEBUG: Microphone button action triggered")
                 // Unfocus the text field when microphone is tapped
                 isFocused.wrappedValue = false
-                onSpeech()
+                // Request speech recognition authorization to trigger the dictation prompt
+                SFSpeechRecognizer.requestAuthorization { authStatus in
+                    DispatchQueue.main.async {
+                        switch authStatus {
+                        case .authorized:
+                            print("Speech recognition authorized")
+                            onSpeech()
+                        case .denied, .restricted, .notDetermined:
+                            print("Speech recognition not authorized: \(authStatus)")
+                        @unknown default:
+                            break
+                        }
+                    }
+                }
             }) {
                 ZStack {
                     // Outer glow ring

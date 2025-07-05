@@ -357,9 +357,11 @@ struct TTSInputTextField: View {
     var showTutorial: Bool
     var microphonePulse: Bool
     @Binding var highlightInputField: Bool
+    var onHeightChange: ((CGFloat) -> Void)?
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 40 // Initial height
+    @State private var previousHeight: CGFloat = 40 // Track previous height
     
     var body: some View {
         HStack(spacing: 12) {
@@ -397,6 +399,20 @@ struct TTSInputTextField: View {
                                         print("   - Width: \(size.width)")
                                         print("   - Height: \(size.height)")
                                         print("   - Text preview: \"\(text.prefix(30))...\"")
+                                        
+                                        // Only check for height changes if we have a previous height (not initial load)
+                                        if previousHeight > 0 {
+                                            // Check if height has changed significantly (more than 5 points)
+                                            let heightDifference = size.height - previousHeight
+                                            if abs(heightDifference) > 5 {
+                                                print("🚨 Height change detected: \(heightDifference) points")
+                                                // Call the height change callback
+                                                onHeightChange?(heightDifference)
+                                            }
+                                        }
+                                        
+                                        // Update the previous height
+                                        previousHeight = size.height
                                     }
                             }
                         )

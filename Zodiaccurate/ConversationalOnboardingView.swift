@@ -48,6 +48,9 @@ struct ConversationalOnboardingView: View {
     @State private var showMicrophoneAlert = false
     @State private var showSpeechErrorAlert = false
     @State private var highlightInputField = false
+    @State private var showHeightChangeAlert = false
+    @State private var textFieldHeightDifference: CGFloat = 0
+    @State private var manualScrollOffset: CGFloat = 0
 
     var onComplete: () -> Void = {}
     
@@ -89,6 +92,11 @@ struct ConversationalOnboardingView: View {
         }
         
         return 0
+    }
+    
+    // Calculate total scroll offset including manual adjustments
+    private var totalScrollOffset: CGFloat {
+        return scrollViewOffset + intelligentKeyboardOffset + manualScrollOffset
     }
     
     var body: some View {
@@ -251,7 +259,11 @@ struct ConversationalOnboardingView: View {
                                 onSpeechStart: handleSpeechInput,
                                 isRecording: speechRecognitionService.isRecording,
                                 tutorialManager: tutorialManager,
-                                highlightInputField: $highlightInputField
+                                highlightInputField: $highlightInputField,
+                                onHeightChange: { heightDifference in
+                                    textFieldHeightDifference = heightDifference
+                                    showHeightChangeAlert = true
+                                }
                             )
                             .id("inputSection")
                             
@@ -316,7 +328,7 @@ struct ConversationalOnboardingView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill remaining space
-                .offset(y: -scrollViewOffset - intelligentKeyboardOffset) // Intelligent keyboard offset
+                .offset(y: -totalScrollOffset) // Total scroll offset including manual adjustments
                 .zIndex(1)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity) // KEY: Fill entire screen
@@ -330,6 +342,22 @@ struct ConversationalOnboardingView: View {
                     primaryButtonAction: {
                         showZodiacAlert = false
                         Task { await generateWelcomeHoroscope() }
+                    }
+                )
+            }
+            
+            // Custom height change alert overlay
+            if showHeightChangeAlert {
+                HeightChangeAlertOverlay(
+                    heightDifference: textFieldHeightDifference,
+                    onMoveUp: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            manualScrollOffset += textFieldHeightDifference
+                        }
+                        showHeightChangeAlert = false
+                    },
+                    onCancel: {
+                        showHeightChangeAlert = false
                     }
                 )
             }
@@ -388,6 +416,7 @@ struct ConversationalOnboardingView: View {
         } message: {
             Text(speechRecognitionService.errorMessage ?? "An error occurred during speech recognition. Please try again.")
         }
+
     }
     
     private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.1) {
@@ -1084,6 +1113,7 @@ struct InputSection: View {
     let showTutorial: Bool
     let microphonePulse: Bool
     @Binding var highlightInputField: Bool
+    let onHeightChange: ((CGFloat) -> Void)?
     
     var body: some View {
         HStack(spacing: 12) {
@@ -1100,7 +1130,8 @@ struct InputSection: View {
                 isRecording: isRecording,
                 showTutorial: showTutorial,
                 microphonePulse: microphonePulse,
-                highlightInputField: $highlightInputField
+                highlightInputField: $highlightInputField,
+                onHeightChange: onHeightChange
             )
             .background(
                 GeometryReader { geometry in
@@ -1421,6 +1452,7 @@ struct ChatInputView: View {
     let isRecording: Bool
     let tutorialManager: TutorialManager
     @Binding var highlightInputField: Bool
+    let onHeightChange: ((CGFloat) -> Void)?
     
     var body: some View {
         if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
@@ -1440,7 +1472,8 @@ struct ChatInputView: View {
                     isRecording: isRecording,
                     showTutorial: tutorialManager.showSpeechTutorial,
                     microphonePulse: tutorialManager.microphonePulse,
-                    highlightInputField: $highlightInputField
+                    highlightInputField: $highlightInputField,
+                    onHeightChange: onHeightChange
                 )
                 .background(Color.white.opacity(0.08))
                 .cornerRadius(12)
@@ -1594,5 +1627,75 @@ struct BubbleSizePreferenceKey: PreferenceKey {
     
     static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
         value = nextValue()
+    }
+}
+
+// Custom height change alert overlay
+struct HeightChangeAlertOverlay: View {
+    let heightDifference: CGFloat
+    let onMoveUp: () -> Void
+    let onCancel: () -> Void
+    
+    var body: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    onCancel()
+                }
+            
+            // Alert card
+            VStack(spacing: 16) {
+                HStack {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .foregroundColor(.accentGold)
+                        .font(.title2)
+                    Text("Text Field Height Changed")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                }
+                
+                Text("The text field height has changed by \(Int(heightDifference)) points. Would you like to move the scrollview up to accommodate this change?")
+                    .font(.body)
+                    .foregroundColor(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
+                
+                HStack(spacing: 12) {
+                    Button("Cancel") {
+                        onCancel()
+                    }
+                    .font(.body)
+                    .foregroundColor(.white.opacity(0.7))
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.gray.opacity(0.3))
+                    .cornerRadius(8)
+                    
+                    Button("Move Up") {
+                        onMoveUp()
+                    }
+                    .font(.body)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.accentGold)
+                    .cornerRadius(8)
+                }
+            }
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.deepBlue.opacity(0.95))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.accentGold.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            .frame(maxWidth: 300)
+            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+        }
+        .transition(.opacity.combined(with: .scale))
+        .animation(.easeInOut(duration: 0.3), value: true)
     }
 }

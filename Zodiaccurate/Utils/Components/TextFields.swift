@@ -396,20 +396,8 @@ struct TTSInputTextField: View {
                 print("🔵 DEBUG: Microphone button action triggered")
                 // Unfocus the text field when microphone is tapped
                 isFocused.wrappedValue = false
-                // Request speech recognition authorization to trigger the dictation prompt
-                SFSpeechRecognizer.requestAuthorization { authStatus in
-                    DispatchQueue.main.async {
-                        switch authStatus {
-                        case .authorized:
-                            print("Speech recognition authorized")
-                            onSpeech()
-                        case .denied, .restricted, .notDetermined:
-                            print("Speech recognition not authorized: \(authStatus)")
-                        @unknown default:
-                            break
-                        }
-                    }
-                }
+                // Trigger speech recognition
+                onSpeech()
             }) {
                 ZStack {
                     // Outer glow ring
@@ -424,13 +412,15 @@ struct TTSInputTextField: View {
                     Circle()
                         .fill(isRecording ? Color.red : Color.accentGold)
                         .frame(width: 40, height: 40)
-                        // No scale animation
+                        .scaleEffect(isRecording ? 1.1 : 1.0)
+                        .animation(.easeInOut(duration: 0.3).repeatForever(autoreverses: true), value: isRecording)
                     
                     // Icon
                     Image(systemName: isRecording ? "stop.fill" : "mic.fill")
                         .foregroundColor(.white)
                         .font(.system(size: 16, weight: .medium))
-                        // No scale animation
+                        .scaleEffect(isRecording ? 0.8 : 1.0)
+                        .animation(.easeInOut(duration: 0.2), value: isRecording)
                 }
             }
             .buttonStyle(PlainButtonStyle())

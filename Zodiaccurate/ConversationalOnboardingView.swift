@@ -43,9 +43,10 @@ struct ConversationalOnboardingView: View {
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
     @StateObject private var tutorialManager = TutorialManager()
-    @State private var isRecording = false
+    @StateObject private var speechRecognitionService = SpeechRecognitionService()
     @FocusState private var isTextFieldFocused: Bool
     @State private var showMicrophoneAlert = false
+    @State private var showSpeechErrorAlert = false
 
     var onComplete: () -> Void = {}
     
@@ -240,7 +241,7 @@ struct ConversationalOnboardingView: View {
                                     textFieldFrame = frame
                                 },
                                 onSpeechStart: handleSpeechInput,
-                                isRecording: isRecording,
+                                isRecording: speechRecognitionService.isRecording,
                                 tutorialManager: tutorialManager
                             )
                             .id("inputSection")
@@ -370,6 +371,13 @@ struct ConversationalOnboardingView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Microphone access is required to use voice input. Please enable microphone access in Settings.")
+        }
+        .alert("Speech Recognition Error", isPresented: $showSpeechErrorAlert) {
+            Button("OK", role: .cancel) {
+                speechRecognitionService.reset()
+            }
+        } message: {
+            Text(speechRecognitionService.errorMessage ?? "An error occurred during speech recognition. Please try again.")
         }
     }
     
@@ -534,85 +542,64 @@ struct ConversationalOnboardingView: View {
     }
     
     private func handleSpeechInput() {
-        if isRecording {
+        if speechRecognitionService.isRecording {
             stopSpeechRecognition()
         } else {
-            checkMicrophoneAndSpeechPermissions()
-        }
-    }
-    
-    private func checkMicrophoneAndSpeechPermissions() {
-        if #available(iOS 17.0, *) {
-            AVAudioApplication.requestRecordPermission { granted in
-                DispatchQueue.main.async {
-                    handleMicrophonePermissionResult(granted: granted)
-                }
-            }
-        } else {
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                DispatchQueue.main.async {
-                    handleMicrophonePermissionResult(granted: granted)
-                }
-            }
-        }
-    }
-
-    private func handleMicrophonePermissionResult(granted: Bool) {
-        if granted {
-            SFSpeechRecognizer.requestAuthorization { status in
-                DispatchQueue.main.async {
-                    switch status {
-                    case .authorized:
-                        self.isRecording = true
-                        self.tutorialManager.microphonePulse = true
-                        self.startRecording()
-                    case .denied, .restricted:
-                        self.showMicrophoneAlert = true
-                    case .notDetermined:
-                        // Permission dialog will be shown automatically
-                        break
-                    @unknown default:
-                        break
-                    }
-                }
-            }
-        } else {
-            self.showMicrophoneAlert = true
+            startSpeechRecognition()
         }
     }
     
     private func startSpeechRecognition() {
-        // Request speech recognition authorization
-        SFSpeechRecognizer.requestAuthorization { status in
-            DispatchQueue.main.async {
-                switch status {
-                case .authorized:
-                    self.isRecording = true
+        speechRecognitionService.requestPermissions { granted in
+            if granted {
+                DispatchQueue.main.async {
                     self.tutorialManager.microphonePulse = true
-                    self.startRecording()
-                case .denied, .restricted, .notDetermined:
-                    print("Speech recognition not authorized")
-                @unknown default:
-                    break
+                    self.speechRecognitionService.startRecording()
+                    
+                    // Monitor transcribed text
+                    self.monitorTranscribedText()
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.showMicrophoneAlert = true
                 }
             }
         }
     }
     
     private func stopSpeechRecognition() {
-        isRecording = false
+        speechRecognitionService.stopRecording()
         tutorialManager.microphonePulse = false
-        // Stop recording logic would go here
     }
     
-    private func startRecording() {
-        // Speech recognition implementation would go here
-        // For now, we'll simulate it with a timer
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            if self.isRecording {
-                self.stopSpeechRecognition()
-                // Simulate speech input
-                self.currentInput = "Hello, this is a test"
+    private func monitorTranscribedText() {
+        // Monitor for speech recognition errors
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            if let errorMessage = self.speechRecognitionService.errorMessage {
+                timer.invalidate()
+                DispatchQueue.main.async {
+                    self.showSpeechErrorAlert = true
+                }
+            }
+        }
+        
+        // Monitor transcribed text
+        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
+            // Update current input with transcribed text
+            if !self.speechRecognitionService.transcribedText.isEmpty {
+                self.currentInput = self.speechRecognitionService.transcribedText
+            }
+            
+            // Stop monitoring if recording stopped
+            if !self.speechRecognitionService.isRecording {
+                timer.invalidate()
+                
+                // If we have transcribed text, submit it
+                if !self.speechRecognitionService.transcribedText.isEmpty {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self.handleUserInput(input: self.speechRecognitionService.transcribedText)
+                    }
+                }
             }
         }
     }

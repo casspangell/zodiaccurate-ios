@@ -359,20 +359,38 @@ struct TTSInputTextField: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            TextField(placeholder, text: $text)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .focused(isFocused)
-                .onSubmit { 
-                    print("🔵 DEBUG: TextField onSubmit triggered")
-                    onSubmit() 
+            HStack {
+                TextField(placeholder, text: $text)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .focused(isFocused)
+                    .onSubmit { 
+                        print("🔵 DEBUG: TextField onSubmit triggered")
+                        onSubmit() 
+                    }
+                    .submitLabel(.send)
+                    .accessibilityLabel("Message input field")
+                    .accessibilityHint("Type your message and tap return to send")
+                    .onChange(of: isFocused.wrappedValue) { _, newValue in
+                        print("🔵 DEBUG: TextField focus changed to: \(newValue)")
+                    }
+                
+                // Clear button (X)
+                if !text.isEmpty {
+                    Button(action: {
+                        text = ""
+                        isFocused.wrappedValue = false
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 16))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .transition(.opacity.combined(with: .scale))
+                    .accessibilityLabel("Clear text")
+                    .accessibilityHint("Tap to clear the text field")
                 }
-                .submitLabel(.send)
-                .accessibilityLabel("Message input field")
-                .accessibilityHint("Type your message and tap return to send")
-                .onChange(of: isFocused.wrappedValue) { _, newValue in
-                    print("🔵 DEBUG: TextField focus changed to: \(newValue)")
-                }
-                .frame(maxWidth: .infinity)
+            }
+            .frame(maxWidth: .infinity)
             
             Button(action: {
                 print("🔵 DEBUG: Microphone button action triggered")

@@ -359,35 +359,56 @@ struct TTSInputTextField: View {
     @Binding var highlightInputField: Bool
     
     @State private var shakeOffset: CGFloat = 0
+    @State private var textFieldHeight: CGFloat = 40 // Initial height
     
     var body: some View {
         HStack(spacing: 12) {
             HStack {
-                TextField(placeholder, text: $text)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .focused(isFocused)
-                    .onSubmit {
-                        print("🔵 DEBUG: TextField onSubmit triggered")
-                        onSubmit()
+                ZStack(alignment: .topLeading) {
+                    // Placeholder text
+                    if text.isEmpty {
+                        Text(placeholder)
+                            .foregroundColor(.gray)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .allowsHitTesting(false)
                     }
-                    .submitLabel(.send)
-                    .accessibilityLabel("Message input field")
-                    .accessibilityHint("Type your message and tap return to send")
-                    .onChange(of: isFocused.wrappedValue) { _, newValue in
-                        print("🔵 DEBUG: TextField focus changed to: \(newValue)")
-                        if newValue { highlightInputField = false }
-                    }
-                    .onChange(of: text) { _, newValue in
-                        if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            highlightInputField = false
+                    
+                    // Dynamic TextEditor
+                    TextEditor(text: $text)
+                        .focused(isFocused)
+                        .frame(minHeight: 40, maxHeight: 120) // Min and max height constraints
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(.systemGray6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
+                                )
+                        )
+                        .onChange(of: text) { _, newValue in
+                            if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                highlightInputField = false
+                            }
+                            // Calculate new height based on content
+                            updateTextFieldHeight(for: newValue)
                         }
-                    }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
-                    )
-                    .offset(x: shakeOffset)
-                    .animation(.default, value: shakeOffset)
+                        .onSubmit {
+                            print("🔵 DEBUG: TextField onSubmit triggered")
+                            onSubmit()
+                        }
+                        .submitLabel(.send)
+                        .accessibilityLabel("Message input field")
+                        .accessibilityHint("Type your message and tap return to send")
+                        .onChange(of: isFocused.wrappedValue) { _, newValue in
+                            print("🔵 DEBUG: TextField focus changed to: \(newValue)")
+                            if newValue { highlightInputField = false }
+                        }
+                        .offset(x: shakeOffset)
+                        .animation(.default, value: shakeOffset)
+                }
                 
                 // Clear button (X)
                 if !text.isEmpty {
@@ -490,6 +511,17 @@ struct TTSInputTextField: View {
                     withAnimation(.default) { shakeOffset = 0 }
                 }
             }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    private func updateTextFieldHeight(for text: String) {
+        // Calculate approximate height based on text content
+        let lines = text.components(separatedBy: .newlines).count
+        let estimatedHeight = max(40, min(120, CGFloat(lines) * 20 + 20)) // 20 points per line + padding
+        
+        withAnimation(.easeInOut(duration: 0.2)) {
+            textFieldHeight = estimatedHeight
         }
     }
 } 

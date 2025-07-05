@@ -47,6 +47,7 @@ struct ConversationalOnboardingView: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var showMicrophoneAlert = false
     @State private var showSpeechErrorAlert = false
+    @State private var highlightInputField = false
 
     var onComplete: () -> Void = {}
     
@@ -235,14 +236,15 @@ struct ConversationalOnboardingView: View {
                                 showInputField: showInputField,
                                 showSecondaryElements: showSecondaryElements,
                                 currentInput: $currentInput,
-                                onSend: { handleUserInput(input: currentInput) },
+                                onSend: { handleSendWithRecordingCheck() },
                                 isTextFieldFocused: $isTextFieldFocused,
                                 onFrameChange: { frame in
                                     textFieldFrame = frame
                                 },
                                 onSpeechStart: handleSpeechInput,
                                 isRecording: speechRecognitionService.isRecording,
-                                tutorialManager: tutorialManager
+                                tutorialManager: tutorialManager,
+                                highlightInputField: $highlightInputField
                             )
                             .id("inputSection")
                             
@@ -553,6 +555,12 @@ struct ConversationalOnboardingView: View {
         speechRecognitionService.requestPermissions { granted in
             if granted {
                 DispatchQueue.main.async {
+                    // Dismiss tutorial popup when recording starts, but keep microphone pulse
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        self.tutorialManager.showSpeechTutorial = false
+                        self.tutorialManager.showVoiceTutorial = false
+                    }
+                    
                     self.tutorialManager.microphonePulse = true
                     self.speechRecognitionService.startRecording()
                     
@@ -568,8 +576,15 @@ struct ConversationalOnboardingView: View {
     }
     
     private func stopSpeechRecognition() {
-        speechRecognitionService.stopRecording()
-        tutorialManager.microphonePulse = false
+        // Stop the speech recognition service first
+        speechRecognitionService.stopRecording(userInitiated: true)
+        
+        // Stop the microphone pulse animation with a slight delay to ensure smooth transition
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.tutorialManager.microphonePulse = false
+            }
+        }
     }
     
     private func monitorTranscribedText() {
@@ -601,6 +616,28 @@ struct ConversationalOnboardingView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private func handleSendWithRecordingCheck() {
+        let trimmed = currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            highlightInputField = true
+            // Optionally shake or vibrate here
+            return
+        }
+        highlightInputField = false
+        // If recording is active, stop it first and wait for the transcribed text
+        if speechRecognitionService.isRecording {
+            stopSpeechRecognition()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                let inputText = self.currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !inputText.isEmpty {
+                    self.handleUserInput(input: inputText)
+                }
+            }
+        } else {
+            handleUserInput(input: currentInput)
         }
     }
     
@@ -1011,6 +1048,7 @@ struct InputSection: View {
     let isRecording: Bool
     let showTutorial: Bool
     let microphonePulse: Bool
+    @Binding var highlightInputField: Bool
     
     var body: some View {
         HStack(spacing: 12) {
@@ -1026,7 +1064,8 @@ struct InputSection: View {
                 },
                 isRecording: isRecording,
                 showTutorial: showTutorial,
-                microphonePulse: microphonePulse
+                microphonePulse: microphonePulse,
+                highlightInputField: $highlightInputField
             )
             .background(
                 GeometryReader { geometry in
@@ -1045,7 +1084,8 @@ struct InputSection: View {
             
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
-                    .foregroundColor(.accentGold)
+                    .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
+                    .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
             }
             .disabled(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
@@ -1325,6 +1365,7 @@ struct ChatInputView: View {
     let onSpeechStart: () -> Void
     let isRecording: Bool
     let tutorialManager: TutorialManager
+    @Binding var highlightInputField: Bool
     
     var body: some View {
         if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
@@ -1343,7 +1384,8 @@ struct ChatInputView: View {
                     onSpeechStart: onSpeechStart,
                     isRecording: isRecording,
                     showTutorial: tutorialManager.showSpeechTutorial,
-                    microphonePulse: tutorialManager.microphonePulse
+                    microphonePulse: tutorialManager.microphonePulse,
+                    highlightInputField: $highlightInputField
                 )
                 .background(Color.white.opacity(0.08))
                 .cornerRadius(12)

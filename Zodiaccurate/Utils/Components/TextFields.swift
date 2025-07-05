@@ -356,6 +356,9 @@ struct TTSInputTextField: View {
     var isRecording: Bool
     var showTutorial: Bool
     var microphonePulse: Bool
+    @Binding var highlightInputField: Bool
+    
+    @State private var shakeOffset: CGFloat = 0
     
     var body: some View {
         HStack(spacing: 12) {
@@ -363,16 +366,28 @@ struct TTSInputTextField: View {
                 TextField(placeholder, text: $text)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .focused(isFocused)
-                    .onSubmit { 
+                    .onSubmit {
                         print("🔵 DEBUG: TextField onSubmit triggered")
-                        onSubmit() 
+                        onSubmit()
                     }
                     .submitLabel(.send)
                     .accessibilityLabel("Message input field")
                     .accessibilityHint("Type your message and tap return to send")
                     .onChange(of: isFocused.wrappedValue) { _, newValue in
                         print("🔵 DEBUG: TextField focus changed to: \(newValue)")
+                        if newValue { highlightInputField = false }
                     }
+                    .onChange(of: text) { _, newValue in
+                        if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            highlightInputField = false
+                        }
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
+                    )
+                    .offset(x: shakeOffset)
+                    .animation(.default, value: shakeOffset)
                 
                 // Clear button (X)
                 if !text.isEmpty {
@@ -406,14 +421,14 @@ struct TTSInputTextField: View {
                         .frame(width: 50, height: 50)
                         .scaleEffect(microphonePulse ? 1.4 : 0.8)
                         .opacity(microphonePulse ? 0.8 : 0.0)
-                        .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: microphonePulse)
+                        .animation(microphonePulse ? .easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .easeInOut(duration: 0.3), value: microphonePulse)
                     
                     // Main button
                     Circle()
                         .fill(isRecording ? Color.red : Color.accentGold)
                         .frame(width: 40, height: 40)
                         .scaleEffect(isRecording ? 1.1 : 1.0)
-                        .animation(.easeInOut(duration: 0.3).repeatForever(autoreverses: true), value: isRecording)
+                        .animation(isRecording ? .easeInOut(duration: 0.3).repeatForever(autoreverses: true) : .easeInOut(duration: 0.2), value: isRecording)
                     
                     // Icon
                     Image(systemName: isRecording ? "stop.fill" : "mic.fill")
@@ -450,12 +465,31 @@ struct TTSInputTextField: View {
                             .frame(width: 120, height: 120)
                             .scaleEffect(microphonePulse ? 1.2 : 0.8)
                             .opacity(microphonePulse ? 0.6 : 0.0)
-                            .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: microphonePulse)
+                            .animation(microphonePulse ? .easeInOut(duration: 2.0).repeatForever(autoreverses: true) : .easeInOut(duration: 0.3), value: microphonePulse)
                             .zIndex(1002)
                             .allowsHitTesting(false) // Don't intercept taps
                     }
                 }
             )
+        }
+        .onChange(of: highlightInputField) { _, newValue in
+            if newValue {
+                withAnimation(.default) {
+                    shakeOffset = -10
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
+                    withAnimation(.default) { shakeOffset = 10 }
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+                    withAnimation(.default) { shakeOffset = -6 }
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.21) {
+                    withAnimation(.default) { shakeOffset = 6 }
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+                    withAnimation(.default) { shakeOffset = 0 }
+                }
+            }
         }
     }
 } 

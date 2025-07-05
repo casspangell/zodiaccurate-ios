@@ -16,6 +16,9 @@ class SpeechRecognitionService: NSObject, ObservableObject {
     private var recognitionTask: SFSpeechRecognitionTask?
     private var audioEngine: AVAudioEngine?
     
+    // Add this flag
+    private var userManuallyStopped = false
+    
     override init() {
         super.init()
         setupSpeechRecognizer()
@@ -96,6 +99,7 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         // Reset state
         transcribedText = ""
         errorMessage = nil
+        userManuallyStopped = false // Reset flag on new recording
         
         // Configure audio session
         do {
@@ -141,8 +145,26 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         // Start recognition task
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
             DispatchQueue.main.async {
-                if let error = error {
-                    self?.errorMessage = "Recognition error: \(error.localizedDescription)"
+                if let error = error as NSError? {
+                    // If user manually stopped, suppress all errors
+                    if self?.userManuallyStopped == true {
+                        // Don't show any errors when user manually stops
+                        self?.errorMessage = nil
+                        self?.transcribedText = ""
+                        self?.stopRecording()
+                        return
+                    }
+                    
+                    // Handle specific error types
+                    if error.localizedDescription.localizedCaseInsensitiveContains("no speech detected") {
+                        self?.errorMessage = "Recognition error: No speech detected"
+                    } else if error.localizedDescription.localizedCaseInsensitiveContains("cancelled") {
+                        // Suppress cancelled errors as they're expected when stopping
+                        self?.errorMessage = nil
+                    } else {
+                        // Other errors
+                        self?.errorMessage = "Recognition error: \(error.localizedDescription)"
+                    }
                     self?.stopRecording()
                     return
                 }
@@ -166,7 +188,10 @@ class SpeechRecognitionService: NSObject, ObservableObject {
         isRecording = true
     }
     
-    func stopRecording() {
+    func stopRecording(userInitiated: Bool = false) {
+        if userInitiated {
+            userManuallyStopped = true
+        }
         guard isRecording else { return }
         
         // Stop silence timer
@@ -188,6 +213,11 @@ class SpeechRecognitionService: NSObject, ObservableObject {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         } catch {
             print("Failed to deactivate audio session: \(error)")
+        }
+        
+        // Clear any error messages if user manually stopped
+        if userManuallyStopped {
+            errorMessage = nil
         }
         
         isRecording = false

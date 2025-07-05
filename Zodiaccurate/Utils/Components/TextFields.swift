@@ -425,14 +425,14 @@ struct TTSInputTextField: View {
                     
                     // Main button
                     Circle()
-                        .fill(isRecording ? Color.red : Color.accentGold)
+                        .fill(isRecording ? Color.red : Color.white)
                         .frame(width: 40, height: 40)
                         .scaleEffect(isRecording ? 1.1 : 1.0)
                         .animation(isRecording ? .easeInOut(duration: 0.3).repeatForever(autoreverses: true) : .easeInOut(duration: 0.2), value: isRecording)
                     
                     // Icon
                     Image(systemName: isRecording ? "stop.fill" : "mic.fill")
-                        .foregroundColor(.white)
+                        .foregroundColor(isRecording ? .white : Color(.darkGray))
                         .font(.system(size: 16, weight: .medium))
                         .scaleEffect(isRecording ? 0.8 : 1.0)
                         .animation(.easeInOut(duration: 0.2), value: isRecording)
@@ -453,8 +453,8 @@ struct TTSInputTextField: View {
                             .fill(
                                 RadialGradient(
                                     gradient: Gradient(stops: [
-                                        .init(color: Color.accentGold.opacity(0.3), location: 0.0),
-                                        .init(color: Color.accentGold.opacity(0.1), location: 0.5),
+                                        .init(color: Color.accentPurple.opacity(0.3), location: 0.0),
+                                        .init(color: Color.accentPurple.opacity(0.1), location: 0.5),
                                         .init(color: Color.clear, location: 1.0)
                                     ]),
                                     center: .center,

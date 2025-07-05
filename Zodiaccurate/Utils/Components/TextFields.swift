@@ -388,6 +388,18 @@ struct TTSInputTextField: View {
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
                                 )
                         )
+                        .background(
+                            GeometryReader { geometry in
+                                Color.clear
+                                    .preference(key: TextEditorSizePreferenceKey.self, value: geometry.size)
+                                    .onPreferenceChange(TextEditorSizePreferenceKey.self) { size in
+                                        print("📏 TextEditor size changed: \(size)")
+                                        print("   - Width: \(size.width)")
+                                        print("   - Height: \(size.height)")
+                                        print("   - Text preview: \"\(text.prefix(30))...\"")
+                                    }
+                            }
+                        )
                         .onChange(of: text) { _, newValue in
                             if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                 highlightInputField = false
@@ -524,4 +536,15 @@ struct TTSInputTextField: View {
             textFieldHeight = estimatedHeight
         }
     }
+    
+
 } 
+
+// Preference key for TextEditor size
+struct TextEditorSizePreferenceKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
+    }
+}

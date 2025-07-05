@@ -224,7 +224,14 @@ struct ConversationalOnboardingView: View {
                                 onUnknownTime: {
                                     handleUserInput(input: "Unknown")
                                 },
-                                tutorialManager: tutorialManager
+                                tutorialManager: tutorialManager,
+                                onBubbleSizeChange: { message, size in
+                                    print("🎯 Bubble size change detected:")
+                                    print("   - Message: \(message.text.prefix(50))...")
+                                    print("   - Is User: \(message.isUser)")
+                                    print("   - Size: \(size)")
+                                    print("   - Message ID: \(message.id)")
+                                }
                             )
                             
 
@@ -1007,6 +1014,12 @@ struct ChatMessage: Identifiable, Equatable {
 
 struct ChatBubble: View {
     let message: ChatMessage
+    let onSizeChange: ((CGSize) -> Void)?
+    
+    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil) {
+        self.message = message
+        self.onSizeChange = onSizeChange
+    }
     
     var body: some View {
         HStack {
@@ -1019,6 +1032,16 @@ struct ChatBubble: View {
                     .cornerRadius(20)
                     .frame(maxWidth: 280, alignment: .trailing)
                     .fixedSize(horizontal: false, vertical: true)
+                    .background(
+                        GeometryReader { geometry in
+                            Color.clear
+                                .preference(key: BubbleSizePreferenceKey.self, value: geometry.size)
+                                .onPreferenceChange(BubbleSizePreferenceKey.self) { size in
+                                    onSizeChange?(size)
+                                    print("📱 User bubble size changed: \(size)")
+                                }
+                        }
+                    )
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     Image("logo")
@@ -1034,6 +1057,16 @@ struct ChatBubble: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: 280, alignment: .leading)
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .preference(key: BubbleSizePreferenceKey.self, value: geometry.size)
+                            .onPreferenceChange(BubbleSizePreferenceKey.self) { size in
+                                onSizeChange?(size)
+                                print("🤖 AI bubble size changed: \(size)")
+                            }
+                    }
+                )
                 Spacer()
             }
         }
@@ -1309,12 +1342,32 @@ struct ChatContentView: View {
     let onTimeSelected: (Date) -> Void
     let onUnknownTime: () -> Void
     let tutorialManager: TutorialManager // <-- Add this
+    let onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)?
+    
+    init(messages: [ChatMessage], currentStep: Int, conversationSteps: [ConversationStep], showInteractivePicker: Bool, showSecondaryElements: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager, onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)? = nil) {
+        self.messages = messages
+        self.currentStep = currentStep
+        self.conversationSteps = conversationSteps
+        self.showInteractivePicker = showInteractivePicker
+        self.showSecondaryElements = showSecondaryElements
+        self.selectedDate = selectedDate
+        self.selectedTime = selectedTime
+        self.isTyping = isTyping
+        self.onDateSelected = onDateSelected
+        self.onTimeSelected = onTimeSelected
+        self.onUnknownTime = onUnknownTime
+        self.tutorialManager = tutorialManager
+        self.onBubbleSizeChange = onBubbleSizeChange
+    }
     
     var body: some View {
         VStack(spacing: 16) {
             ForEach(messages) { message in
                 ChatBubble(
-                    message: message
+                    message: message,
+                    onSizeChange: { size in
+                        onBubbleSizeChange?(message, size)
+                    }
                 )
                 .id(message.id)
                 .transition(.opacity)
@@ -1531,6 +1584,15 @@ struct HeaderHeightPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+// Preference key for bubble size
+struct BubbleSizePreferenceKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
         value = nextValue()
     }
 }

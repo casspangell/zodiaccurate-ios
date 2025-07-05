@@ -48,8 +48,6 @@ struct ConversationalOnboardingView: View {
     @State private var showMicrophoneAlert = false
     @State private var showSpeechErrorAlert = false
     @State private var highlightInputField = false
-    @State private var showHeightChangeAlert = false
-    @State private var textFieldHeightDifference: CGFloat = 0
     @State private var manualScrollOffset: CGFloat = 0
 
     var onComplete: () -> Void = {}
@@ -261,8 +259,10 @@ struct ConversationalOnboardingView: View {
                                 tutorialManager: tutorialManager,
                                 highlightInputField: $highlightInputField,
                                 onHeightChange: { heightDifference in
-                                    textFieldHeightDifference = heightDifference
-                                    showHeightChangeAlert = true
+                                    // Automatically move the scrollview up by the height difference
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        manualScrollOffset += heightDifference
+                                    }
                                 }
                             )
                             .id("inputSection")
@@ -346,21 +346,7 @@ struct ConversationalOnboardingView: View {
                 )
             }
             
-            // Custom height change alert overlay
-            if showHeightChangeAlert {
-                HeightChangeAlertOverlay(
-                    heightDifference: textFieldHeightDifference,
-                    onMoveUp: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            manualScrollOffset += textFieldHeightDifference
-                        }
-                        showHeightChangeAlert = false
-                    },
-                    onCancel: {
-                        showHeightChangeAlert = false
-                    }
-                )
-            }
+
             
             // Stardust earning animation
             if let stardustManager = stardustManager, stardustManager.showEarningAnimation {
@@ -1630,72 +1616,4 @@ struct BubbleSizePreferenceKey: PreferenceKey {
     }
 }
 
-// Custom height change alert overlay
-struct HeightChangeAlertOverlay: View {
-    let heightDifference: CGFloat
-    let onMoveUp: () -> Void
-    let onCancel: () -> Void
-    
-    var body: some View {
-        ZStack {
-            // Semi-transparent background
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    onCancel()
-                }
-            
-            // Alert card
-            VStack(spacing: 16) {
-                HStack {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .foregroundColor(.accentGold)
-                        .font(.title2)
-                    Text("Text Field Height Changed")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                }
-                
-                Text("The text field height has changed by \(Int(heightDifference)) points. Would you like to move the scrollview up to accommodate this change?")
-                    .font(.body)
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.center)
-                
-                HStack(spacing: 12) {
-                    Button("Cancel") {
-                        onCancel()
-                    }
-                    .font(.body)
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.gray.opacity(0.3))
-                    .cornerRadius(8)
-                    
-                    Button("Move Up") {
-                        onMoveUp()
-                    }
-                    .font(.body)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(Color.accentGold)
-                    .cornerRadius(8)
-                }
-            }
-            .padding(24)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.deepBlue.opacity(0.95))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.accentGold.opacity(0.3), lineWidth: 1)
-                    )
-            )
-            .frame(maxWidth: 300)
-            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
-        }
-        .transition(.opacity.combined(with: .scale))
-        .animation(.easeInOut(duration: 0.3), value: true)
-    }
-}
+

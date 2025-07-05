@@ -525,7 +525,7 @@ struct ConversationalOnboardingView: View {
                         if conversationSteps[0].inputType == "text" {
                             showInputField = true
                             
-                            // Start speech tutorial immediately with the text field
+                            // Start speech tutorial only on the first step
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                 startSpeechTutorial()
                             }
@@ -708,9 +708,11 @@ struct ConversationalOnboardingView: View {
                         if conversationSteps[currentStep].inputType == "text" {
                             showInputField = true
                             
-                            // Start speech tutorial immediately with the text field
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                startSpeechTutorial()
+                            // Start speech tutorial only on the first step
+                            if currentStep == 0 {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    startSpeechTutorial()
+                                }
                             }
                         } else if conversationSteps[currentStep].inputType == "date" || 
                                 conversationSteps[currentStep].inputType == "time" {

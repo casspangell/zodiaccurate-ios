@@ -395,17 +395,11 @@ struct TTSInputTextField: View {
                                 Color.clear
                                     .preference(key: TextEditorSizePreferenceKey.self, value: geometry.size)
                                     .onPreferenceChange(TextEditorSizePreferenceKey.self) { size in
-                                        print("📏 TextEditor size changed: \(size)")
-                                        print("   - Width: \(size.width)")
-                                        print("   - Height: \(size.height)")
-                                        print("   - Text preview: \"\(text.prefix(30))...\"")
-                                        
                                         // Only check for height changes if we have a previous height (not initial load)
                                         if previousHeight > 0 {
                                             // Check if height has changed significantly (more than 5 points)
                                             let heightDifference = size.height - previousHeight
                                             if abs(heightDifference) > 5 {
-                                                print("🚨 Height change detected: \(heightDifference) points")
                                                 // Call the height change callback
                                                 onHeightChange?(heightDifference)
                                             }
@@ -433,12 +427,11 @@ struct TTSInputTextField: View {
                             updateTextFieldHeight(for: newValue)
                         }
                         .onChange(of: isFocused.wrappedValue) { _, newValue in
-                            print("🔵 DEBUG: TextField focus changed to: \(newValue)")
                             if newValue { highlightInputField = false }
                         }
                         .offset(x: shakeOffset)
                         .animation(.default, value: shakeOffset)
-                        .submitLabel(.done)
+                        .submitLabel(.send)
                         .accessibilityLabel("Message input field")
                         .accessibilityHint("Type your message and tap return to send")
                 }

@@ -232,11 +232,6 @@ struct ConversationalOnboardingView: View {
                                 },
                                 tutorialManager: tutorialManager,
                                 onBubbleSizeChange: { message, size in
-                                    print("🎯 Bubble size change detected:")
-                                    print("   - Message: \(message.text.prefix(50))...")
-                                    print("   - Is User: \(message.isUser)")
-                                    print("   - Size: \(size)")
-                                    print("   - Message ID: \(message.id)")
                                 }
                             )
                             
@@ -1053,7 +1048,6 @@ struct ChatBubble: View {
                                 .preference(key: BubbleSizePreferenceKey.self, value: geometry.size)
                                 .onPreferenceChange(BubbleSizePreferenceKey.self) { size in
                                     onSizeChange?(size)
-                                    print("📱 User bubble size changed: \(size)")
                                 }
                         }
                     )
@@ -1078,7 +1072,6 @@ struct ChatBubble: View {
                             .preference(key: BubbleSizePreferenceKey.self, value: geometry.size)
                             .onPreferenceChange(BubbleSizePreferenceKey.self) { size in
                                 onSizeChange?(size)
-                                print("🤖 AI bubble size changed: \(size)")
                             }
                     }
                 )

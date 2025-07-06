@@ -1474,6 +1474,10 @@ struct ChatInputView: View {
                         .padding(.top, 8)
                         .zIndex(1000)
                         .transition(.opacity)
+                        .opacity(isTextFieldFocused.wrappedValue ? 0 : 1)
+                        .animation(.easeInOut(duration: 0.5), value: isTextFieldFocused.wrappedValue)
+                        .scaleEffect(isTextFieldFocused.wrappedValue ? 0.95 : 1.0)
+                        .animation(.easeInOut(duration: 0.5), value: isTextFieldFocused.wrappedValue)
                 }
             }
             .padding(.bottom, 12) // Ensure minimum 12px padding from bottom

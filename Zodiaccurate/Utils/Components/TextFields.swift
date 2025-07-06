@@ -513,8 +513,11 @@ struct TTSInputTextField: View {
                             )
                             .frame(width: 120, height: 120)
                             .scaleEffect(microphonePulse ? 1.2 : 0.8)
-                            .opacity(microphonePulse ? 0.6 : 0.0)
+                            .opacity(isFocused.wrappedValue ? 0 : (microphonePulse ? 0.6 : 0.0))
                             .animation(microphonePulse ? .easeInOut(duration: 2.0).repeatForever(autoreverses: true) : .easeInOut(duration: 0.3), value: microphonePulse)
+                            .animation(.easeInOut(duration: 0.5), value: isFocused.wrappedValue)
+                            .scaleEffect(isFocused.wrappedValue ? 0.9 : 1.0)
+                            .animation(.easeInOut(duration: 0.5), value: isFocused.wrappedValue)
                             .zIndex(1002)
                             .allowsHitTesting(false) // Don't intercept taps
                     }

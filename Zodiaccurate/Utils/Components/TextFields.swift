@@ -417,25 +417,30 @@ struct TTSInputTextField: View {
                             }
                         )
                         .onChange(of: text) { _, newValue in
+                            // Check if the new text contains a newline character
+                            if newValue.contains("\n") {
+                                // Remove the newline and trigger submit
+                                let cleanedText = newValue.replacingOccurrences(of: "\n", with: "")
+                                text = cleanedText
+                                onSubmit()
+                                return
+                            }
+                            
                             if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                 highlightInputField = false
                             }
                             // Calculate new height based on content
                             updateTextFieldHeight(for: newValue)
                         }
-                        .onSubmit {
-                            print("🔵 DEBUG: TextField onSubmit triggered")
-                            onSubmit()
-                        }
-                        .submitLabel(.send)
-                        .accessibilityLabel("Message input field")
-                        .accessibilityHint("Type your message and tap return to send")
                         .onChange(of: isFocused.wrappedValue) { _, newValue in
                             print("🔵 DEBUG: TextField focus changed to: \(newValue)")
                             if newValue { highlightInputField = false }
                         }
                         .offset(x: shakeOffset)
                         .animation(.default, value: shakeOffset)
+                        .submitLabel(.done)
+                        .accessibilityLabel("Message input field")
+                        .accessibilityHint("Type your message and tap return to send")
                 }
                 
                 // Clear button (X)
@@ -557,7 +562,7 @@ struct TTSInputTextField: View {
     }
     
 
-} 
+}
 
 // Preference key for TextEditor size
 struct TextEditorSizePreferenceKey: PreferenceKey {
@@ -567,3 +572,5 @@ struct TextEditorSizePreferenceKey: PreferenceKey {
         value = nextValue()
     }
 }
+
+

@@ -664,8 +664,16 @@ struct ConversationalOnboardingView: View {
         // Stop tutorial when user provides input
         tutorialManager.stopTutorial()
         
+        // Check if the next step will use an interactive picker
+        let nextStepWillUsePicker = currentStep + 1 < conversationSteps.count && 
+                                   (conversationSteps[currentStep + 1].inputType == "date" || 
+                                    conversationSteps[currentStep + 1].inputType == "time")
+        
         // Hide interactive elements when user provides input
-        showInteractivePicker = false
+        // Only hide picker if next step won't use one
+        if !nextStepWillUsePicker {
+            showInteractivePicker = false
+        }
         showInputField = false
         showSecondaryElements = false
         
@@ -701,7 +709,12 @@ struct ConversationalOnboardingView: View {
     private func addAIMessage(_ text: String) {
         isTyping = true
         showInputField = false
-        showInteractivePicker = false
+        // Only hide picker if the current step doesn't use one
+        if currentStep >= conversationSteps.count || 
+           (conversationSteps[currentStep].inputType != "date" && 
+            conversationSteps[currentStep].inputType != "time") {
+            showInteractivePicker = false
+        }
         showSecondaryElements = false
         
         let typingDelay = calculateTypingDelay(for: text)

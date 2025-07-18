@@ -290,13 +290,14 @@ struct ConversationalOnboardingView: View {
                                     .cornerRadius(12)
                                 }
                                 .padding(.horizontal)
+                                .padding(.bottom, 50) // Add enough padding to clear the home indicator
                                 .transition(.opacity)
                             }
                             
                             // Bottom anchor with safe area padding
                             Color.clear
                                 .frame(height: 1)
-                                .padding(.bottom, 12) // Ensure minimum 12px padding from bottom
+                                .padding(.bottom, 50) // Add enough padding to clear the home indicator
                                 .id("bottom")
                         }
                         .padding(.horizontal)
@@ -536,16 +537,21 @@ struct ConversationalOnboardingView: View {
     }
     
     private func startSpeechRecognition() {
+        // Update UI immediately to provide instant feedback
+        DispatchQueue.main.async {
+            // Dismiss tutorial popup when recording starts, but keep microphone pulse
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.tutorialManager.showSpeechTutorial = false
+                self.tutorialManager.showVoiceTutorial = false
+            }
+            
+            self.tutorialManager.microphonePulse = true
+        }
+        
+        // Request permissions and start recording on background thread
         speechRecognitionService.requestPermissions { granted in
             if granted {
                 DispatchQueue.main.async {
-                    // Dismiss tutorial popup when recording starts, but keep microphone pulse
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        self.tutorialManager.showSpeechTutorial = false
-                        self.tutorialManager.showVoiceTutorial = false
-                    }
-                    
-                    self.tutorialManager.microphonePulse = true
                     self.speechRecognitionService.startRecording()
                     
                     // Monitor transcribed text
@@ -553,6 +559,8 @@ struct ConversationalOnboardingView: View {
                 }
             } else {
                 DispatchQueue.main.async {
+                    // Stop microphone pulse if permission denied
+                    self.tutorialManager.microphonePulse = false
                     self.showMicrophoneAlert = true
                 }
             }
@@ -560,14 +568,16 @@ struct ConversationalOnboardingView: View {
     }
     
     private func stopSpeechRecognition() {
-        // Stop the speech recognition service first
-        speechRecognitionService.stopRecording(userInitiated: true)
-        
-        // Stop the microphone pulse animation with a slight delay to ensure smooth transition
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        // Update UI immediately to provide instant feedback
+        DispatchQueue.main.async {
             withAnimation(.easeInOut(duration: 0.3)) {
                 self.tutorialManager.microphonePulse = false
             }
+        }
+        
+        // Stop the speech recognition service on background thread
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.speechRecognitionService.stopRecording(userInitiated: true)
         }
     }
     
@@ -1320,7 +1330,7 @@ struct ChatInputView: View {
     let tutorialManager: TutorialManager
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
-    
+        
     var body: some View {
         if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
             let isVisible = conversationSteps[currentStep].inputType == "text" &&

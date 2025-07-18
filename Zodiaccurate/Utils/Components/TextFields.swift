@@ -467,8 +467,16 @@ struct TTSInputTextField: View {
                 print("🔵 DEBUG: Microphone button action triggered")
                 // Unfocus the text field when microphone is tapped
                 isFocused.wrappedValue = false
-                // Trigger speech recognition
-                onSpeech()
+                
+                // Provide immediate visual feedback
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    // This ensures the button state changes immediately
+                }
+                
+                // Trigger speech recognition on background thread to avoid blocking UI
+                DispatchQueue.global(qos: .userInitiated).async {
+                    onSpeech()
+                }
             }) {
                 ZStack {
                     // Outer glow ring

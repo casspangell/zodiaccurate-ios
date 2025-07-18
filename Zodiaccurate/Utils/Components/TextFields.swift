@@ -395,39 +395,48 @@ struct TTSInputTextField: View {
                                 Color.clear
                                     .preference(key: TextEditorSizePreferenceKey.self, value: geometry.size)
                                     .onPreferenceChange(TextEditorSizePreferenceKey.self) { size in
-                                        // Only check for height changes if we have a previous height (not initial load)
-                                        if previousHeight > 0 {
-                                            // Check if height has changed significantly (more than 5 points)
-                                            let heightDifference = size.height - previousHeight
-                                            if abs(heightDifference) > 5 {
-                                                // Call the height change callback
-                                                onHeightChange?(heightDifference)
+                                        // Debounce preference updates to prevent multiple updates per frame
+                                        DispatchQueue.main.async {
+                                            // Only check for height changes if we have a previous height (not initial load)
+                                            if previousHeight > 0 {
+                                                // Check if height has changed significantly (more than 5 points)
+                                                let heightDifference = size.height - previousHeight
+                                                if abs(heightDifference) > 5 {
+                                                    // Call the height change callback
+                                                    onHeightChange?(heightDifference)
+                                                }
                                             }
+                                            
+                                            // Update the previous height
+                                            previousHeight = size.height
                                         }
-                                        
-                                        // Update the previous height
-                                        previousHeight = size.height
                                     }
                             }
                         )
                         .onChange(of: text) { _, newValue in
-                            // Check if the new text contains a newline character
-                            if newValue.contains("\n") {
-                                // Remove the newline and trigger submit
-                                let cleanedText = newValue.replacingOccurrences(of: "\n", with: "")
-                                text = cleanedText
-                                onSubmit()
-                                return
+                            // Debounce text changes to prevent multiple updates per frame
+                            DispatchQueue.main.async {
+                                // Check if the new text contains a newline character
+                                if newValue.contains("\n") {
+                                    // Remove the newline and trigger submit
+                                    let cleanedText = newValue.replacingOccurrences(of: "\n", with: "")
+                                    text = cleanedText
+                                    onSubmit()
+                                    return
+                                }
+                                
+                                if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    highlightInputField = false
+                                }
+                                // Calculate new height based on content
+                                updateTextFieldHeight(for: newValue)
                             }
-                            
-                            if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                highlightInputField = false
-                            }
-                            // Calculate new height based on content
-                            updateTextFieldHeight(for: newValue)
                         }
                         .onChange(of: isFocused.wrappedValue) { _, newValue in
-                            if newValue { highlightInputField = false }
+                            // Debounce focus changes to prevent multiple updates per frame
+                            DispatchQueue.main.async {
+                                if newValue { highlightInputField = false }
+                            }
                         }
                         .offset(x: shakeOffset)
                         .animation(.default, value: shakeOffset)
@@ -523,21 +532,24 @@ struct TTSInputTextField: View {
             )
         }
         .onChange(of: highlightInputField) { _, newValue in
-            if newValue {
-                withAnimation(.default) {
-                    shakeOffset = -10
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
-                    withAnimation(.default) { shakeOffset = 10 }
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
-                    withAnimation(.default) { shakeOffset = -6 }
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.21) {
-                    withAnimation(.default) { shakeOffset = 6 }
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-                    withAnimation(.default) { shakeOffset = 0 }
+            // Debounce highlight changes to prevent multiple updates per frame
+            DispatchQueue.main.async {
+                if newValue {
+                    withAnimation(.default) {
+                        shakeOffset = -10
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
+                        withAnimation(.default) { shakeOffset = 10 }
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+                        withAnimation(.default) { shakeOffset = -6 }
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.21) {
+                        withAnimation(.default) { shakeOffset = 6 }
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+                        withAnimation(.default) { shakeOffset = 0 }
+                    }
                 }
             }
         }

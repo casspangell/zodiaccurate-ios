@@ -49,6 +49,9 @@ struct ConversationalOnboardingView: View {
     @State private var showSpeechErrorAlert = false
     @State private var highlightInputField = false
     @State private var manualScrollOffset: CGFloat = 0
+    
+    // Unified scroll manager
+    @StateObject private var scrollManager = ScrollManager()
 
     var onComplete: () -> Void = {}
     
@@ -305,20 +308,18 @@ struct ConversationalOnboardingView: View {
                     .onChange(of: messages.count) { _, _ in
                         // Only scroll when an AI response is added (not user messages)
                         if let lastMessage = messages.last, !lastMessage.isUser {
-                            scrollToBottom(proxy: proxy, delay: 0.1)
+                            scrollManager.scheduleScroll(to: .lastMessage, proxy: proxy, delay: 0.1, messageId: lastMessage.id)
                         }
                     }
                     .onChange(of: isTyping) { _, newValue in
                         if newValue {
-                            scrollToShowTyping(proxy: proxy)
+                            scrollManager.scheduleScroll(to: .typing, proxy: proxy, delay: 0.1)
                         }
                     }
                     .onChange(of: tutorialManager.showVoiceTutorial) { _, newValue in
                         if newValue {
                             // Scroll to show input section when tutorial appears
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                scrollToShowInput(proxy: proxy, delay: 0.0)
-                            }
+                            scrollManager.scheduleScroll(to: .input, proxy: proxy, delay: 0.1)
                         }
                     }
                 }
@@ -380,6 +381,10 @@ struct ConversationalOnboardingView: View {
         .onReceive(Publishers.keyboardHeight) { keyboardHeight in
             self.keyboardHeight = keyboardHeight
         }
+        .onDisappear {
+            // Cancel any pending scroll operations when view disappears
+            scrollManager.cancelPendingScroll()
+        }
         .alert("Microphone Access Needed", isPresented: $showMicrophoneAlert) {
             Button("Open Settings") {
                 if let appSettings = URL(string: UIApplication.openSettingsURLString) {
@@ -400,45 +405,7 @@ struct ConversationalOnboardingView: View {
 
     }
     
-    private func scrollToBottom(proxy: ScrollViewProxy, delay: Double = 0.1) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(Animation.easeInOut(duration: 0.4)) {
-                // Scroll to show the latest content smoothly
-                if currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                } else if let lastMessage = messages.last {
-                    proxy.scrollTo(lastMessage.id, anchor: .center)
-                } else {
-                    proxy.scrollTo("chatBottom", anchor: .center)
-                }
-            }
-        }
-    }
-    
-    private func scrollToShowInput(proxy: ScrollViewProxy, delay: Double = 0.3) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(Animation.easeInOut(duration: 0.8)) {
-                proxy.scrollTo("inputSection", anchor: .bottom)
-            }
-        }
-    }
-    
-    private func scrollToShowPicker(proxy: ScrollViewProxy, delay: Double = 0.3) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(Animation.easeInOut(duration: 0.8)) {
-                proxy.scrollTo("interactivePicker", anchor: .center)
-            }
-        }
-    }
-    
-    private func scrollToShowTyping(proxy: ScrollViewProxy, delay: Double = 0.1) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(Animation.easeInOut(duration: 0.4)) {
-                // Scroll to show typing indicator
-                proxy.scrollTo("typingIndicator", anchor: .center)
-            }
-        }
-    }
+
     
     // Background View
     private struct BackgroundView: View {
@@ -1131,9 +1098,6 @@ struct InputSection: View {
                         .onAppear {
                             onFrameChange(geometry.frame(in: .global))
                         }
-                        .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                            onFrameChange(newFrame)
-                        }
                 }
             )
             .onTapGesture {
@@ -1329,10 +1293,7 @@ struct ChatContentView: View {
                     GeometryReader { geo in
                         Color.clear
                             .onAppear {
-                                print("[DEBUG] chatBottom global minY: \(geo.frame(in: .global).minY), maxY: \(geo.frame(in: .global).maxY)")
-                            }
-                            .onChange(of: geo.frame(in: .global)) { _, newFrame in
-                                print("[DEBUG] chatBottom global minY changed: \(newFrame.minY), maxY: \(newFrame.maxY)")
+                                print("--- minY: \(geo.frame(in: .global).minY), maxY: \(geo.frame(in: .global).maxY)")
                             }
                     }
                 )
@@ -1520,6 +1481,71 @@ private struct CosmicBadgeEffects: View {
 
 #Preview {
     ConversationalOnboardingView()
+}
+
+// Unified Scroll Manager for efficient scrolling
+class ScrollManager: ObservableObject {
+    private var scrollWorkItem: DispatchWorkItem?
+    private var lastScrollTime: Date = Date()
+    private let minimumScrollInterval: TimeInterval = 0.1
+    
+    enum ScrollTarget {
+        case bottom
+        case input
+        case picker
+        case typing
+        case lastMessage
+    }
+    
+    func scheduleScroll(to target: ScrollTarget, proxy: ScrollViewProxy, delay: Double = 0.0, messageId: UUID? = nil) {
+        // Cancel any pending scroll
+        scrollWorkItem?.cancel()
+        
+        // Check if enough time has passed since last scroll
+        let timeSinceLastScroll = Date().timeIntervalSince(lastScrollTime)
+        var adjustedDelay = delay
+        if timeSinceLastScroll < minimumScrollInterval {
+            adjustedDelay += minimumScrollInterval - timeSinceLastScroll
+        }
+        
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.performScroll(to: target, proxy: proxy, messageId: messageId)
+            self?.lastScrollTime = Date()
+        }
+        
+        scrollWorkItem = workItem
+        
+        if adjustedDelay > 0 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDelay, execute: workItem)
+        } else {
+            DispatchQueue.main.async(execute: workItem)
+        }
+    }
+    
+    private func performScroll(to target: ScrollTarget, proxy: ScrollViewProxy, messageId: UUID? = nil) {
+        withAnimation(.easeInOut(duration: 0.4)) {
+            switch target {
+            case .bottom:
+                proxy.scrollTo("bottom", anchor: .bottom)
+            case .input:
+                proxy.scrollTo("inputSection", anchor: .bottom)
+            case .picker:
+                proxy.scrollTo("interactivePicker", anchor: .center)
+            case .typing:
+                proxy.scrollTo("typingIndicator", anchor: .center)
+            case .lastMessage:
+                if let messageId = messageId {
+                    proxy.scrollTo(messageId, anchor: .center)
+                } else {
+                    proxy.scrollTo("chatBottom", anchor: .center)
+                }
+            }
+        }
+    }
+    
+    func cancelPendingScroll() {
+        scrollWorkItem?.cancel()
+    }
 }
 
 // Preference key for header height

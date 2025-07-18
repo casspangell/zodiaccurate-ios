@@ -500,4 +500,91 @@ struct TextEditorSizePreferenceKey: PreferenceKey {
     }
 }
 
+// MARK: - Input Section Component
+struct InputSection: View {
+    @Binding var currentInput: String
+    let currentStep: ConversationStep
+    let onSend: () -> Void
+    let isTextFieldFocused: FocusState<Bool>.Binding
+    let onFrameChange: (CGRect) -> Void
+    @Binding var highlightInputField: Bool
+    let onHeightChange: ((CGFloat) -> Void)?
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            InputTextField(
+                text: $currentInput,
+                placeholder: currentStep.placeholder,
+                isFocused: isTextFieldFocused,
+                onSubmit: onSend,
+                onTap: { isTextFieldFocused.wrappedValue = true },
+                highlightInputField: $highlightInputField,
+                onHeightChange: onHeightChange
+            )
+            .background(
+                GeometryReader { geometry in
+                    Color.clear
+                        .onAppear {
+                            onFrameChange(geometry.frame(in: .global))
+                        }
+                }
+            )
+            .onTapGesture {
+                isTextFieldFocused.wrappedValue = true
+            }
+            
+            Button(action: onSend) {
+                Image(systemName: "paperplane.fill")
+                    .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
+                    .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+            }
+        }
+    }
+}
+
+// MARK: - Typing Indicator Component
+struct TypingIndicator: View {
+    @State private var animationAmount = 0.0
+    let isAnimating: Bool
+    
+    var body: some View {
+        HStack {
+            HStack {
+                Image("logo")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(.purple)
+                
+                HStack(spacing: 4) {
+                    ForEach(0..<3) { index in
+                        Circle()
+                            .fill(Color.accentGold.opacity(0.6))
+                            .frame(width: 8, height: 8)
+                            .scaleEffect(animationAmount)
+                            .animation(
+                                isAnimating
+                                ? Animation.easeInOut(duration: 0.6)
+                                    .repeatForever()
+                                    .delay(Double(index) * 0.2)
+                                : .default,
+                                value: animationAmount
+                            )
+                    }
+                }
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .onAppear {
+            if isAnimating {
+                self.animationAmount = 1.0
+            }
+        }
+        .onChange(of: isAnimating) { _, newValue in
+            self.animationAmount = newValue ? 1.0 : 0.0
+        }
+    }
+}
+
 

@@ -876,163 +876,13 @@ struct ConversationalOnboardingView: View {
     }
 }
 
-struct ChatMessage: Identifiable, Equatable {
-    let id = UUID()
-    let text: String
-    let isUser: Bool
-    let timestamp: Date
-    
-    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.text == rhs.text &&
-        lhs.isUser == rhs.isUser &&
-        lhs.timestamp == rhs.timestamp
-    }
-}
 
-struct ChatBubble: View {
-    let message: ChatMessage
-    let onSizeChange: ((CGSize) -> Void)?
-    
-    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil) {
-        self.message = message
-        self.onSizeChange = onSizeChange
-    }
-    
-    var body: some View {
-        HStack {
-            if message.isUser {
-                Spacer()
-                Text(message.text)
-                    .padding()
-                    .background(Color.bubbleFrost)
-                    .foregroundColor(.white)
-                    .cornerRadius(20)
-                    .frame(maxWidth: 280, alignment: .trailing)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear
-                                .preference(key: BubbleSizePreferenceKey.self, value: geometry.size)
-                                .onPreferenceChange(BubbleSizePreferenceKey.self) { size in
-                                    onSizeChange?(size)
-                                }
-                        }
-                    )
-            } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    Image("logo")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .foregroundColor(.purple)
-                    
-                    Text(message.text)
-                        .padding()
-                        .background(Color.bubbleSilver)
-                        .foregroundColor(.white)
-                        .cornerRadius(20)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: 280, alignment: .leading)
-                .background(
-                    GeometryReader { geometry in
-                        Color.clear
-                            .preference(key: BubbleSizePreferenceKey.self, value: geometry.size)
-                            .onPreferenceChange(BubbleSizePreferenceKey.self) { size in
-                                onSizeChange?(size)
-                            }
-                    }
-                )
-                Spacer()
-            }
-        }
-    }
-}
 
-struct InputSection: View {
-    @Binding var currentInput: String
-    let currentStep: ConversationStep
-    let onSend: () -> Void
-    let isTextFieldFocused: FocusState<Bool>.Binding
-    let onFrameChange: (CGRect) -> Void
-    @Binding var highlightInputField: Bool
-    let onHeightChange: ((CGFloat) -> Void)?
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            InputTextField(
-                text: $currentInput,
-                placeholder: currentStep.placeholder,
-                isFocused: isTextFieldFocused,
-                onSubmit: onSend,
-                onTap: { isTextFieldFocused.wrappedValue = true },
-                highlightInputField: $highlightInputField,
-                onHeightChange: onHeightChange
-            )
-            .background(
-                GeometryReader { geometry in
-                    Color.clear
-                        .onAppear {
-                            onFrameChange(geometry.frame(in: .global))
-                        }
-                }
-            )
-            .onTapGesture {
-                isTextFieldFocused.wrappedValue = true
-            }
-            
-            Button(action: onSend) {
-                Image(systemName: "paperplane.fill")
-                    .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
-                    .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
-            }
-        }
-    }
-}
 
-struct TypingIndicator: View {
-    @State private var animationAmount = 0.0
-    let isAnimating: Bool
-    
-    var body: some View {
-        HStack {
-            HStack {
-                Image("logo")
-                    .resizable()
-                    .frame(width: 20, height: 20)
-                    .foregroundColor(.purple)
-                
-                HStack(spacing: 4) {
-                    ForEach(0..<3) { index in
-                        Circle()
-                            .fill(Color.accentGold.opacity(0.6))
-                            .frame(width: 8, height: 8)
-                            .scaleEffect(animationAmount)
-                            .animation(
-                                isAnimating
-                                ? Animation.easeInOut(duration: 0.6)
-                                    .repeatForever()
-                                    .delay(Double(index) * 0.2)
-                                : .default,
-                                value: animationAmount
-                            )
-                    }
-                }
-            }
-            
-            Spacer()
-        }
-        .padding()
-        .onAppear {
-            if isAnimating {
-                self.animationAmount = 1.0
-            }
-        }
-        .onChange(of: isAnimating) { _, newValue in
-            self.animationAmount = newValue ? 1.0 : 0.0
-        }
-    }
-}
+
+
+
+
 
 struct ConversationStep {
     let message: String
@@ -1413,13 +1263,6 @@ struct HeaderHeightPreferenceKey: PreferenceKey {
     }
 }
 
-// Preference key for bubble size
-struct BubbleSizePreferenceKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
-}
+
 
 

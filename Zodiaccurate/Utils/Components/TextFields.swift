@@ -1,8 +1,4 @@
 import SwiftUI
-import Speech
-// Make sure SpeechTutorialBubble is available in the project
-// import the file or module if needed
-// If SpeechTutorialBubble is in another file, ensure it is accessible here
 
 // MARK: - Tutorial Bubble Types
 enum TutorialType {
@@ -346,16 +342,12 @@ struct SpeechTutorialBubble: View {
  )
  */
 
-struct TTSInputTextField: View {
+struct InputTextField: View {
     @Binding var text: String
     var placeholder: String
     var isFocused: FocusState<Bool>.Binding
     var onSubmit: () -> Void
     var onTap: () -> Void
-    var onSpeech: () -> Void
-    var isRecording: Bool
-    var showTutorial: Bool
-    var microphonePulse: Bool
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     
@@ -462,82 +454,6 @@ struct TTSInputTextField: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            
-            Button(action: {
-                print("🔵 DEBUG: Microphone button action triggered")
-                // Unfocus the text field when microphone is tapped
-                isFocused.wrappedValue = false
-                
-                // Provide immediate visual feedback
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    // This ensures the button state changes immediately
-                }
-                
-                // Trigger speech recognition on background thread to avoid blocking UI
-                DispatchQueue.global(qos: .userInitiated).async {
-                    onSpeech()
-                }
-            }) {
-                ZStack {
-                    // Outer glow ring
-                    Circle()
-                        .fill(Color.accentGold.opacity(0.3))
-                        .frame(width: 50, height: 50)
-                        .scaleEffect(microphonePulse ? 1.4 : 0.8)
-                        .opacity(microphonePulse ? 0.8 : 0.0)
-                        .animation(microphonePulse ? .easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .easeInOut(duration: 0.3), value: microphonePulse)
-                    
-                    // Main button
-                    Circle()
-                        .fill(isRecording ? Color.red : Color.white)
-                        .frame(width: 40, height: 40)
-                        .scaleEffect(isRecording ? 1.1 : 1.0)
-                        .animation(isRecording ? .easeInOut(duration: 0.3).repeatForever(autoreverses: true) : .easeInOut(duration: 0.2), value: isRecording)
-                    
-                    // Icon
-                    Image(systemName: isRecording ? "stop.fill" : "mic.fill")
-                        .foregroundColor(isRecording ? .white : Color(.darkGray))
-                        .font(.system(size: 16, weight: .medium))
-                        .scaleEffect(isRecording ? 0.8 : 1.0)
-                        .animation(.easeInOut(duration: 0.2), value: isRecording)
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
-            .id("microphoneButton")
-            .frame(width: 50, height: 50)
-            .onTapGesture {
-                print("🔵 DEBUG: Microphone button tap gesture detected")
-            }
-            // Removed tutorial bubble overlay here
-            .overlay(
-                // Spotlight effect
-                Group {
-                    if showTutorial {
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    gradient: Gradient(stops: [
-                                        .init(color: Color.accentPurple.opacity(0.3), location: 0.0),
-                                        .init(color: Color.accentPurple.opacity(0.1), location: 0.5),
-                                        .init(color: Color.clear, location: 1.0)
-                                    ]),
-                                    center: .center,
-                                    startRadius: 20,
-                                    endRadius: 60
-                                )
-                            )
-                            .frame(width: 120, height: 120)
-                            .scaleEffect(microphonePulse ? 1.2 : 0.8)
-                            .opacity(isFocused.wrappedValue ? 0 : (microphonePulse ? 0.6 : 0.0))
-                            .animation(microphonePulse ? .easeInOut(duration: 2.0).repeatForever(autoreverses: true) : .easeInOut(duration: 0.3), value: microphonePulse)
-                            .animation(.easeInOut(duration: 0.5), value: isFocused.wrappedValue)
-                            .scaleEffect(isFocused.wrappedValue ? 0.9 : 1.0)
-                            .animation(.easeInOut(duration: 0.5), value: isFocused.wrappedValue)
-                            .zIndex(1002)
-                            .allowsHitTesting(false) // Don't intercept taps
-                    }
-                }
-            )
         }
         .onChange(of: highlightInputField) { _, newValue in
             // Debounce highlight changes to prevent multiple updates per frame
@@ -573,8 +489,6 @@ struct TTSInputTextField: View {
             textFieldHeight = estimatedHeight
         }
     }
-    
-
 }
 
 // Preference key for TextEditor size

@@ -8,8 +8,6 @@
 import SwiftUI
 import SwiftData
 import Combine
-import Speech
-import AVFoundation
 
 struct ConversationalOnboardingView: View {
     @Environment(\.modelContext) private var modelContext
@@ -43,10 +41,7 @@ struct ConversationalOnboardingView: View {
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
     @StateObject private var tutorialManager = TutorialManager()
-    @StateObject private var speechRecognitionService = SpeechRecognitionService()
     @FocusState private var isTextFieldFocused: Bool
-    @State private var showMicrophoneAlert = false
-    @State private var showSpeechErrorAlert = false
     @State private var highlightInputField = false
     @State private var manualScrollOffset: CGFloat = 0
     
@@ -252,8 +247,6 @@ struct ConversationalOnboardingView: View {
                                 onFrameChange: { frame in
                                     textFieldFrame = frame
                                 },
-                                onSpeechStart: handleSpeechInput,
-                                isRecording: speechRecognitionService.isRecording,
                                 tutorialManager: tutorialManager,
                                 highlightInputField: $highlightInputField,
                                 onHeightChange: { heightDifference in
@@ -386,23 +379,6 @@ struct ConversationalOnboardingView: View {
             // Cancel any pending scroll operations when view disappears
             scrollManager.cancelPendingScroll()
         }
-        .alert("Microphone Access Needed", isPresented: $showMicrophoneAlert) {
-            Button("Open Settings") {
-                if let appSettings = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(appSettings)
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Microphone access is required to use voice input. Please enable microphone access in Settings.")
-        }
-        .alert("Speech Recognition Error", isPresented: $showSpeechErrorAlert) {
-            Button("OK", role: .cancel) {
-                speechRecognitionService.reset()
-            }
-        } message: {
-            Text(speechRecognitionService.errorMessage ?? "An error occurred during speech recognition. Please try again.")
-        }
 
     }
     
@@ -511,102 +487,15 @@ struct ConversationalOnboardingView: View {
                             showInputField = true
                             
                             // Start speech tutorial only on the first step
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                startSpeechTutorial()
+                            if currentStep == 0 {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    // Removed speech tutorial
+                                }
                             }
                         } else if conversationSteps[0].inputType == "date" || 
                                 conversationSteps[0].inputType == "time" {
                             showInteractivePicker = true
                         }
-                    }
-                }
-            }
-        }
-    }
-    
-    private func startSpeechTutorial() {
-        tutorialManager.startSpeechTutorial()
-    }
-    
-    private func handleSpeechInput() {
-        if speechRecognitionService.isRecording {
-            stopSpeechRecognition()
-        } else {
-            startSpeechRecognition()
-        }
-    }
-    
-    private func startSpeechRecognition() {
-        // Update UI immediately to provide instant feedback
-        DispatchQueue.main.async {
-            // Dismiss tutorial popup when recording starts, but keep microphone pulse
-            withAnimation(.easeInOut(duration: 0.3)) {
-                self.tutorialManager.showSpeechTutorial = false
-                self.tutorialManager.showVoiceTutorial = false
-            }
-            
-            self.tutorialManager.microphonePulse = true
-        }
-        
-        // Request permissions and start recording on background thread
-        speechRecognitionService.requestPermissions { granted in
-            if granted {
-                DispatchQueue.main.async {
-                    self.speechRecognitionService.startRecording()
-                    
-                    // Monitor transcribed text
-                    self.monitorTranscribedText()
-                }
-            } else {
-                DispatchQueue.main.async {
-                    // Stop microphone pulse if permission denied
-                    self.tutorialManager.microphonePulse = false
-                    self.showMicrophoneAlert = true
-                }
-            }
-        }
-    }
-    
-    private func stopSpeechRecognition() {
-        // Update UI immediately to provide instant feedback
-        DispatchQueue.main.async {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                self.tutorialManager.microphonePulse = false
-            }
-        }
-        
-        // Stop the speech recognition service on background thread
-        DispatchQueue.global(qos: .userInitiated).async {
-            self.speechRecognitionService.stopRecording(userInitiated: true)
-        }
-    }
-    
-    private func monitorTranscribedText() {
-        // Monitor for speech recognition errors
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            if let errorMessage = self.speechRecognitionService.errorMessage {
-                timer.invalidate()
-                DispatchQueue.main.async {
-                    self.showSpeechErrorAlert = true
-                }
-            }
-        }
-        
-        // Monitor transcribed text
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { timer in
-            // Update current input with transcribed text
-            if !self.speechRecognitionService.transcribedText.isEmpty {
-                self.currentInput = self.speechRecognitionService.transcribedText
-            }
-            
-            // Stop monitoring if recording stopped
-            if !self.speechRecognitionService.isRecording {
-                timer.invalidate()
-                
-                // If we have transcribed text, submit it
-                if !self.speechRecognitionService.transcribedText.isEmpty {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        self.handleUserInput(input: self.speechRecognitionService.transcribedText)
                     }
                 }
             }
@@ -621,18 +510,7 @@ struct ConversationalOnboardingView: View {
             return
         }
         highlightInputField = false
-        // If recording is active, stop it first and wait for the transcribed text
-        if speechRecognitionService.isRecording {
-            stopSpeechRecognition()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                let inputText = self.currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !inputText.isEmpty {
-                    self.handleUserInput(input: inputText)
-                }
-            }
-        } else {
-            handleUserInput(input: currentInput)
-        }
+        handleUserInput(input: currentInput)
     }
     
     private func handleUserInput(input: String) {
@@ -718,7 +596,7 @@ struct ConversationalOnboardingView: View {
                             // Start speech tutorial only on the first step
                             if currentStep == 0 {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    startSpeechTutorial()
+                                    // Removed speech tutorial
                                 }
                             }
                         } else if conversationSteps[currentStep].inputType == "date" || 
@@ -1077,28 +955,17 @@ struct InputSection: View {
     let onSend: () -> Void
     let isTextFieldFocused: FocusState<Bool>.Binding
     let onFrameChange: (CGRect) -> Void
-    let onSpeechStart: () -> Void
-    let isRecording: Bool
-    let showTutorial: Bool
-    let microphonePulse: Bool
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
     
     var body: some View {
         HStack(spacing: 12) {
-            TTSInputTextField(
+            InputTextField(
                 text: $currentInput,
                 placeholder: currentStep.placeholder,
                 isFocused: isTextFieldFocused,
                 onSubmit: onSend,
                 onTap: { isTextFieldFocused.wrappedValue = true },
-                onSpeech: {
-                    isTextFieldFocused.wrappedValue = false // Dismiss keyboard
-                    onSpeechStart()
-                },
-                isRecording: isRecording,
-                showTutorial: showTutorial,
-                microphonePulse: microphonePulse,
                 highlightInputField: $highlightInputField,
                 onHeightChange: onHeightChange
             )
@@ -1119,10 +986,7 @@ struct InputSection: View {
                     .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
                     .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
             }
-            .disabled(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
     }
 }
 
@@ -1325,8 +1189,6 @@ struct ChatInputView: View {
     let onSend: () -> Void
     let isTextFieldFocused: FocusState<Bool>.Binding
     let onFrameChange: (CGRect) -> Void
-    let onSpeechStart: () -> Void
-    let isRecording: Bool
     let tutorialManager: TutorialManager
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
@@ -1345,10 +1207,6 @@ struct ChatInputView: View {
                     onSend: onSend,
                     isTextFieldFocused: isTextFieldFocused,
                     onFrameChange: onFrameChange,
-                    onSpeechStart: onSpeechStart,
-                    isRecording: isRecording,
-                    showTutorial: tutorialManager.showSpeechTutorial,
-                    microphonePulse: tutorialManager.microphonePulse,
                     highlightInputField: $highlightInputField,
                     onHeightChange: onHeightChange
                 )
@@ -1358,18 +1216,6 @@ struct ChatInputView: View {
                 .transition(.opacity)
                 .opacity(isVisible ? 1 : 0)
                 .allowsHitTesting(isVisible)
-                
-                // Voice tutorial view below the input section (points upward)
-                if tutorialManager.showVoiceTutorial && isVisible {
-                    TutorialBubble.voice(arrowPosition: .top, pulse: tutorialManager.microphonePulse, onDismiss: { tutorialManager.stopTutorial() })
-                        .padding(.top, 8)
-                        .zIndex(1000)
-                        .transition(.opacity)
-                        .opacity(isTextFieldFocused.wrappedValue ? 0 : 1)
-                        .animation(.easeInOut(duration: 0.5), value: isTextFieldFocused.wrappedValue)
-                        .scaleEffect(isTextFieldFocused.wrappedValue ? 0.95 : 1.0)
-                        .animation(.easeInOut(duration: 0.5), value: isTextFieldFocused.wrappedValue)
-                }
             }
             .padding(.bottom, 12) // Ensure minimum 12px padding from bottom
         }

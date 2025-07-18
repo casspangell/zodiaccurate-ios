@@ -26,9 +26,5 @@
 		<string>DMSans-Medium.ttf</string>
 		<string>DMSans-SemiBold.ttf</string>
 	</array>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app uses speech recognition to let you dictate messages using your voice.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This app uses the microphone to record your voice for speech recognition.</string>
 </dict>
 </plist>

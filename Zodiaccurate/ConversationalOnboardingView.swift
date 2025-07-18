@@ -1061,8 +1061,7 @@ struct ChatInputView: View {
                     onHeightChange: onHeightChange
                 )
                 .background(Color.white.opacity(0.08))
-                .cornerRadius(12)
-                .padding(.horizontal)
+                .cornerRadius(16)
                 .transition(.opacity)
                 .opacity(isVisible ? 1 : 0)
                 .allowsHitTesting(isVisible)

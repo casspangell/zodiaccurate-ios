@@ -511,7 +511,7 @@ struct InputSection: View {
     let onHeightChange: ((CGFloat) -> Void)?
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             InputTextField(
                 text: $currentInput,
                 placeholder: currentStep.placeholder,
@@ -535,10 +535,22 @@ struct InputSection: View {
             
             Button(action: onSend) {
                 Image(systemName: "paperplane.fill")
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
                     .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(Color.white.opacity(0.1))
+                            .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.3 : 0.6)
+                    )
+                    .scaleEffect(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.9 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            .buttonStyle(PlainButtonStyle())
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
 }
 

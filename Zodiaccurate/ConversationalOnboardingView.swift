@@ -47,6 +47,7 @@ struct ConversationalOnboardingView: View {
                 ZodiacChatView(
                     conversationSteps: onboardingConversationSteps,
                     profileImage: currentProfileImage,
+                    userName: userData.firstName,
                     onUserDataUpdate: { input, step in
                         storeUserData(input: input, step: step)
                     },

@@ -11,7 +11,6 @@ struct ZodiacChatView: View {
     @State private var isTyping = false
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
-    @State private var showInteractivePicker = false
     @State private var showInputField = false
     @State private var showSecondaryElements = false
     @State private var keyboardHeight: CGFloat = 0
@@ -34,6 +33,7 @@ struct ZodiacChatView: View {
     // MARK: - Configuration
     let conversationSteps: [ConversationStep]
     let profileImage: String
+    let userName: String
     let onUserDataUpdate: (String, ConversationStep) -> Void
     let onStepComplete: (Int) -> Void
     let onConversationComplete: () -> Void
@@ -46,6 +46,7 @@ struct ZodiacChatView: View {
     init(
         conversationSteps: [ConversationStep],
         profileImage: String = "logo",
+        userName: String = "",
         onUserDataUpdate: @escaping (String, ConversationStep) -> Void,
         onStepComplete: @escaping (Int) -> Void,
         onConversationComplete: @escaping () -> Void,
@@ -56,6 +57,7 @@ struct ZodiacChatView: View {
     ) {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
+        self.userName = userName
         self.onUserDataUpdate = onUserDataUpdate
         self.onStepComplete = onStepComplete
         self.onConversationComplete = onConversationComplete
@@ -119,7 +121,7 @@ struct ZodiacChatView: View {
                                 messages: messages,
                                 currentStep: currentStep,
                                 onboardingConversationSteps: conversationSteps,
-                                showInteractivePicker: showInteractivePicker,
+                                showInputField: showInputField,
                                 showSecondaryElements: showSecondaryElements,
                                 selectedDate: $selectedDate,
                                 selectedTime: $selectedTime,
@@ -157,7 +159,22 @@ struct ZodiacChatView: View {
                                 showInputField: showInputField,
                                 showSecondaryElements: showSecondaryElements,
                                 currentInput: $currentInput,
+                                selectedDate: $selectedDate,
+                                selectedTime: $selectedTime,
                                 onSend: { handleSendWithRecordingCheck() },
+                                onDateSelected: { date in
+                                    let formatter = DateFormatter()
+                                    formatter.dateStyle = .medium
+                                    handleUserInput(input: formatter.string(from: date))
+                                },
+                                onTimeSelected: { time in
+                                    let formatter = DateFormatter()
+                                    formatter.timeStyle = .short
+                                    handleUserInput(input: formatter.string(from: time))
+                                },
+                                onUnknownTime: {
+                                    handleUserInput(input: "Unknown")
+                                },
                                 isTextFieldFocused: $isTextFieldFocused,
                                 onFrameChange: { frame in
                                     // No longer tracking text field frame changes
@@ -393,12 +410,12 @@ struct ZodiacChatView: View {
     }
     
     private func startConversation() {
-        showInteractivePicker = false
         showInputField = false
         showSecondaryElements = false
         
         let initialMessage = conversationSteps[0].message
-        let typingDelay = calculateTypingDelay(for: initialMessage)
+        let personalizedInitialMessage = personalizeMessage(initialMessage, userName)
+        let typingDelay = calculateTypingDelay(for: personalizedInitialMessage)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             isTyping = true
@@ -406,7 +423,7 @@ struct ZodiacChatView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + typingDelay) {
                 isTyping = false
                 let questionMessage = ChatMessage(
-                    text: initialMessage,
+                    text: personalizedInitialMessage,
                     isUser: false,
                     timestamp: Date()
                 )
@@ -417,12 +434,7 @@ struct ZodiacChatView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     withAnimation {
                         showSecondaryElements = true
-                        if conversationSteps[0].inputType == "text" {
-                            showInputField = true
-                        } else if conversationSteps[0].inputType == "date" || 
-                                conversationSteps[0].inputType == "time" {
-                            showInteractivePicker = true
-                        }
+                        showInputField = true
                     }
                 }
             }
@@ -444,13 +456,6 @@ struct ZodiacChatView: View {
         
         tutorialManager.stopTutorial()
         
-        let nextStepWillUsePicker = currentStep + 1 < conversationSteps.count && 
-                                   (conversationSteps[currentStep + 1].inputType == "date" || 
-                                    conversationSteps[currentStep + 1].inputType == "time")
-        
-        if !nextStepWillUsePicker {
-            showInteractivePicker = false
-        }
         showInputField = false
         showSecondaryElements = false
         
@@ -471,19 +476,15 @@ struct ZodiacChatView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             if currentStep < conversationSteps.count {
                 let nextMessage = conversationSteps[currentStep].message
-                addAIMessage(nextMessage)
+                let personalizedMessage = personalizeMessage(nextMessage, userName)
+                displayAIMessage(personalizedMessage)
             }
         }
     }
     
-    private func addAIMessage(_ text: String) {
+    private func displayAIMessage(_ text: String) {
         isTyping = true
         showInputField = false
-        if currentStep >= conversationSteps.count || 
-           (conversationSteps[currentStep].inputType != "date" && 
-            conversationSteps[currentStep].inputType != "time") {
-            showInteractivePicker = false
-        }
         showSecondaryElements = false
         
         let typingDelay = calculateTypingDelay(for: text)
@@ -502,13 +503,8 @@ struct ZodiacChatView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation {
                     showSecondaryElements = true
-                    if currentStep < conversationSteps.count {
-                        if conversationSteps[currentStep].inputType == "text" {
-                            showInputField = true
-                        } else if conversationSteps[currentStep].inputType == "date" || 
-                                conversationSteps[currentStep].inputType == "time" {
-                            showInteractivePicker = true
-                        }
+                    if currentStep < onboardingConversationSteps.count {
+                        showInputField = true
                     }
                 }
             }
@@ -522,7 +518,7 @@ struct ChatContentView: View {
     let messages: [ChatMessage]
     let currentStep: Int
     let onboardingConversationSteps: [ConversationStep]
-    let showInteractivePicker: Bool
+    let showInputField: Bool
     let showSecondaryElements: Bool
     let selectedDate: Binding<Date>
     let selectedTime: Binding<Date>
@@ -534,11 +530,11 @@ struct ChatContentView: View {
     let onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)?
     let onBubbleFrameChange: ((ChatMessage, CGRect) -> Void)?
     
-    init(messages: [ChatMessage], currentStep: Int, onboardingConversationSteps: [ConversationStep], showInteractivePicker: Bool, showSecondaryElements: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager, onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)? = nil, onBubbleFrameChange: ((ChatMessage, CGRect) -> Void)? = nil) {
+    init(messages: [ChatMessage], currentStep: Int, onboardingConversationSteps: [ConversationStep], showInputField: Bool, showSecondaryElements: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager, onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)? = nil, onBubbleFrameChange: ((ChatMessage, CGRect) -> Void)? = nil) {
         self.messages = messages
         self.currentStep = currentStep
         self.onboardingConversationSteps = onboardingConversationSteps
-        self.showInteractivePicker = showInteractivePicker
+        self.showInputField = showInputField
         self.showSecondaryElements = showSecondaryElements
         self.selectedDate = selectedDate
         self.selectedTime = selectedTime
@@ -583,23 +579,6 @@ struct ChatContentView: View {
                 }
             }
             
-            if currentStep < onboardingConversationSteps.count {
-                let showPicker = !onboardingConversationSteps[currentStep].isFinal &&
-                                 showInteractivePicker &&
-                                 showSecondaryElements
-
-                InteractivePickerView(
-                    step: onboardingConversationSteps[currentStep],
-                    selectedDate: selectedDate,
-                    selectedTime: selectedTime,
-                    onDateSelected: onDateSelected,
-                    onTimeSelected: onTimeSelected,
-                    onUnknownTime: onUnknownTime
-                )
-                .opacity(showPicker ? 1 : 0)
-                .allowsHitTesting(showPicker)
-            }
-            
             TypingIndicator(isAnimating: isTyping)
                 .opacity(isTyping ? 1 : 0)
                 .id("typingIndicator")
@@ -631,7 +610,12 @@ struct ChatInputView: View {
     let showInputField: Bool
     let showSecondaryElements: Bool
     let currentInput: Binding<String>
+    let selectedDate: Binding<Date>
+    let selectedTime: Binding<Date>
     let onSend: () -> Void
+    let onDateSelected: (Date) -> Void
+    let onTimeSelected: (Date) -> Void
+    let onUnknownTime: () -> Void
     let isTextFieldFocused: FocusState<Bool>.Binding
     let onFrameChange: (CGRect) -> Void
     let tutorialManager: TutorialManager
@@ -640,16 +624,19 @@ struct ChatInputView: View {
         
     var body: some View {
         if currentStep < onboardingConversationSteps.count && !onboardingConversationSteps[currentStep].isFinal {
-            let isVisible = onboardingConversationSteps[currentStep].inputType == "text" &&
-                            showInputField &&
-                            showSecondaryElements
+            let isVisible = showInputField && showSecondaryElements
             
             VStack(spacing: 0) {
                 // Response chat bubble
                 ResponseChatBubble(
                     currentStep: onboardingConversationSteps[currentStep],
                     currentInput: currentInput,
+                    selectedDate: selectedDate,
+                    selectedTime: selectedTime,
                     onSend: onSend,
+                    onDateSelected: onDateSelected,
+                    onTimeSelected: onTimeSelected,
+                    onUnknownTime: onUnknownTime,
                     onFrameChange: onFrameChange,
                     highlightInputField: $highlightInputField,
                     onHeightChange: onHeightChange

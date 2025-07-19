@@ -86,16 +86,26 @@ struct QuestionChatBubble: View {
 struct ResponseChatBubble: View {
     let currentStep: ConversationStep
     @Binding var currentInput: String
+    @Binding var selectedDate: Date
+    @Binding var selectedTime: Date
     let onSend: () -> Void
+    let onDateSelected: (Date) -> Void
+    let onTimeSelected: (Date) -> Void
+    let onUnknownTime: () -> Void
     @FocusState var isTextFieldFocused: Bool
     let onFrameChange: (CGRect) -> Void
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
     
-    init(currentStep: ConversationStep, currentInput: Binding<String>, onSend: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil) {
+    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil) {
         self.currentStep = currentStep
         self._currentInput = currentInput
+        self._selectedDate = selectedDate
+        self._selectedTime = selectedTime
         self.onSend = onSend
+        self.onDateSelected = onDateSelected
+        self.onTimeSelected = onTimeSelected
+        self.onUnknownTime = onUnknownTime
         self.onFrameChange = onFrameChange
         self._highlightInputField = highlightInputField
         self.onHeightChange = onHeightChange
@@ -103,53 +113,84 @@ struct ResponseChatBubble: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            InputTextField(
-                text: $currentInput,
-                placeholder: currentStep.placeholder,
-                isFocused: $isTextFieldFocused,
-                onSubmit: onSend,
-                onTap: { isTextFieldFocused = true },
-                highlightInputField: $highlightInputField,
-                onHeightChange: onHeightChange
-            )
-            .background(
-                GeometryReader { geometry in
-                    Color.clear
-                        .onAppear {
-                            onFrameChange(geometry.frame(in: .global))
-                        }
-                        .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                            // Only update if the frame is actually valid (not zero)
-                            if newFrame.width > 0 && newFrame.height > 0 {
-                                onFrameChange(newFrame)
+            // Conditional input based on step type
+            if currentStep.inputType == "text" {
+                // Text input
+                InputTextField(
+                    text: $currentInput,
+                    placeholder: currentStep.placeholder,
+                    isFocused: $isTextFieldFocused,
+                    onSubmit: onSend,
+                    onTap: { isTextFieldFocused = true },
+                    highlightInputField: $highlightInputField,
+                    onHeightChange: onHeightChange
+                )
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .onAppear {
+                                onFrameChange(geometry.frame(in: .global))
                             }
-                        }
+                            .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                                // Only update if the frame is actually valid (not zero)
+                                if newFrame.width > 0 && newFrame.height > 0 {
+                                    onFrameChange(newFrame)
+                                }
+                            }
+                    }
+                )
+                .onTapGesture {
+                    isTextFieldFocused = true
                 }
-            )
-            .onTapGesture {
-                isTextFieldFocused = true
+            } else if currentStep.inputType == "date" || currentStep.inputType == "time" {
+                // Interactive picker
+                InteractivePickerView(
+                    step: currentStep,
+                    selectedDate: $selectedDate,
+                    selectedTime: $selectedTime,
+                    onDateSelected: onDateSelected,
+                    onTimeSelected: onTimeSelected,
+                    onUnknownTime: onUnknownTime
+                )
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .onAppear {
+                                onFrameChange(geometry.frame(in: .global))
+                            }
+                            .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                                // Only update if the frame is actually valid (not zero)
+                                if newFrame.width > 0 && newFrame.height > 0 {
+                                    onFrameChange(newFrame)
+                                }
+                            }
+                    }
+                )
             }
             
-            Button(action: onSend) {
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
-                    .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(Color.white.opacity(0.1))
-                            .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.3 : 0.6)
-                    )
-                    .scaleEffect(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.9 : 1.0)
-                    .animation(.easeInOut(duration: 0.2), value: currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            // Send button (only show for text input)
+            if currentStep.inputType == "text" {
+                Button(action: onSend) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
+                        .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(Color.white.opacity(0.1))
+                                .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.3 : 0.6)
+                        )
+                        .scaleEffect(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.9 : 1.0)
+                        .animation(.easeInOut(duration: 0.2), value: currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
-            .buttonStyle(PlainButtonStyle())
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color.purple)
-        .cornerRadius(20)
+        .padding(.horizontal, currentStep.inputType == "text" ? 16 : 0)
+        .padding(.vertical, currentStep.inputType == "text" ? 12 : 0)
+        .background(currentStep.inputType == "text" ? Color.purple : Color.clear)
+        .cornerRadius(currentStep.inputType == "text" ? 20 : 0)
     }
 }
 

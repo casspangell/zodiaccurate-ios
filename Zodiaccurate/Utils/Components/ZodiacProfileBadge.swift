@@ -271,6 +271,81 @@ struct CosmicBadgeEffects: View {
     }
 }
 
+// MARK: - Badge Animation Manager
+/// Manages the cosmic badge animation sequence for zodiac sign acquisition
+class BadgeAnimationManager: ObservableObject {
+    @Published var isAcquiringBadge = false
+    @Published var badgeScale: CGFloat = 1.0
+    @Published var badgeRotation: Double = 0
+    @Published var sparkleOpacity: Double = 0
+    @Published var cosmicParticlesOpacity: Double = 0
+    @Published var nebulaOpacity: Double = 0
+    @Published var starFieldOpacity: Double = 0
+    @Published var cosmicGlowOpacity: Double = 0
+    @Published var currentProfileImage = "logo"
+    
+    /// Triggers the cosmic badge animation sequence
+    /// - Parameter newAssetName: The new zodiac sign asset name to swap to
+    func triggerBadgeAnimation(andSwapTo newAssetName: String) {
+        isAcquiringBadge = true
+        
+        // Phase 1 & 2: Build up cosmic effects and scale up badge
+        withAnimation(Animation.easeInOut(duration: 0.8)) { cosmicGlowOpacity = 1.0 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                self.badgeScale = 1.3
+                self.badgeRotation = 15
+            }
+            withAnimation(Animation.easeInOut(duration: 1.0)) { self.nebulaOpacity = 1.0 }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(Animation.easeInOut(duration: 0.8)) {
+                self.starFieldOpacity = 1.0
+                self.cosmicParticlesOpacity = 1.0
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            withAnimation(Animation.easeInOut(duration: 0.3)) { self.sparkleOpacity = 1.0 }
+        }
+
+        // Phase 3: Funnel effect - spin and shrink
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation(.linear(duration: 0.8)) {
+                self.badgeRotation += 1080 // Spin 3 times
+                self.badgeScale = 0.01 // Shrink to almost nothing
+            }
+        }
+        
+        // Phase 4: Swap image and pop it into view
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { // After funnel
+            // Instantly swap image and reset rotation
+            self.currentProfileImage = newAssetName
+            self.badgeRotation = 0
+            
+            // Pop out with spring animation
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                self.badgeScale = 1.0
+            }
+        }
+        
+        // Phase 5: Fade out all cosmic effects
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
+            withAnimation(Animation.easeInOut(duration: 0.8)) {
+                self.sparkleOpacity = 0.0
+                self.cosmicParticlesOpacity = 0.0
+                self.starFieldOpacity = 0.0
+                self.nebulaOpacity = 0.0
+                self.cosmicGlowOpacity = 0.0
+            }
+        }
+        
+        // Phase 6: Reset state
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.1) {
+            self.isAcquiringBadge = false
+        }
+    }
+}
+
 #Preview {
     VStack(spacing: 20) {
         Text("Full Profile Badge")

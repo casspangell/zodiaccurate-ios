@@ -185,6 +185,12 @@ struct InputSection: View {
                         .onAppear {
                             onFrameChange(geometry.frame(in: .global))
                         }
+                        .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                            // Only update if the frame is actually valid (not zero)
+                            if newFrame.width > 0 && newFrame.height > 0 {
+                                onFrameChange(newFrame)
+                            }
+                        }
                 }
             )
             .onTapGesture {

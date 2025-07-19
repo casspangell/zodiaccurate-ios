@@ -209,7 +209,7 @@ struct ConversationalOnboardingView: View {
                             ChatContentView(
                                 messages: messages,
                                 currentStep: currentStep,
-                                conversationSteps: conversationSteps,
+                                onboardingConversationSteps: onboardingConversationSteps,
                                 showInteractivePicker: showInteractivePicker,
                                 showSecondaryElements: showSecondaryElements,
                                 selectedDate: $selectedDate,
@@ -238,7 +238,7 @@ struct ConversationalOnboardingView: View {
                             // Input
                             ChatInputView(
                                 currentStep: currentStep,
-                                conversationSteps: conversationSteps,
+                                onboardingConversationSteps: onboardingConversationSteps,
                                 showInputField: showInputField,
                                 showSecondaryElements: showSecondaryElements,
                                 currentInput: $currentInput,
@@ -259,8 +259,8 @@ struct ConversationalOnboardingView: View {
                             .id("inputSection")
                             
                             // Complete Button
-                            if (currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal && messages.count > 0 && messages.last?.isUser == false) ||
-                               currentStep >= conversationSteps.count {
+                            if (currentStep < onboardingConversationSteps.count && onboardingConversationSteps[currentStep].isFinal && messages.count > 0 && messages.last?.isUser == false) ||
+                               currentStep >= onboardingConversationSteps.count {
                                 Button(action: { 
                                     saveOnboardingData()
                                     showOnboardingHoroscope = true
@@ -461,7 +461,7 @@ struct ConversationalOnboardingView: View {
         showInputField = false
         showSecondaryElements = false
         
-        let initialMessage = conversationSteps[0].message
+        let initialMessage = onboardingConversationSteps[0].message
         let typingDelay = calculateTypingDelay(for: initialMessage)
         
         // Add initial message with dynamic typing animation
@@ -483,7 +483,7 @@ struct ConversationalOnboardingView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     withAnimation {
                         showSecondaryElements = true
-                        if conversationSteps[0].inputType == "text" {
+                        if onboardingConversationSteps[0].inputType == "text" {
                             showInputField = true
                             
                             // Start speech tutorial only on the first step
@@ -492,8 +492,8 @@ struct ConversationalOnboardingView: View {
                                     // Removed speech tutorial
                                 }
                             }
-                        } else if conversationSteps[0].inputType == "date" || 
-                                conversationSteps[0].inputType == "time" {
+                        } else if onboardingConversationSteps[0].inputType == "date" || 
+                                onboardingConversationSteps[0].inputType == "time" {
                             showInteractivePicker = true
                         }
                     }
@@ -520,9 +520,9 @@ struct ConversationalOnboardingView: View {
         tutorialManager.stopTutorial()
         
         // Check if the next step will use an interactive picker
-        let nextStepWillUsePicker = currentStep + 1 < conversationSteps.count && 
-                                   (conversationSteps[currentStep + 1].inputType == "date" || 
-                                    conversationSteps[currentStep + 1].inputType == "time")
+        let nextStepWillUsePicker = currentStep + 1 < onboardingConversationSteps.count && 
+                                   (onboardingConversationSteps[currentStep + 1].inputType == "date" || 
+                                    onboardingConversationSteps[currentStep + 1].inputType == "time")
         
         // Hide interactive elements when user provides input
         // Only hide picker if next step won't use one
@@ -543,7 +543,7 @@ struct ConversationalOnboardingView: View {
         }
         
         // Store user data
-        storeUserData(input: input, step: conversationSteps[currentStep])
+        storeUserData(input: input, step: onboardingConversationSteps[currentStep])
         
         // Clear the text field after submission
         currentInput = ""
@@ -553,8 +553,8 @@ struct ConversationalOnboardingView: View {
         
         // Add AI response after delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-            if currentStep < conversationSteps.count {
-                let nextMessage = conversationSteps[currentStep].message
+            if currentStep < onboardingConversationSteps.count {
+                let nextMessage = onboardingConversationSteps[currentStep].message
                 let personalizedMessage = personalizeMessage(nextMessage, with: userData.firstName)
                 addAIMessage(personalizedMessage)
             }
@@ -565,9 +565,9 @@ struct ConversationalOnboardingView: View {
         isTyping = true
         showInputField = false
         // Only hide picker if the current step doesn't use one
-        if currentStep >= conversationSteps.count || 
-           (conversationSteps[currentStep].inputType != "date" && 
-            conversationSteps[currentStep].inputType != "time") {
+        if currentStep >= onboardingConversationSteps.count || 
+           (onboardingConversationSteps[currentStep].inputType != "date" && 
+            onboardingConversationSteps[currentStep].inputType != "time") {
             showInteractivePicker = false
         }
         showSecondaryElements = false
@@ -589,8 +589,8 @@ struct ConversationalOnboardingView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation {
                     showSecondaryElements = true
-                    if currentStep < conversationSteps.count {
-                        if conversationSteps[currentStep].inputType == "text" {
+                    if currentStep < onboardingConversationSteps.count {
+                        if onboardingConversationSteps[currentStep].inputType == "text" {
                             showInputField = true
                             
                             // Start speech tutorial only on the first step
@@ -599,8 +599,8 @@ struct ConversationalOnboardingView: View {
                                     // Removed speech tutorial
                                 }
                             }
-                        } else if conversationSteps[currentStep].inputType == "date" || 
-                                conversationSteps[currentStep].inputType == "time" {
+                        } else if onboardingConversationSteps[currentStep].inputType == "date" || 
+                                onboardingConversationSteps[currentStep].inputType == "time" {
                             showInteractivePicker = true
                         }
                     }
@@ -884,69 +884,13 @@ struct ConversationalOnboardingView: View {
 
 
 
-struct ConversationStep {
-    let message: String
-    let inputType: String // "text", "date", "time"
-    let placeholder: String
-    let dataKey: String
-    let isFinal: Bool
-    
-    init(message: String, inputType: String, placeholder: String, dataKey: String, isFinal: Bool = false) {
-        self.message = message
-        self.inputType = inputType
-        self.placeholder = placeholder
-        self.dataKey = dataKey
-        self.isFinal = isFinal
-    }
-}
 
-
-
-let conversationSteps: [ConversationStep] = [
-    ConversationStep(
-        message: "✨ Welcome, beautiful soul. I can sense you're here for a reason... The universe has guided you to me. What do you call yourself?",
-        inputType: "text",
-        placeholder: "Your first name...",
-        dataKey: "firstName"
-    ),
-    ConversationStep(
-        message: "{name}... what a beautiful name. I can already feel your energy resonating through the cosmos. Now, tell me - when did you choose to come into this world?",
-        inputType: "date",
-        placeholder: "Your birth date",
-        dataKey: "birthDate"
-    ),
-    ConversationStep(
-        message: "Perfect, {name}. I'm starting to see your cosmic blueprint forming... The exact moment you took your first breath holds incredible power. Do you know what time you were born?",
-        inputType: "time",
-        placeholder: "Birth time (if known)",
-        dataKey: "birthTime"
-    ),
-    ConversationStep(
-        message: "I'm getting strong intuitive energy from you, {name}... Tell me, do you often get \"gut feelings\" about people or situations that turn out to be right?",
-        inputType: "text",
-        placeholder: "Share your thoughts...",
-        dataKey: "intuition"
-    ),
-    ConversationStep(
-        message: "Fascinating... {name}, I need to ask you something personal. When you walk into a room, do you tend to absorb the energy around you, or do people seem drawn to your energy?",
-        inputType: "text",
-        placeholder: "How do you experience energy?",
-        dataKey: "energy"
-    ),
-    ConversationStep(
-        message: "{name}... I have to tell you something. Your cosmic signature is extraordinary. There are layers of depth here that most people never get to explore. The universe has been trying to communicate with you, hasn't it? I can see why you were drawn to find me. Are you ready to discover what the stars have been whispering about you?",
-        inputType: "none",
-        placeholder: "",
-        dataKey: "final",
-        isFinal: true
-    )
-]
 
 // Break out the chat content into a separate view
 struct ChatContentView: View {
     let messages: [ChatMessage]
     let currentStep: Int
-    let conversationSteps: [ConversationStep]
+    let onboardingConversationSteps: [ConversationStep]
     let showInteractivePicker: Bool
     let showSecondaryElements: Bool
     let selectedDate: Binding<Date>
@@ -958,10 +902,10 @@ struct ChatContentView: View {
     let tutorialManager: TutorialManager // <-- Add this
     let onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)?
     
-    init(messages: [ChatMessage], currentStep: Int, conversationSteps: [ConversationStep], showInteractivePicker: Bool, showSecondaryElements: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager, onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)? = nil) {
+    init(messages: [ChatMessage], currentStep: Int, onboardingConversationSteps: [ConversationStep], showInteractivePicker: Bool, showSecondaryElements: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager, onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)? = nil) {
         self.messages = messages
         self.currentStep = currentStep
-        self.conversationSteps = conversationSteps
+        self.onboardingConversationSteps = onboardingConversationSteps
         self.showInteractivePicker = showInteractivePicker
         self.showSecondaryElements = showSecondaryElements
         self.selectedDate = selectedDate
@@ -988,13 +932,13 @@ struct ChatContentView: View {
             }
             // Remove the tutorial popup from here
             
-            if currentStep < conversationSteps.count {
-                let showPicker = !conversationSteps[currentStep].isFinal &&
+            if currentStep < onboardingConversationSteps.count {
+                let showPicker = !onboardingConversationSteps[currentStep].isFinal &&
                                  showInteractivePicker &&
                                  showSecondaryElements
 
                 InteractivePickerView(
-                    step: conversationSteps[currentStep],
+                    step: onboardingConversationSteps[currentStep],
                     selectedDate: selectedDate,
                     selectedTime: selectedTime,
                     onDateSelected: onDateSelected,
@@ -1032,7 +976,7 @@ struct ChatContentView: View {
 // Break out the input section into a separate view
 struct ChatInputView: View {
     let currentStep: Int
-    let conversationSteps: [ConversationStep]
+    let onboardingConversationSteps: [ConversationStep]
     let showInputField: Bool
     let showSecondaryElements: Bool
     let currentInput: Binding<String>
@@ -1044,8 +988,8 @@ struct ChatInputView: View {
     let onHeightChange: ((CGFloat) -> Void)?
         
     var body: some View {
-        if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
-            let isVisible = conversationSteps[currentStep].inputType == "text" &&
+        if currentStep < onboardingConversationSteps.count && !onboardingConversationSteps[currentStep].isFinal {
+            let isVisible = onboardingConversationSteps[currentStep].inputType == "text" &&
                             showInputField &&
                             showSecondaryElements
             
@@ -1053,7 +997,7 @@ struct ChatInputView: View {
                 // Input section
                 InputSection(
                     currentInput: currentInput,
-                    currentStep: conversationSteps[currentStep],
+                    currentStep: onboardingConversationSteps[currentStep],
                     onSend: onSend,
                     isTextFieldFocused: isTextFieldFocused,
                     onFrameChange: onFrameChange,
@@ -1071,116 +1015,7 @@ struct ChatInputView: View {
     }
 }
 
-private struct CosmicBadgeEffects: View {
-    let badgeScale: CGFloat
-    let badgeRotation: Double
-    let cosmicGlowOpacity: Double
-    let nebulaOpacity: Double
-    let starFieldOpacity: Double
-    let cosmicParticlesOpacity: Double
-    let sparkleOpacity: Double
-    let currentProfileImage: String
-    
-    var body: some View {
-        ZStack {
-            // Cosmic glow effect
-            Circle()
-                .fill(
-                    RadialGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: Color.purple.opacity(0.8), location: 0.0),
-                            .init(color: Color.blue.opacity(0.4), location: 0.5),
-                            .init(color: Color.clear, location: 1.0)
-                        ]),
-                        center: .center,
-                        startRadius: 20,
-                        endRadius: 100
-                    )
-                )
-                .frame(width: 200, height: 200)
-                .opacity(cosmicGlowOpacity)
-                .scaleEffect(badgeScale)
-                .animation(.easeInOut(duration: 1.2), value: cosmicGlowOpacity)
-            // Nebula effect
-            ZStack {
-                ForEach(0..<3) { layer in
-                    Circle()
-                        .fill(
-                            AngularGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: Color.purple.opacity(0.3), location: 0.0),
-                                    .init(color: Color.blue.opacity(0.2), location: 0.3),
-                                    .init(color: Color.pink.opacity(0.3), location: 0.6),
-                                    .init(color: Color.purple.opacity(0.3), location: 1.0)
-                                ]),
-                                center: .center
-                            )
-                        )
-                        .frame(width: 160 + CGFloat(layer * 20), height: 160 + CGFloat(layer * 20))
-                        .rotationEffect(.degrees(Double(layer) * 45))
-                        .opacity(nebulaOpacity)
-                        .animation(
-                            .easeInOut(duration: 2.0)
-                            .delay(Double(layer) * 0.3),
-                            value: nebulaOpacity
-                        )
-                }
-            }
-            // Star field effect
-            ZStack {
-                ForEach(0..<12) { index in
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: CGFloat.random(in: 2...4), height: CGFloat.random(in: 2...4))
-                        .offset(
-                            x: 80 * cos(Double(index) * .pi / 6),
-                            y: 80 * sin(Double(index) * .pi / 6)
-                        )
-                        .opacity(starFieldOpacity)
-                        .animation(
-                            .easeInOut(duration: 1.5)
-                            .delay(Double(index) * 0.1),
-                            value: starFieldOpacity
-                        )
-                }
-            }
-            // Cosmic particles
-            ZStack {
-                ForEach(0..<6) { index in
-                    Image(systemName: "sparkle")
-                        .foregroundColor([Color.yellow, Color.cyan, Color.pink, Color.white].randomElement()!)
-                        .font(.system(size: 12))
-                        .offset(
-                            x: 70 * cos(Double(index) * .pi / 3),
-                            y: 70 * sin(Double(index) * .pi / 3)
-                        )
-                        .opacity(cosmicParticlesOpacity)
-                        .animation(
-                            .easeInOut(duration: 1.0)
-                            .delay(Double(index) * 0.2),
-                            value: cosmicParticlesOpacity
-                        )
-                }
-            }
-            // Original sparkle effect (now cosmic)
-            ForEach(0..<8) { index in
-                Image(systemName: "sparkle")
-                    .foregroundColor([Color.yellow, Color.cyan, Color.pink].randomElement()!)
-                    .font(.system(size: 16))
-                    .offset(
-                        x: 60 * cos(Double(index) * .pi / 4),
-                        y: 60 * sin(Double(index) * .pi / 4)
-                    )
-                    .opacity(sparkleOpacity)
-                    .animation(
-                        .easeInOut(duration: 0.8)
-                        .delay(Double(index) * 0.1),
-                        value: sparkleOpacity
-                    )
-            }
-        }
-    }
-}
+
 
 
 

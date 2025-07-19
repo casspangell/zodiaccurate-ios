@@ -111,7 +111,7 @@ struct ZodiacChatView: View {
                 // Chat ScrollView
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 12) {
+                        LazyVStack(alignment: .leading, spacing: 0) {
                             Spacer().frame(height: contentTopSpacing)
                             
                             // Chat Content
@@ -147,9 +147,6 @@ struct ZodiacChatView: View {
                                 onBubbleFrameChange: { message, frame in
                                     // Track the actual frame of each chat bubble
                                     chatBubbleFrames[message.id] = frame
-                                    print("🔧 [BubbleFrame] Message \(message.id): \(frame)")
-                                    print("🔧 [BubbleFrame] Frame maxY: \(frame.maxY), Screen height: \(UIScreen.main.bounds.height)")
-                                    print("🔧 [BubbleFrame] Keyboard height: \(keyboardHeight), totalScrollOffset: \(totalScrollOffset)")
                                 }
                             )
                             
@@ -229,7 +226,6 @@ struct ZodiacChatView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .offset(y: -totalScrollOffset)
                 .zIndex(1)
-                .border(Color.red, width: 2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -556,7 +552,7 @@ struct ChatContentView: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             ForEach(messages) { message in
                 if message.isUser {
                     // User response - use AnsweredChatBubble
@@ -622,7 +618,6 @@ struct ChatContentView: View {
                 )
         }
         .padding(.horizontal)
-        .padding(.bottom, 12) // Ensure minimum 12px padding from bottom
         .animation(.easeInOut(duration: 0.3), value: messages)
         .animation(.easeInOut(duration: 0.3), value: showSecondaryElements)
     }
@@ -663,7 +658,6 @@ struct ChatInputView: View {
                 .opacity(isVisible ? 1 : 0)
                 .allowsHitTesting(isVisible)
             }
-            .padding(.bottom, 12) // Ensure minimum 12px padding from bottom
         }
     }
 }

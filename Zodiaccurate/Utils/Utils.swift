@@ -85,6 +85,22 @@ func determineZodiacSignAndAsset(from dateString: String) -> (zodiacSign: String
     return ("Unknown", "logo")
 }
 
+// MARK: - Keyboard Utilities
+/// Returns the current keyboard height
+/// - Returns: The keyboard height as CGFloat, or 0 if keyboard is not visible
+func getCurrentKeyboardHeight() -> CGFloat {
+    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+          let window = windowScene.windows.first else {
+        return 0
+    }
+    
+    let keyboardFrame = window.frame.intersection(window.safeAreaInsets.bottom > 0 ? 
+        CGRect(x: 0, y: window.frame.height - window.safeAreaInsets.bottom, width: window.frame.width, height: window.safeAreaInsets.bottom) : 
+        CGRect.zero)
+    
+    return keyboardFrame.height
+}
+
 // MARK: - Text Utilities
 /// Personalizes a message by replacing placeholders with actual values
 /// - Parameters:

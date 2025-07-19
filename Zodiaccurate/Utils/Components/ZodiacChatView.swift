@@ -558,18 +558,33 @@ struct ChatContentView: View {
     var body: some View {
         VStack(spacing: 16) {
             ForEach(messages) { message in
-                QuestionChatBubble(
-                    message: message,
-                    onSizeChange: { size in
-                        onBubbleSizeChange?(message, size)
-                    },
-                    onFrameChange: { frame in
-                        // Track the actual frame of each chat bubble
-                        onBubbleFrameChange?(message, frame)
-                    }
-                )
-                .id(message.id)
-                .transition(.opacity)
+                if message.isUser {
+                    // User response - use AnsweredChatBubble
+                    AnsweredChatBubble(
+                        message: message,
+                        onSizeChange: { size in
+                            onBubbleSizeChange?(message, size)
+                        },
+                        onFrameChange: { frame in
+                            onBubbleFrameChange?(message, frame)
+                        }
+                    )
+                    .id(message.id)
+                    .transition(.opacity)
+                } else {
+                    // AI question - use QuestionChatBubble
+                    QuestionChatBubble(
+                        message: message,
+                        onSizeChange: { size in
+                            onBubbleSizeChange?(message, size)
+                        },
+                        onFrameChange: { frame in
+                            onBubbleFrameChange?(message, frame)
+                        }
+                    )
+                    .id(message.id)
+                    .transition(.opacity)
+                }
             }
             
             if currentStep < onboardingConversationSteps.count {
@@ -635,18 +650,15 @@ struct ChatInputView: View {
                             showSecondaryElements
             
             VStack(spacing: 0) {
-                // Input section
-                InputSection(
-                    currentInput: currentInput,
+                // Response chat bubble
+                ResponseChatBubble(
                     currentStep: onboardingConversationSteps[currentStep],
+                    currentInput: currentInput,
                     onSend: onSend,
-                    isTextFieldFocused: isTextFieldFocused,
                     onFrameChange: onFrameChange,
                     highlightInputField: $highlightInputField,
                     onHeightChange: onHeightChange
                 )
-                .background(Color.white.opacity(0.08))
-                .cornerRadius(16)
                 .transition(.opacity)
                 .opacity(isVisible ? 1 : 0)
                 .allowsHitTesting(isVisible)

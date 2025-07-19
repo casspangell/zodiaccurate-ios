@@ -40,7 +40,7 @@ struct QuestionChatBubble: View {
                 Spacer()
                 Text(message.text)
                     .padding()
-                    .background(Color.bubbleFrost)
+                    .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(20)
                     .frame(maxWidth: 280, alignment: .trailing)
@@ -54,7 +54,7 @@ struct QuestionChatBubble: View {
                     
                     Text(message.text)
                         .padding()
-                        .background(Color.bubbleSilver)
+                        .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(20)
                         .fixedSize(horizontal: false, vertical: true)
@@ -84,6 +84,77 @@ struct QuestionChatBubble: View {
 
 // MARK: - Response Chat Bubble Component
 struct ResponseChatBubble: View {
+    let currentStep: ConversationStep
+    @Binding var currentInput: String
+    let onSend: () -> Void
+    @FocusState var isTextFieldFocused: Bool
+    let onFrameChange: (CGRect) -> Void
+    @Binding var highlightInputField: Bool
+    let onHeightChange: ((CGFloat) -> Void)?
+    
+    init(currentStep: ConversationStep, currentInput: Binding<String>, onSend: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil) {
+        self.currentStep = currentStep
+        self._currentInput = currentInput
+        self.onSend = onSend
+        self.onFrameChange = onFrameChange
+        self._highlightInputField = highlightInputField
+        self.onHeightChange = onHeightChange
+    }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            InputTextField(
+                text: $currentInput,
+                placeholder: currentStep.placeholder,
+                isFocused: $isTextFieldFocused,
+                onSubmit: onSend,
+                onTap: { isTextFieldFocused = true },
+                highlightInputField: $highlightInputField,
+                onHeightChange: onHeightChange
+            )
+            .background(
+                GeometryReader { geometry in
+                    Color.clear
+                        .onAppear {
+                            onFrameChange(geometry.frame(in: .global))
+                        }
+                        .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                            // Only update if the frame is actually valid (not zero)
+                            if newFrame.width > 0 && newFrame.height > 0 {
+                                onFrameChange(newFrame)
+                            }
+                        }
+                }
+            )
+            .onTapGesture {
+                isTextFieldFocused = true
+            }
+            
+            Button(action: onSend) {
+                Image(systemName: "paperplane.fill")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
+                    .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(Color.white.opacity(0.1))
+                            .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.3 : 0.6)
+                    )
+                    .scaleEffect(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.9 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.purple)
+        .cornerRadius(20)
+    }
+}
+
+// MARK: - Answered Chat Bubble Component
+struct AnsweredChatBubble: View {
     let message: ChatMessage
     let onSizeChange: ((CGSize) -> Void)?
     let onFrameChange: ((CGRect) -> Void)?
@@ -96,32 +167,14 @@ struct ResponseChatBubble: View {
     
     var body: some View {
         HStack {
-            if message.isUser {
-                Spacer()
-                Text(message.text)
-                    .padding()
-                    .background(Color.bubbleFrost)
-                    .foregroundColor(.white)
-                    .cornerRadius(20)
-                    .frame(maxWidth: 280, alignment: .trailing)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    Image("logo")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .foregroundColor(.purple)
-                    
-                    Text(message.text)
-                        .padding()
-                        .background(Color.bubbleSilver)
-                        .foregroundColor(.white)
-                        .cornerRadius(20)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: 280, alignment: .leading)
-                Spacer()
-            }
+            Spacer()
+            Text(message.text)
+                .padding()
+                .background(Color.green)
+                .foregroundColor(.white)
+                .cornerRadius(20)
+                .frame(maxWidth: 280, alignment: .trailing)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .background(
             GeometryReader { geometry in

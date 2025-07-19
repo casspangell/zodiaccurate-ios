@@ -8,6 +8,7 @@ struct InputTextField: View {
     var onTap: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
+    var backgroundColor: Color = Color(.systemGray6)
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 40 // Initial height
@@ -158,65 +159,7 @@ struct TextEditorSizePreferenceKey: PreferenceKey {
     }
 }
 
-// MARK: - Input Section Component
-struct InputSection: View {
-    @Binding var currentInput: String
-    let currentStep: ConversationStep
-    let onSend: () -> Void
-    let isTextFieldFocused: FocusState<Bool>.Binding
-    let onFrameChange: (CGRect) -> Void
-    @Binding var highlightInputField: Bool
-    let onHeightChange: ((CGFloat) -> Void)?
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            InputTextField(
-                text: $currentInput,
-                placeholder: currentStep.placeholder,
-                isFocused: isTextFieldFocused,
-                onSubmit: onSend,
-                onTap: { isTextFieldFocused.wrappedValue = true },
-                highlightInputField: $highlightInputField,
-                onHeightChange: onHeightChange
-            )
-            .background(
-                GeometryReader { geometry in
-                    Color.clear
-                        .onAppear {
-                            onFrameChange(geometry.frame(in: .global))
-                        }
-                        .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                            // Only update if the frame is actually valid (not zero)
-                            if newFrame.width > 0 && newFrame.height > 0 {
-                                onFrameChange(newFrame)
-                            }
-                        }
-                }
-            )
-            .onTapGesture {
-                isTextFieldFocused.wrappedValue = true
-            }
-            
-            Button(action: onSend) {
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
-                    .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(Color.white.opacity(0.1))
-                            .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.3 : 0.6)
-                    )
-                    .scaleEffect(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.9 : 1.0)
-                    .animation(.easeInOut(duration: 0.2), value: currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            .buttonStyle(PlainButtonStyle())
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
-}
+
 
 // MARK: - Typing Indicator Component
 struct TypingIndicator: View {

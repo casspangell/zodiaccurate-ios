@@ -47,7 +47,7 @@ struct ConversationalOnboardingView: View {
                 ZodiacChatView(
                     conversationSteps: onboardingConversationSteps,
                     profileImage: currentProfileImage,
-                    userName: userData.firstName,
+                    userName: $userData.firstName,
                     onUserDataUpdate: { input, step in
                         storeUserData(input: input, step: step)
                     },
@@ -126,6 +126,9 @@ struct ConversationalOnboardingView: View {
 
     
     private func storeUserData(input: String, step: ConversationStep) {
+        print("🔄 [UserDataDebug] Updating userData for step: \(step.dataKey)")
+        print("🔄 [UserDataDebug] Input received: \(input)")
+        
         switch step.dataKey {
         case "firstName":
             userData.firstName = input
@@ -152,6 +155,17 @@ struct ConversationalOnboardingView: View {
             userData.responses.append((questionText, "dreams", input))
         default:
             break
+        }
+        
+        // Print updated userData after each change
+        print("📊 [UserDataDebug] Updated userData:")
+        print("   - firstName: '\(userData.firstName)'")
+        print("   - birthDate: '\(userData.birthDate)'")
+        print("   - birthTime: '\(userData.birthTime)'")
+        print("   - zodiacSign: '\(userData.zodiacSign)'")
+        print("   - responses count: \(userData.responses.count)")
+        for (index, response) in userData.responses.enumerated() {
+            print("     [\(index)] \(response.1): '\(response.2)' (Q: '\(String(response.0.prefix(50)))...')")
         }
     }
     

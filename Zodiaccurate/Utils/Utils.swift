@@ -108,5 +108,15 @@ func getCurrentKeyboardHeight() -> CGFloat {
 ///   - name: The name to replace {name} placeholder with
 /// - Returns: The personalized message
 func personalizeMessage(_ message: String, with name: String) -> String {
-    return message.replacingOccurrences(of: "{name}", with: name)
+    // If name is empty, remove the {name} placeholder and clean up spacing
+    if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        return message.replacingOccurrences(of: "{name}", with: "")
+            .replacingOccurrences(of: "  ", with: " ") // Remove double spaces
+            .replacingOccurrences(of: " .", with: ".") // Fix spacing before periods
+            .replacingOccurrences(of: " ,", with: ",") // Fix spacing before commas
+            .replacingOccurrences(of: " ...", with: "...") // Fix spacing before ellipsis
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    } else {
+        return message.replacingOccurrences(of: "{name}", with: name)
+    }
 }

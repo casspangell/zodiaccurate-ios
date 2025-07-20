@@ -1,5 +1,5 @@
 //
-//  OnboardingAI.swift
+//  Onboarding.swift
 //  Zodiaccurate
 //
 //  Created by Cass Pangell on 6/30/25.
@@ -51,10 +51,10 @@ struct OpenAIUsage: Codable {
     }
 }
 
-// MARK: - OnboardingAI Manager
+// MARK: - Onboarding Manager
 
 @MainActor
-class OnboardingAI: ObservableObject {
+class Onboarding: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var generatedHoroscope: String?
@@ -86,36 +86,13 @@ class OnboardingAI: ObservableObject {
     // MARK: - Public Methods
     
     /// Generate a captivating horoscope for a new user based on their onboarding data
+    /// DEPRECATED: Use generateWelcomeHoroscope(firstName:birthDate:birthTime:zodiacSign:responses:) instead
     func generateWelcomeHoroscope() async {
-        guard APIConfig.isAPIKeyConfigured else {
-            error = APIConfig.apiKeyNotConfiguredMessage
-            return
-        }
+        print("⚠️ [OnboardingAI] DEPRECATED: generateWelcomeHoroscope() called without parameters")
+        print("⚠️ [OnboardingAI] Use generateWelcomeHoroscope(firstName:birthDate:birthTime:zodiacSign:responses:) instead")
         
         isLoading = true
-        error = nil
-        
-        do {
-            let userData = collectUserData()
-            let prompt = createWelcomePrompt(with: userData)
-            let horoscope = try await callChatGPTAPI(prompt: prompt)
-            
-            generatedHoroscope = horoscope
-            print("✨ Generated welcome horoscope: \(horoscope)")
-            
-            // Track horoscope generation in Firebase
-            await trackHoroscopeGeneration(type: "welcome", success: true)
-            
-            self.onHoroscopeGenerated?()
-            
-        } catch {
-            self.error = error.localizedDescription
-            print("❌ Error generating horoscope: \(error)")
-            
-            // Track failed horoscope generation
-            await trackHoroscopeGeneration(type: "welcome", success: false)
-        }
-        
+        error = "This method is deprecated. Please use the parameter-based version."
         isLoading = false
     }
     
@@ -172,7 +149,16 @@ class OnboardingAI: ObservableObject {
         }
         
         do {
-            let userData = collectUserData()
+            // Use OnboardingDataAccess to get current user data from SwiftData
+            let firstName = OnboardingDataAccess.firstName
+            let zodiacSign = OnboardingDataAccess.zodiacSign
+            
+            let userData: [String: Any] = [
+                "firstName": firstName,
+                "zodiacSign": zodiacSign,
+                "hasCompletedOnboarding": OnboardingDataAccess.hasCompletedOnboarding
+            ]
+            
             print("[OnboardingAI] Collected user data: \(userData)")
             let prompt = createDailyPrompt(with: userData)
             print("[OnboardingAI] Created daily prompt: \n\(prompt)")
@@ -216,43 +202,7 @@ class OnboardingAI: ObservableObject {
         return userData
     }
     
-    private func collectUserData() -> [String: Any] {
-        // For now, we'll use UserDefaults as a fallback, but this should be updated
-        // to accept data as parameters when called from views with ModelContext access
-        let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
-        let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
-        let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
-        let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
-        
-        // Get responses from UserDefaults for now
-        var responses: [(String, String, String)] = []
-        if let data = UserDefaults.standard.data(forKey: "userResponses"),
-           let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] {
-            responses = jsonArray.compactMap { dict in
-                guard let question = dict["question"], 
-                      let key = dict["key"], 
-                      let answer = dict["answer"] else { return nil }
-                return (question, key, answer)
-            }
-        }
-        
-        var userData: [String: Any] = [
-            "firstName": firstName,
-            "birthDate": birthDate,
-            "birthTime": birthTime,
-            "zodiacSign": zodiacSign,
-            "hasCompletedOnboarding": OnboardingDataAccess.hasCompletedOnboarding
-        ]
-        
-        // Add user responses
-        var responseDict: [String: String] = [:]
-        for (question, key, answer) in responses {
-            responseDict[key] = answer
-        }
-        userData["responses"] = responseDict
-        
-        return userData
-    }
+
     
     private func createWelcomePrompt(with userData: [String: Any]) -> String {
         let firstName = userData["firstName"] as? String ?? ""
@@ -339,7 +289,7 @@ class OnboardingAI: ObservableObject {
         
         guard let url = URL(string: baseURL) else {
             print("❌ [OnboardingAI] Invalid API URL: \(baseURL)")
-            throw OnboardingAIError.invalidURL
+            throw OnboardingError.invalidURL
         }
         
         print("🔍 [OnboardingAI] URL created successfully: \(url)")
@@ -362,7 +312,7 @@ class OnboardingAI: ObservableObject {
             print("🔍 [OnboardingAI] Request body preview: \(String(data: encoded, encoding: .utf8)?.prefix(200) ?? "<encoding failed>")...")
         } catch {
             print("❌ [OnboardingAI] Encoding error: \(error)")
-            throw OnboardingAIError.encodingError(error)
+            throw OnboardingError.encodingError(error)
         }
         
         // Try with retry logic
@@ -396,13 +346,13 @@ class OnboardingAI: ObservableObject {
                 
                 guard let httpResponse = response as? HTTPURLResponse else {
                     print("❌ [OnboardingAI] Invalid HTTP response type")
-                    throw OnboardingAIError.invalidResponse
+                    throw OnboardingError.invalidResponse
                 }
                 
                 guard httpResponse.statusCode == 200 else {
                     let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
                     print("❌ [OnboardingAI] API error: HTTP \(httpResponse.statusCode): \(errorMessage)")
-                    throw OnboardingAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
+                    throw OnboardingError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
                 }
                 
                 do {
@@ -412,7 +362,7 @@ class OnboardingAI: ObservableObject {
                     
                     guard let firstChoice = chatGPTResponse.choices.first else {
                         print("❌ [OnboardingAI] No choices in API response")
-                        throw OnboardingAIError.noResponse
+                        throw OnboardingError.noResponse
                     }
                     
                     let horoscopeContent = firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -424,7 +374,7 @@ class OnboardingAI: ObservableObject {
                 } catch {
                     print("❌ [OnboardingAI] Decoding error: \(error)")
                     print("🔍 [OnboardingAI] Raw data that failed to decode: \(String(data: data, encoding: .utf8) ?? "<unable to decode>")")
-                    throw OnboardingAIError.decodingError(error)
+                    throw OnboardingError.decodingError(error)
                 }
             } catch {
                 print("❌ [OnboardingAI] ===== API ATTEMPT \(attempt) FAILED =====")
@@ -472,7 +422,7 @@ class OnboardingAI: ObservableObject {
         }
         
         // This should never be reached, but Swift requires it for compilation
-        throw OnboardingAIError.apiError("All retry attempts failed")
+        throw OnboardingError.apiError("All retry attempts failed")
     }
     
     // MARK: - Network Connectivity Test
@@ -615,7 +565,7 @@ class OnboardingAI: ObservableObject {
 
 // MARK: - Error Types
 
-enum OnboardingAIError: Error, LocalizedError {
+enum OnboardingError: Error, LocalizedError {
     case invalidURL
     case invalidResponse
     case noResponse
@@ -644,7 +594,7 @@ enum OnboardingAIError: Error, LocalizedError {
 // MARK: - SwiftUI View for Displaying Generated Horoscope
 
 struct GeneratedHoroscopeView: View {
-    @StateObject private var onboardingAI = OnboardingAI()
+    @StateObject private var onboardingAI = Onboarding()
     @Environment(\.dismiss) private var dismiss
     var onComplete: () -> Void = {}
     
@@ -798,7 +748,7 @@ struct GeneratedHoroscopeView: View {
 struct DailyHoroscopeSheet: View {
     @Binding var isPresented: Bool
     @Binding var horoscope: String?
-    @ObservedObject var onboardingAI: OnboardingAI
+    @ObservedObject var onboardingAI: Onboarding
     @State private var isLoading = false
     
     var body: some View {

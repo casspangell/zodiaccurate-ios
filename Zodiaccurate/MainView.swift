@@ -10,7 +10,7 @@ struct MainView: View {
     @State private var showWidgetMenu = false
     @State private var showDailyHoroscope = false
     @State private var dailyHoroscope: String?
-    @StateObject private var onboardingAI = OnboardingAI()
+    @StateObject private var onboardingAI = Onboarding()
 
     
     init() {

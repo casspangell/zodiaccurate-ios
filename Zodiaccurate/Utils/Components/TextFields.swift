@@ -12,7 +12,7 @@ struct InputTextField: View {
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 40 // Initial height
-    @State private var previousHeight: CGFloat = 40 // Track previous height
+    @State private var textChangeWorkItem: DispatchWorkItem?
     
     var body: some View {
         HStack(spacing: 12) {
@@ -41,47 +41,30 @@ struct InputTextField: View {
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
                                 )
                         )
-                        .background(
-                            GeometryReader { geometry in
-                                Color.clear
-                                    .preference(key: TextEditorSizePreferenceKey.self, value: geometry.size)
-                                    .onPreferenceChange(TextEditorSizePreferenceKey.self) { size in
-                                        // Debounce preference updates to prevent multiple updates per frame
-                                        DispatchQueue.main.async {
-                                            // Only check for height changes if we have a previous height (not initial load)
-                                            if previousHeight > 0 {
-                                                // Check if height has changed significantly (more than 5 points)
-                                                let heightDifference = size.height - previousHeight
-                                                if abs(heightDifference) > 5 {
-                                                    // Call the height change callback
-                                                    onHeightChange?(heightDifference)
-                                                }
-                                            }
-                                            
-                                            // Update the previous height
-                                            previousHeight = size.height
-                                        }
-                                    }
-                            }
-                        )
                         .onChange(of: text) { _, newValue in
-                            // Debounce text changes to prevent multiple updates per frame
-                            DispatchQueue.main.async {
-                                // Check if the new text contains a newline character
-                                if newValue.contains("\n") {
-                                    // Remove the newline and trigger submit
-                                    let cleanedText = newValue.replacingOccurrences(of: "\n", with: "")
-                                    text = cleanedText
-                                    onSubmit()
-                                    return
-                                }
-                                
+                            // Cancel any pending text change work
+                            textChangeWorkItem?.cancel()
+                            
+                            // Check if the new text contains a newline character (handle immediately)
+                            if newValue.contains("\n") {
+                                // Remove the newline and trigger submit
+                                let cleanedText = newValue.replacingOccurrences(of: "\n", with: "")
+                                text = cleanedText
+                                onSubmit()
+                                return
+                            }
+                            
+                            // Debounce other text changes to prevent multiple updates per frame
+                            let workItem = DispatchWorkItem {
                                 if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                     highlightInputField = false
                                 }
                                 // Calculate new height based on content
                                 updateTextFieldHeight(for: newValue)
                             }
+                            
+                            textChangeWorkItem = workItem
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
                         }
                         .onChange(of: isFocused.wrappedValue) { _, newValue in
                             // Debounce focus changes to prevent multiple updates per frame
@@ -136,6 +119,10 @@ struct InputTextField: View {
                 }
             }
         }
+        .onDisappear {
+            // Clean up work items when view disappears
+            textChangeWorkItem?.cancel()
+        }
     }
     
     // MARK: - Helper Functions
@@ -150,14 +137,7 @@ struct InputTextField: View {
     }
 }
 
-// Preference key for TextEditor size
-struct TextEditorSizePreferenceKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
-}
+
 
 
 

@@ -325,7 +325,7 @@ class AuthenticationManager: ObservableObject {
         if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
             let userDataManager = UserDataManager(modelContext: modelContext)
             if let userDataModel = userDataManager.loadUserData(for: userId) {
-                let onboardingAI = OnboardingAI()
+                let onboardingAI = Onboarding()
                 await onboardingAI.generateWelcomeHoroscope(
                     firstName: userDataModel.firstName,
                     birthDate: userDataModel.birthDate,

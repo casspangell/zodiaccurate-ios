@@ -75,7 +75,13 @@ struct QuestionChatBubble: View {
                         onFrameChange?(frame)
                     }
                     .onChange(of: geometry.frame(in: .global)) { oldFrame, newFrame in
-                        onFrameChange?(newFrame)
+                        // Only update if the frame has changed significantly (more than 1 point)
+                        if abs(newFrame.minX - oldFrame.minX) > 1 || 
+                           abs(newFrame.minY - oldFrame.minY) > 1 ||
+                           abs(newFrame.width - oldFrame.width) > 1 ||
+                           abs(newFrame.height - oldFrame.height) > 1 {
+                            onFrameChange?(newFrame)
+                        }
                     }
             }
         )
@@ -131,12 +137,6 @@ struct ResponseChatBubble: View {
                             .onAppear {
                                 onFrameChange(geometry.frame(in: .global))
                             }
-                            .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                                // Only update if the frame is actually valid (not zero)
-                                if newFrame.width > 0 && newFrame.height > 0 {
-                                    onFrameChange(newFrame)
-                                }
-                            }
                     }
                 )
                 .onTapGesture {
@@ -157,12 +157,6 @@ struct ResponseChatBubble: View {
                         Color.clear
                             .onAppear {
                                 onFrameChange(geometry.frame(in: .global))
-                            }
-                            .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                                // Only update if the frame is actually valid (not zero)
-                                if newFrame.width > 0 && newFrame.height > 0 {
-                                    onFrameChange(newFrame)
-                                }
                             }
                     }
                 )
@@ -217,6 +211,7 @@ struct AnsweredChatBubble: View {
                 .frame(maxWidth: 280, alignment: .trailing)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .padding(.top, 8)
         .background(
             GeometryReader { geometry in
                 Color.clear
@@ -229,7 +224,13 @@ struct AnsweredChatBubble: View {
                         onFrameChange?(frame)
                     }
                     .onChange(of: geometry.frame(in: .global)) { oldFrame, newFrame in
-                        onFrameChange?(newFrame)
+                        // Only update if the frame has changed significantly (more than 1 point)
+                        if abs(newFrame.minX - oldFrame.minX) > 1 || 
+                           abs(newFrame.minY - oldFrame.minY) > 1 ||
+                           abs(newFrame.width - oldFrame.width) > 1 ||
+                           abs(newFrame.height - oldFrame.height) > 1 {
+                            onFrameChange?(newFrame)
+                        }
                     }
             }
         )

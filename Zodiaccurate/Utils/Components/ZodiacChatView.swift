@@ -127,7 +127,7 @@ struct ZodiacChatView: View {
             }) {
                 HStack {
                     Image(systemName: "sparkles")
-                    Text("Complete Conversation")
+                    Text("See Your First Zodiaccurate")
                     Image(systemName: "arrow.right")
                 }
                 .font(.headline)

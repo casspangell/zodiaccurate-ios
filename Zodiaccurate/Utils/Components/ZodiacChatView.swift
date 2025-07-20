@@ -18,20 +18,22 @@ struct ZodiacChatView: View {
     @State private var headerHeight: CGFloat = 0
     @State private var lastCalculatedOffset: CGFloat = 0
 
-    @State private var chatBubbleFrames: [UUID: CGRect] = [:]
     @State private var inputFieldFrame: CGRect = .zero
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
     @StateObject private var tutorialManager = TutorialManager()
     @FocusState private var isTextFieldFocused: Bool
     @State private var highlightInputField = false
-    @State private var bubbleFrameChangeWorkItem: DispatchWorkItem?
     @State private var isTransitioning = false
     @State private var isProcessingUserInput = false
-    // Removed manualScrollOffset - keyboard offset handles all positioning
     
-    // Unified scroll manager
-    @StateObject private var scrollManager = ScrollManager()
+    // MARK: - Auto-scroll Properties
+    @State private var isUserAtBottom = true
+    @State private var showScrollToBottomButton = false
+    @State private var lastMessageCount = 0
+    @State private var scrollToBottomButtonOpacity: Double = 0
+    @State private var shouldScrollToBottom = false
+    @State private var scrollDebounceTimer: Timer?
     
     // MARK: - Configuration
     let conversationSteps: [ConversationStep]
@@ -71,10 +73,6 @@ struct ZodiacChatView: View {
     }
     
     // MARK: - Computed Properties
-    private var scrollViewOffset: CGFloat {
-        return max(headerHeight * 0.5, 100)
-    }
-    
     private var contentTopSpacing: CGFloat {
         return headerHeight + ZodiacHeader.profileBadgeHeight()
     }
@@ -83,10 +81,8 @@ struct ZodiacChatView: View {
         return max(headerHeight * 0.67, 80)
     }
     
-
-    
     private var totalScrollOffset: CGFloat {
-        return scrollViewOffset + animatedKeyboardOffset
+        return animatedKeyboardOffset
     }
     
     private var shouldShowCompleteButton: Bool {
@@ -96,6 +92,284 @@ struct ZodiacChatView: View {
         let isConversationComplete = currentStep >= conversationSteps.count
         
         return (isFinalStep && hasMessages && lastMessageIsAI) || isConversationComplete
+    }
+    
+    // MARK: - Helper Views
+    @ViewBuilder
+    private var backgroundView: some View {
+        ZodiacAuroraBackground()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(.all, edges: .all)
+            .onTapGesture {
+                isTextFieldFocused = false
+            }
+    }
+    
+    @ViewBuilder
+    private var headerView: some View {
+        ZodiacHeader(
+            profileImage: badgeAnimationManager.currentProfileImage,
+            badgeScale: badgeAnimationManager.badgeScale,
+            badgeRotation: badgeAnimationManager.badgeRotation,
+            cosmicGlowOpacity: badgeAnimationManager.cosmicGlowOpacity,
+            nebulaOpacity: badgeAnimationManager.nebulaOpacity,
+            starFieldOpacity: badgeAnimationManager.starFieldOpacity,
+            cosmicParticlesOpacity: badgeAnimationManager.cosmicParticlesOpacity,
+            sparkleOpacity: badgeAnimationManager.sparkleOpacity
+        )
+    }
+    
+    @ViewBuilder
+    private var completeButtonView: some View {
+        if shouldShowCompleteButton {
+            Button(action: { 
+                onConversationComplete()
+            }) {
+                HStack {
+                    Image(systemName: "sparkles")
+                    Text("Complete Conversation")
+                    Image(systemName: "arrow.right")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.accentGold)
+                .cornerRadius(12)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 50)
+            .transition(.opacity)
+            .id("completeButton")
+        }
+    }
+    
+    @ViewBuilder
+    private var bottomAnchorView: some View {
+        Color.clear
+            .frame(height: 1)
+            .padding(.bottom, 20)
+            .id("bottomAnchor")
+            .onAppear {
+                // User scrolled to bottom
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isUserAtBottom = true
+                    showScrollToBottomButton = false
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        scrollToBottomButtonOpacity = 0
+                    }
+                }
+            }
+            .onDisappear {
+                // User scrolled away from bottom
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isUserAtBottom = false
+                }
+            }
+    }
+    
+    @ViewBuilder
+    private var scrollToBottomButtonView: some View {
+        if showScrollToBottomButton {
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        // Trigger scroll to bottom by updating a state variable
+                        isUserAtBottom = true
+                        showScrollToBottomButton = false
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            scrollToBottomButtonOpacity = 0
+                        }
+                    }) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 44, weight: .medium))
+                            .foregroundColor(.white)
+                            .background(
+                                Circle()
+                                    .fill(Color.accentGold.opacity(0.9))
+                                    .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+                            )
+                    }
+                    .opacity(scrollToBottomButtonOpacity)
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 100)
+                }
+            }
+            .allowsHitTesting(scrollToBottomButtonOpacity > 0)
+        }
+    }
+    
+    // MARK: - Computed Views
+    @ViewBuilder
+    private var chatScrollView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    Spacer().frame(height: contentTopSpacing)
+                    
+                    // Chat Content
+                    ChatContentView(
+                        messages: messages,
+                        currentStep: currentStep,
+                        onboardingConversationSteps: conversationSteps,
+                        showInputField: showInputField,
+                        showResponseChatBubble: showResponseChatBubble,
+                        selectedDate: $selectedDate,
+                        selectedTime: $selectedTime,
+                        isTyping: isTyping,
+                        onDateSelected: handleDateSelected,
+                        onTimeSelected: handleTimeSelected,
+                        onUnknownTime: handleUnknownTime,
+                        tutorialManager: tutorialManager
+                    )
+                    
+                    // Input
+                    ChatInputView(
+                        currentStep: currentStep,
+                        conversationSteps: conversationSteps,
+                        showInputField: showInputField,
+                        showResponseChatBubble: showResponseChatBubble,
+                        currentInput: $currentInput,
+                        selectedDate: $selectedDate,
+                        selectedTime: $selectedTime,
+                        onSend: { handleSendWithRecordingCheck() },
+                        onDateSelected: { date in
+                            let formatter = DateFormatter()
+                            formatter.dateStyle = .medium
+                            let formattedDate = formatter.string(from: date)
+                            
+                            // Add delay for picker submission
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                handleUserInput(input: formattedDate)
+                            }
+                        },
+                        onTimeSelected: { time in
+                            let formatter = DateFormatter()
+                            formatter.timeStyle = .short
+                            let formattedTime = formatter.string(from: time)
+                            
+                            // Add delay for picker submission
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                handleUserInput(input: formattedTime)
+                            }
+                        },
+                        onUnknownTime: {
+                            // Add delay for picker submission
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                handleUserInput(input: "Unknown")
+                            }
+                        },
+                        isTextFieldFocused: $isTextFieldFocused,
+                        onFrameChange: { frame in
+                            // Track input field frame for keyboard offset calculation
+                            print("🔧 [onFrameChange] Input field frame updated: \(frame)")
+                            inputFieldFrame = frame
+                        },
+                        tutorialManager: tutorialManager,
+                        highlightInputField: $highlightInputField,
+                        onHeightChange: { heightDifference in
+                            // Keyboard offset handles all positioning
+                            // No need for manual scroll adjustments
+                        }
+                    )
+                    .id("inputSection")
+                    
+                    completeButtonView
+                    bottomAnchorView
+                }
+                .padding(.horizontal)
+                .padding(.top, -contentTopPadding)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .clipped()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .offset(y: -totalScrollOffset)
+            .zIndex(1)
+            .onChange(of: messages.count) { oldCount, newCount in
+                handleMessageCountChange(oldCount: oldCount, newCount: newCount)
+            }
+            .onChange(of: isTyping) { _, isTyping in
+                if isTyping {
+                    // Delay scroll until typing indicator is visible
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        scrollToBottom(animated: true)
+                    }
+                }
+            }
+            .onChange(of: showResponseChatBubble) { _, showResponse in
+                if showResponse {
+                    // Longer delay to ensure the input field is fully rendered
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                        scrollToBottom(animated: true)
+                    }
+                    
+                    // Recalculate keyboard offset when input field appears
+                    if keyboardHeight > 0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            let targetOffset = self.calculateKeyboardOffset()
+                            if targetOffset > 0 && self.lastCalculatedOffset != targetOffset {
+                                self.lastCalculatedOffset = targetOffset
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    self.animatedKeyboardOffset = targetOffset
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .onAppear {
+                // Initial scroll to bottom with longer delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    scrollToBottom(animated: false)
+                }
+            }
+            .onChange(of: isUserAtBottom) { _, atBottom in
+                if atBottom && showScrollToBottomButton {
+                    // User clicked scroll to bottom button
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        scrollToBottom(animated: true)
+                    }
+                }
+            }
+            .onChange(of: shouldScrollToBottom) { _, shouldScroll in
+                if shouldScroll {
+                    withAnimation(.easeInOut(duration: 0.8)) {
+                        proxy.scrollTo("bottomAnchor", anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: isTextFieldFocused) { _, isFocused in
+                if isFocused && keyboardHeight > 0 {
+                    // Text field gained focus while keyboard is visible
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        let targetOffset = self.calculateKeyboardOffset()
+                        if targetOffset > 0 && self.lastCalculatedOffset != targetOffset {
+                            self.lastCalculatedOffset = targetOffset
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                self.animatedKeyboardOffset = targetOffset
+                            }
+                        }
+                    }
+                }
+            }
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 10)
+                    .onChanged { value in
+                        // Only mark as not at bottom if user scrolls up significantly
+                        if value.translation.height < -20 && isUserAtBottom {
+                            isUserAtBottom = false
+                        }
+                    }
+                    .onEnded { _ in
+                        // Check if user scrolled to bottom after drag ends
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            // This will be handled by the bottom anchor's onAppear/onDisappear
+                        }
+                    }
+            )
+        }
     }
     
     // MARK: - Helper Functions for ChatContentView
@@ -115,18 +389,6 @@ struct ZodiacChatView: View {
         handleUserInput(input: "Unknown")
     }
     
-    private func handleBubbleSizeChange(_ message: ChatMessage, _ size: CGSize) {
-        // Track chat bubble frames for keyboard offset calculation
-        // Store the frame data for this message
-        // Note: This currently only gets size, not position
-        // For full frame tracking, we'd need to modify the callback to pass CGRect
-    }
-    
-    private func handleBubbleFrameChange(_ message: ChatMessage, _ frame: CGRect) {
-        // Track the actual frame of each chat bubble
-        chatBubbleFrames[message.id] = frame
-    }
-    
     private func getSafeAreaInsets() -> UIEdgeInsets {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
@@ -138,206 +400,12 @@ struct ZodiacChatView: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            // Background layers
-            ZodiacAuroraBackground()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea(.all, edges: .all)
-                .onTapGesture {
-                    isTextFieldFocused = false
-                }
+            backgroundView
             
             VStack(spacing: 0) {
-                // Header Component
-                ZodiacHeader(
-                    profileImage: badgeAnimationManager.currentProfileImage,
-                    badgeScale: badgeAnimationManager.badgeScale,
-                    badgeRotation: badgeAnimationManager.badgeRotation,
-                    cosmicGlowOpacity: badgeAnimationManager.cosmicGlowOpacity,
-                    nebulaOpacity: badgeAnimationManager.nebulaOpacity,
-                    starFieldOpacity: badgeAnimationManager.starFieldOpacity,
-                    cosmicParticlesOpacity: badgeAnimationManager.cosmicParticlesOpacity,
-                    sparkleOpacity: badgeAnimationManager.sparkleOpacity
-                )
+                headerView
                 
-                // Chat ScrollView
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 0) {
-                            Spacer().frame(height: contentTopSpacing)
-                            
-                            // Chat Content
-                            ChatContentView(
-                                messages: messages,
-                                currentStep: currentStep,
-                                onboardingConversationSteps: conversationSteps,
-                                showInputField: showInputField,
-                                showResponseChatBubble: showResponseChatBubble,
-                                selectedDate: $selectedDate,
-                                selectedTime: $selectedTime,
-                                isTyping: isTyping,
-                                onDateSelected: handleDateSelected,
-                                onTimeSelected: handleTimeSelected,
-                                onUnknownTime: handleUnknownTime,
-                                tutorialManager: tutorialManager,
-                                onBubbleSizeChange: handleBubbleSizeChange,
-                                onBubbleFrameChange: handleBubbleFrameChange
-                            )
-                            
-                            // Input
-                            ChatInputView(
-                                currentStep: currentStep,
-                                onboardingConversationSteps: conversationSteps,
-                                showInputField: showInputField,
-                                showResponseChatBubble: showResponseChatBubble,
-                                currentInput: $currentInput,
-                                selectedDate: $selectedDate,
-                                selectedTime: $selectedTime,
-                                onSend: { handleSendWithRecordingCheck() },
-                                onDateSelected: { date in
-                                    scrollManager.cancelPendingScroll()
-                                    let formatter = DateFormatter()
-                                    formatter.dateStyle = .medium
-                                    let formattedDate = formatter.string(from: date)
-                                    
-                                    // Add delay for picker submission
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        handleUserInput(input: formattedDate)
-                                    }
-                                },
-                                onTimeSelected: { time in
-                                    scrollManager.cancelPendingScroll()
-                                    let formatter = DateFormatter()
-                                    formatter.timeStyle = .short
-                                    let formattedTime = formatter.string(from: time)
-                                    
-                                    // Add delay for picker submission
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        handleUserInput(input: formattedTime)
-                                    }
-                                },
-                                onUnknownTime: {
-                                    scrollManager.cancelPendingScroll()
-                                    
-                                    // Add delay for picker submission
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                        handleUserInput(input: "Unknown")
-                                    }
-                                },
-                                isTextFieldFocused: $isTextFieldFocused,
-                                onFrameChange: { frame in
-                                    // Track input field frame for keyboard offset calculation
-                                    inputFieldFrame = frame
-                                },
-                                tutorialManager: tutorialManager,
-                                highlightInputField: $highlightInputField,
-                                onHeightChange: { heightDifference in
-                                    // Keyboard offset handles all positioning
-                                    // No need for manual scroll adjustments
-                                }
-                            )
-                            .id("inputSection")
-                            
-                            // Complete Button
-                            if shouldShowCompleteButton {
-                                Button(action: { 
-                                    onConversationComplete()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "sparkles")
-                                        Text("Complete Conversation")
-                                        Image(systemName: "arrow.right")
-                                    }
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.accentGold)
-                                    .cornerRadius(12)
-                                }
-                                .padding(.horizontal)
-                                .padding(.bottom, 50)
-                                .transition(.opacity)
-                            }
-                            
-                            Color.clear
-                                .frame(height: 1)
-                                .padding(.bottom, 20)
-                                .id("bottom")
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, -contentTopPadding)
-                    }
-                    .border(Color.red, width: 2)
-                    .scrollDisabled(true)
-                    .scrollDismissesKeyboard(.interactively)
-                    .clipped()
-                    .coordinateSpace(name: "ScrollView")
-                    .onChange(of: messages.count) { _, _ in
-                        if let lastMessage = messages.last {
-                            print("🔍 [ScrollDebug] New message added - isUser: \(lastMessage.isUser), text: \(String(lastMessage.text.prefix(50)))...")
-                            print("🔍 [ScrollDebug] keyboardHeight: \(keyboardHeight), isTransitioning: \(isTransitioning), isProcessingUserInput: \(isProcessingUserInput)")
-                            print("🔍 [ScrollDebug] Current step: \(currentStep), total messages: \(messages.count)")
-                            
-                            if lastMessage.isUser {
-                                // New response bubble appeared - ensure it's visible
-                                print("🔍 [ScrollDebug] Response bubble added - ensuring visibility")
-                                print("🔍 [ScrollDebug] Will trigger next question in 1.5 seconds")
-                                
-                                // Ensure response bubble is visible after keyboard offset reset
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                    print("🔍 [ScrollDebug] Ensuring response bubble is visible")
-                                    scrollManager.scheduleScroll(to: .lastMessage, proxy: proxy, delay: 0.1, messageId: lastMessage.id)
-                                }
-                                
-                                // Trigger next question after response bubble is displayed with additional delay
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                    print("🔍 [ScrollDebug] Triggering next question after delay")
-                                    if currentStep < conversationSteps.count {
-                                        let nextMessage = conversationSteps[currentStep].message
-                                        let personalizedMessage = personalizeMessage(nextMessage, userName)
-                                        displayQuestionMessage(personalizedMessage)
-                                    } else {
-                                        print("🔍 [ScrollDebug] No more conversation steps")
-                                    }
-                                }
-                            } else {
-                                // New AI question appeared - scroll to show entire bubble in frame
-                                // Always scroll for new question bubbles, even during user input processing
-                                
-                                print("🔍 [ScrollDebug] CURRENT STEP: \(currentStep)")
-                                
-                                // Allow scrolling for new question bubbles, but prevent other scrolls during transitions
-                                if keyboardHeight == 0 && !isTransitioning {
-                                    print("🔍 [ScrollDebug] ✅ Scheduling scroll for new question bubble")
-                                    scrollManager.scheduleScroll(to: .lastMessage, proxy: proxy, delay: 0.3, messageId: lastMessage.id)
-                                } else {
-                                    print("🔍 [ScrollDebug] ❌ Skipping scroll for question bubble - keyboardHeight: \(keyboardHeight), isTransitioning: \(isTransitioning)")
-                                }
-                            }
-                        }
-                    }
-                    .onChange(of: isTyping) { _, newValue in
-                        if newValue {
-                            // Only scroll if keyboard is not visible and input field is visible
-                            // Prevent during user input processing to avoid unwanted scrolls
-                            if keyboardHeight == 0 && showInputField && showResponseChatBubble && !isProcessingUserInput {
-                                scrollManager.scheduleScroll(to: .typing, proxy: proxy, delay: 0.3)
-                            }
-                        }
-                    }
-                            .onChange(of: tutorialManager.showVoiceTutorial) { _, newValue in
-            if newValue {
-                // Only scroll if keyboard is not visible and input field is visible
-                // Prevent during user input processing to avoid unwanted scrolls
-                if keyboardHeight == 0 && showInputField && showResponseChatBubble && !isProcessingUserInput {
-                    scrollManager.scheduleScroll(to: .input, proxy: proxy, delay: 0.3)
-                }
-            }
-        }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .offset(y: -totalScrollOffset)
-                .zIndex(1)
+                chatScrollView
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -351,112 +419,24 @@ struct ZodiacChatView: View {
                     }
                 )
             }
+            
+            scrollToBottomButtonView
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.all, edges: .all)
         .onAppear {
             startConversation()
         }
+        .onDisappear {
+            // Clean up timer when view disappears
+            scrollDebounceTimer?.invalidate()
+            scrollDebounceTimer = nil
+        }
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
             self.headerHeight = headerHeight
         }
         .onReceive(Publishers.keyboardHeight) { keyboardHeight in
-            
-            self.keyboardHeight = keyboardHeight
-            
-            // Skip offset calculations during user input processing
-            guard !self.isProcessingUserInput else {
-                print("🔍 [KeyboardDebug] Skipping offset calculation - processing user input")
-                return
-            }
-            
-            // Handle keyboard appearance and disappearance
-            if keyboardHeight > 0 {
-                // Keyboard appeared - calculate offset if needed
-                if self.lastCalculatedOffset == 0 {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        let targetOffset = self.calculateKeyboardOffset()
-                        self.lastCalculatedOffset = targetOffset
-                        withAnimation(.easeInOut(duration: 0.4)) {
-                            self.animatedKeyboardOffset = targetOffset
-                        }
-                    }
-                }
-            } else {
-                // Keyboard disappeared - reset offset to 0
-                if self.lastCalculatedOffset > 0 {
-                    print("🔧 [KeyboardDebug] Keyboard disappeared, resetting offset to 0")
-                    self.lastCalculatedOffset = 0
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        self.animatedKeyboardOffset = 0
-                    }
-                }
-            }
-        }
-        .onChange(of: chatBubbleFrames) { oldFrames, newFrames in
-            
-            // Only process if we have frames and keyboard is visible
-            guard keyboardHeight > 0, let lastMessage = messages.last,
-                  let lastBubbleFrame = newFrames[lastMessage.id] else {
-                return 
-            }
-            
-            // Skip frame adjustments during user input processing
-            guard !isProcessingUserInput else {
-                return
-            }
-            
-            // Cancel any pending frame change work
-            bubbleFrameChangeWorkItem?.cancel()
-            
-            let workItem = DispatchWorkItem {
-                
-                // Calculate offset using only the chat bubble bottom
-                let screenHeight = UIScreen.main.bounds.height
-                let safeAreaInsets = getSafeAreaInsets()
-                let bottomSafeArea = safeAreaInsets.bottom
-                let bubbleBottom = lastBubbleFrame.maxY
-                let keyboardTop = screenHeight - self.keyboardHeight - bottomSafeArea
-                let availableSpace = keyboardTop - bubbleBottom
-                
-                // Only adjust if there's a significant overlap (more than 10 points)
-                guard availableSpace < -10 else { 
-                    print("🔍 [FrameDebug] No significant overlap, skipping offset adjustment")
-                    return 
-                }
-                
-                let targetOffset: CGFloat
-                let offset = abs(availableSpace)
-                // Add 20 points of padding so the bubble isn't flush with the keyboard
-                let paddingOffset: CGFloat = 20
-                let totalOffset = offset + paddingOffset
-                targetOffset = round(totalOffset / 10) * 10
-                
-                // Replace the current offset instead of adding to it
-                let finalOffset: CGFloat = max(targetOffset, 0)
-                
-                print("🔧 [BubbleFrameChange] bubbleBottom: \(bubbleBottom), keyboardTop: \(keyboardTop), availableSpace: \(availableSpace)")
-                print("🔧 Target offset: \(targetOffset), Final offset: \(finalOffset), Last calculated: \(self.lastCalculatedOffset)")
-                
-                // Only animate if there's a significant change (more than 5 points)
-                if abs(finalOffset - self.lastCalculatedOffset) > 5 {
-                    print("🔧 Adjusting scroll offset from \(self.lastCalculatedOffset) to \(finalOffset)")
-                    self.lastCalculatedOffset = finalOffset
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        self.animatedKeyboardOffset = finalOffset
-                        print("🔧 [ScrollView] animatedKeyboardOffset set to: \(finalOffset) (bubble frame change)")
-                    }
-                } else {
-                    print("🔍 [FrameDebug] Change too small, skipping animation")
-                }
-            }
-            
-            bubbleFrameChangeWorkItem = workItem
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
-        }
-        .onDisappear {
-            scrollManager.cancelPendingScroll()
-            bubbleFrameChangeWorkItem?.cancel()
+            handleKeyboardHeightChange(keyboardHeight)
         }
     }
     
@@ -474,13 +454,15 @@ struct ZodiacChatView: View {
         // If bubble position is not available, use a reasonable estimate
         guard bubbleBottomFromTop > 0 else { return 0 }
         
+        // Calculate bubble's distance from bottom of screen
+        let bubbleBottomFromBottom = screenHeight - bubbleBottomFromTop
+        
         // Check if keyboard is covering the bubble
         // Account for the fact that ScrollView ignores bottom safe area
         let keyboardTop = screenHeight - keyboardHeight - bottomSafeArea
         let availableSpace = keyboardTop - bubbleBottomFromTop
         
-        print("🔧 [calculateKeyboardOffset] bubbleBottomFromTop: \(bubbleBottomFromTop)")
-        print("🔧 [calculateKeyboardOffset] availableSpace: \(availableSpace)")
+        print("🔧 [calculateKeyboardOffset] bubbleBottomFromTop: \(bubbleBottomFromTop), keyboardTop: \(keyboardTop), availableSpace: \(availableSpace)")
         
         // If keyboard is covering the bubble, move it up
         if availableSpace < 0 {
@@ -492,20 +474,37 @@ struct ZodiacChatView: View {
             print("🔧 [calculateKeyboardOffset] calculated offset: \(roundedOffset) (base: \(offset) + padding: \(paddingOffset))")
             return roundedOffset
         }
+        
+        // For the first input field, add a calculated offset to ensure it's visible
+        if messages.count == 1 && showInputField && showResponseChatBubble {
+            // Calculate a reasonable offset based on keyboard height and screen dimensions
+            let estimatedInputFieldHeight: CGFloat = 80
+            let padding: CGFloat = 20
+            let firstInputOffset = min(keyboardHeight * 0.3, 120) + padding
+            print("🔧 [calculateKeyboardOffset] First input field - calculated offset: \(firstInputOffset)")
+            return firstInputOffset
+        }
+        
         return 0
     }
     
     private func getLastChatBubbleBottomFromTop() -> CGFloat {
         // If input field is visible and has a valid frame, use that instead
         if showInputField && showResponseChatBubble && inputFieldFrame.height > 0 {
+            print("🔧 [getLastChatBubbleBottomFromTop] Using frame: \(inputFieldFrame.maxY)")
             return inputFieldFrame.maxY
         }
         
-        guard let lastMessage = messages.last else { return 0 }
-        
-        // Use actual tracked bubble frame if available
-        if let lastBubbleFrame = chatBubbleFrames[lastMessage.id] {
-            return lastBubbleFrame.maxY
+        // For the first input field, use a more conservative estimate
+        if messages.count == 1 && showInputField && showResponseChatBubble {
+            let estimatedBubbleHeight: CGFloat = 60 // Average bubble height
+            let inputFieldHeight: CGFloat = 80 // Estimated input field height
+            let spacing: CGFloat = 16 // Spacing between bubbles
+            let topSpacing: CGFloat = contentTopSpacing
+            
+            let result = topSpacing + estimatedBubbleHeight + spacing + inputFieldHeight
+            print("🔧 [getLastChatBubbleBottomFromTop] First input field estimate: \(result)")
+            return result
         }
         
         // Fallback to estimation if frame not tracked yet
@@ -581,9 +580,6 @@ struct ZodiacChatView: View {
         
         tutorialManager.stopTutorial()
         
-        // Cancel any pending scrolls immediately when user submits input
-        scrollManager.cancelPendingScroll()
-        
         // Reset keyboard offset immediately before response bubble appears
         if animatedKeyboardOffset > 0 {
             print("🔧 [InputDebug] Resetting keyboard offset before response bubble")
@@ -626,6 +622,12 @@ struct ZodiacChatView: View {
             isTransitioning = false
         }
         
+        // Trigger next question after a delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            print("🔍 [InputDebug] Triggering next question after user input")
+            triggerNextQuestion()
+        }
+        
         // Reset processing flag after the next question appears
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             print("🔍 [TransitionDebug] Setting isProcessingUserInput = false (after full cycle)")
@@ -656,7 +658,7 @@ struct ZodiacChatView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 withAnimation {
                     showResponseChatBubble = true
-                    if currentStep < onboardingConversationSteps.count {
+                    if currentStep < conversationSteps.count {
                         showInputField = true
                     }
                 }
@@ -673,8 +675,93 @@ struct ZodiacChatView: View {
                 print("🔍 [TransitionDebug] Setting isTransitioning = false (after AI message)")
                 isTransitioning = false
             }
+        }
+    }
+    
+    private func triggerNextQuestion() {
+        if currentStep < conversationSteps.count {
+            let nextMessage = conversationSteps[currentStep].message
+            let personalizedMessage = personalizeMessage(nextMessage, userName)
             
-
+            print("🔍 [ScrollDebug] Displaying next question")
+            displayQuestionMessage(personalizedMessage)
+        } else {
+            print("🔍 [ScrollDebug] No more conversation steps to trigger")
+            onConversationComplete()
+        }
+    }
+    
+    // MARK: - Auto-scroll Helper Functions
+    private func handleMessageCountChange(oldCount: Int, newCount: Int) {
+        print("🔍 [AutoScroll] Message count changed from \(oldCount) to \(newCount)")
+        
+        // Cancel any existing debounce timer
+        scrollDebounceTimer?.invalidate()
+        
+        // Only auto-scroll if user is at bottom or if it's a new message (not deletion)
+        if newCount > oldCount {
+            if isUserAtBottom {
+                // User is at bottom, debounce auto-scroll to prevent jitter
+                scrollDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { _ in
+                    DispatchQueue.main.async {
+                        scrollToBottom(animated: true)
+                    }
+                }
+            } else {
+                // User has scrolled up, show scroll to bottom button
+                showScrollToBottomButton = true
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    scrollToBottomButtonOpacity = 1.0
+                }
+            }
+        }
+        
+        lastMessageCount = newCount
+    }
+    
+    private func scrollToBottom(animated: Bool) {
+        print("🔍 [AutoScroll] Scrolling to bottom, animated: \(animated)")
+        
+        // Prevent rapid successive scroll calls
+        guard !shouldScrollToBottom else { return }
+        
+        // Trigger scroll by updating state
+        shouldScrollToBottom = true
+        
+        // Reset the flag after a longer delay to prevent rapid toggling
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            shouldScrollToBottom = false
+        }
+    }
+    
+    private func handleKeyboardHeightChange(_ keyboardHeight: CGFloat) {
+        print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
+        self.keyboardHeight = keyboardHeight
+        
+        // Handle keyboard appearance and disappearance
+        if keyboardHeight > 0 {
+            // Keyboard appeared - calculate offset if needed
+            if self.lastCalculatedOffset == 0 {
+                // Add longer delay for first input field to ensure it's rendered
+                let delay = showInputField && showResponseChatBubble ? 0.3 : 0.1
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    let targetOffset = self.calculateKeyboardOffset()
+                    self.lastCalculatedOffset = targetOffset
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        self.animatedKeyboardOffset = targetOffset
+                    }
+                }
+            }
+        } else {
+            // Keyboard disappeared - reset offset to 0
+            if self.lastCalculatedOffset > 0 {
+                print("🔧 [KeyboardDebug] Keyboard disappeared, resetting offset to 0")
+                self.lastCalculatedOffset = 0
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.animatedKeyboardOffset = 0
+                    self.lastCalculatedOffset = 0
+                }
+            }
         }
     }
 }
@@ -694,10 +781,8 @@ struct ChatContentView: View {
     let onTimeSelected: (Date) -> Void
     let onUnknownTime: () -> Void
     let tutorialManager: TutorialManager
-    let onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)?
-    let onBubbleFrameChange: ((ChatMessage, CGRect) -> Void)?
     
-    init(messages: [ChatMessage], currentStep: Int, onboardingConversationSteps: [ConversationStep], showInputField: Bool, showResponseChatBubble: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager, onBubbleSizeChange: ((ChatMessage, CGSize) -> Void)? = nil, onBubbleFrameChange: ((ChatMessage, CGRect) -> Void)? = nil) {
+    init(messages: [ChatMessage], currentStep: Int, onboardingConversationSteps: [ConversationStep], showInputField: Bool, showResponseChatBubble: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager) {
         self.messages = messages
         self.currentStep = currentStep
         self.onboardingConversationSteps = onboardingConversationSteps
@@ -710,39 +795,21 @@ struct ChatContentView: View {
         self.onTimeSelected = onTimeSelected
         self.onUnknownTime = onUnknownTime
         self.tutorialManager = tutorialManager
-        self.onBubbleSizeChange = onBubbleSizeChange
-        self.onBubbleFrameChange = onBubbleFrameChange
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            ForEach(messages) { message in
+            ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
                 if message.isUser {
                     // User response - use AnsweredChatBubble
-                    AnsweredChatBubble(
-                        message: message,
-                        onSizeChange: { size in
-                            onBubbleSizeChange?(message, size)
-                        },
-                        onFrameChange: { frame in
-                            onBubbleFrameChange?(message, frame)
-                        }
-                    )
-                    .id(message.id)
-                    .transition(.opacity)
+                    AnsweredChatBubble(message: message)
+                        .id("message_\(index)")
+                        .transition(.opacity)
                 } else {
                     // AI question - use QuestionChatBubble
-                    QuestionChatBubble(
-                        message: message,
-                        onSizeChange: { size in
-                            onBubbleSizeChange?(message, size)
-                        },
-                        onFrameChange: { frame in
-                            onBubbleFrameChange?(message, frame)
-                        }
-                    )
-                    .id(message.id)
-                    .transition(.opacity)
+                    QuestionChatBubble(message: message)
+                        .id("message_\(index)")
+                        .transition(.opacity)
                 }
             }
             
@@ -754,16 +821,9 @@ struct ChatContentView: View {
             Color.clear
                 .frame(height: 1)
                 .id("chatBottom")
-                .background(
-                    GeometryReader { geo in
-                        Color.clear
-                            .onAppear {
-                                print("--- minY: \(geo.frame(in: .global).minY), maxY: \(geo.frame(in: .global).maxY)")
-                            }
-                    }
-                )
         }
         .padding(.horizontal)
+        .padding(.bottom, 20)
         .animation(.easeInOut(duration: 0.3), value: messages)
         .animation(.easeInOut(duration: 0.3), value: showResponseChatBubble)
     }
@@ -773,7 +833,7 @@ struct ChatContentView: View {
 // Break out the input section into a separate view
 struct ChatInputView: View {
     let currentStep: Int
-    let onboardingConversationSteps: [ConversationStep]
+    let conversationSteps: [ConversationStep]
     let showInputField: Bool
     let showResponseChatBubble: Bool
     let currentInput: Binding<String>
@@ -790,13 +850,13 @@ struct ChatInputView: View {
     let onHeightChange: ((CGFloat) -> Void)?
         
     var body: some View {
-        if currentStep < onboardingConversationSteps.count && !onboardingConversationSteps[currentStep].isFinal {
+        if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
             let isVisible = showInputField && showResponseChatBubble
             
             VStack(spacing: 0) {
                 // Response chat bubble
                 ResponseChatBubble(
-                    currentStep: onboardingConversationSteps[currentStep],
+                    currentStep: conversationSteps[currentStep],
                     currentInput: currentInput,
                     selectedDate: selectedDate,
                     selectedTime: selectedTime,
@@ -816,97 +876,3 @@ struct ChatInputView: View {
     }
 }
 
-// MARK: - Scroll Manager
-// Unified Scroll Manager for efficient scrolling
-class ScrollManager: ObservableObject {
-    private var scrollWorkItem: DispatchWorkItem?
-    private var lastScrollTime: Date = Date()
-    private let minimumScrollInterval: TimeInterval = 0.3
-    private var isScrolling = false
-    
-    enum ScrollTarget {
-        case bottom
-        case input
-        case picker
-        case typing
-        case lastMessage
-    }
-    
-    func scheduleScroll(to target: ScrollTarget, proxy: ScrollViewProxy, delay: Double = 0.0, messageId: UUID? = nil) {
-        print("🔍 [ScrollManager] Scheduling scroll to \(target) with delay: \(delay), messageId: \(messageId?.uuidString.prefix(8) ?? "nil")")
-        
-        // Don't schedule if already scrolling
-        guard !isScrolling else { 
-            print("🔍 [ScrollManager] ❌ Already scrolling, skipping")
-            return 
-        }
-        
-        // Cancel any pending scroll
-        scrollWorkItem?.cancel()
-        
-        // Check if enough time has passed since last scroll
-        let timeSinceLastScroll = Date().timeIntervalSince(lastScrollTime)
-        var adjustedDelay = delay
-        if timeSinceLastScroll < minimumScrollInterval {
-            adjustedDelay += minimumScrollInterval - timeSinceLastScroll
-            print("🔍 [ScrollManager] Adjusted delay to \(adjustedDelay) (timeSinceLastScroll: \(timeSinceLastScroll))")
-        }
-        
-        let workItem = DispatchWorkItem { [weak self] in
-            print("🔍 [ScrollManager] Executing scroll to \(target)")
-            self?.performScroll(to: target, proxy: proxy, messageId: messageId)
-            self?.lastScrollTime = Date()
-        }
-        
-        scrollWorkItem = workItem
-        
-        if adjustedDelay > 0 {
-            print("🔍 [ScrollManager] Scheduling scroll with delay: \(adjustedDelay)")
-            DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDelay, execute: workItem)
-        } else {
-            print("🔍 [ScrollManager] Executing scroll immediately")
-            DispatchQueue.main.async(execute: workItem)
-        }
-    }
-    
-    private func performScroll(to target: ScrollTarget, proxy: ScrollViewProxy, messageId: UUID? = nil) {
-        print("🔍 [ScrollManager] Performing scroll to \(target)")
-        isScrolling = true
-        
-        withAnimation(.easeInOut(duration: 0.6)) { 
-            switch target {
-            case .bottom:
-                print("🔍 [ScrollManager] Scrolling to bottom")
-                proxy.scrollTo("bottom", anchor: .bottom)
-            case .input:
-                print("🔍 [ScrollManager] Scrolling to input section")
-                proxy.scrollTo("inputSection", anchor: .bottom)
-            case .picker:
-                print("🔍 [ScrollManager] Scrolling to picker")
-                proxy.scrollTo("interactivePicker", anchor: .center)
-            case .typing:
-                print("🔍 [ScrollManager] Scrolling to typing indicator")
-                proxy.scrollTo("typingIndicator", anchor: .center)
-            case .lastMessage:
-                if let messageId = messageId {
-                    print("🔍 [ScrollManager] Scrolling to message: \(messageId.uuidString.prefix(8))")
-                    proxy.scrollTo(messageId, anchor: .topLeading)
-                } else {
-                    print("🔍 [ScrollManager] Scrolling to chat bottom")
-                    proxy.scrollTo("chatBottom", anchor: .center)
-                }
-            }
-        }
-        
-        // Reset scrolling flag after animation completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            print("🔍 [ScrollManager] Scroll animation completed, resetting isScrolling")
-            self.isScrolling = false
-        }
-    }
-    
-    func cancelPendingScroll() {
-        scrollWorkItem?.cancel()
-        isScrolling = false
-    }
-}

@@ -148,7 +148,7 @@ struct ResponseChatBubble: View {
                     step: currentStep,
                     selectedDate: $selectedDate,
                     selectedTime: $selectedTime,
-                    onDateSelected: onDateSelected,
+                    onDateSelected: onDateSelected,s
                     onTimeSelected: onTimeSelected,
                     onUnknownTime: onUnknownTime
                 )

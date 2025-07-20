@@ -75,7 +75,7 @@ struct QuestionChatBubble: View {
                 Spacer()
                 Text(message.text)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.bubblePearl)
                     .foregroundColor(.white)
                     .cornerRadius(20)
                     .frame(maxWidth: 280, alignment: .trailing)
@@ -89,7 +89,7 @@ struct QuestionChatBubble: View {
                     
                     Text(message.text)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.bubblePearl)
                         .foregroundColor(.white)
                         .cornerRadius(20)
                         .fixedSize(horizontal: false, vertical: true)
@@ -199,6 +199,7 @@ struct ResponseChatBubble: View {
             
             // Send button (only show for text input)
             if currentStep.inputType == "text" {
+                Spacer()
                 Button(action: onSend) {
                     Image(systemName: "paperplane.fill")
                         .font(.system(size: 18, weight: .medium))
@@ -218,7 +219,7 @@ struct ResponseChatBubble: View {
         }
         .padding(.horizontal, currentStep.inputType == "text" ? 16 : 0)
         .padding(.vertical, currentStep.inputType == "text" ? 12 : 0)
-        .background(currentStep.inputType == "text" ? Color.purple : Color.clear)
+        .background(currentStep.inputType == "text" ? Color.bubbleFrost : Color.clear)
         .cornerRadius(currentStep.inputType == "text" ? 20 : 0)
     }
 }
@@ -241,7 +242,7 @@ struct AnsweredChatBubble: View {
             Spacer()
             Text(message.text)
                 .padding()
-                .background(Color.green)
+                .background(Color.bubbleWarm)
                 .foregroundColor(.white)
                 .cornerRadius(20)
                 .frame(maxWidth: 280, alignment: .trailing)

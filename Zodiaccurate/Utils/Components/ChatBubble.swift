@@ -4,6 +4,10 @@
 //
 //  Created by Cass Pangell on 7/18/25.
 //
+// MARK: - Usage Example
+// To get the height of the last response chat bubble:
+// let height = ChatBubbleHeightTracker.getLastResponseBubbleHeight()
+//
 
 import SwiftUI
 
@@ -19,6 +23,37 @@ struct ChatMessage: Identifiable, Equatable {
         lhs.text == rhs.text &&
         lhs.isUser == rhs.isUser &&
         lhs.timestamp == rhs.timestamp
+    }
+}
+
+// MARK: - Chat Bubble Height Tracker
+class ChatBubbleHeightTracker: ObservableObject {
+    @Published var lastResponseBubbleHeight: CGFloat = 0
+    
+    static let shared = ChatBubbleHeightTracker()
+    
+    private init() {}
+    
+    func updateLastResponseBubbleHeight(_ height: CGFloat) {
+        DispatchQueue.main.async {
+            self.lastResponseBubbleHeight = height
+        }
+    }
+    
+    func getLastResponseBubbleHeight() -> CGFloat {
+        return lastResponseBubbleHeight
+    }
+    
+    // MARK: - Convenience Methods
+    /// Returns the height of the last response chat bubble that was added
+    /// - Returns: The height in points, or 0 if no response bubble has been added yet
+    static func getLastResponseBubbleHeight() -> CGFloat {
+        return shared.lastResponseBubbleHeight
+    }
+    
+    /// Resets the last response bubble height to 0
+    static func resetLastResponseBubbleHeight() {
+        shared.updateLastResponseBubbleHeight(0)
     }
 }
 
@@ -193,6 +228,7 @@ struct AnsweredChatBubble: View {
     let message: ChatMessage
     let onSizeChange: ((CGSize) -> Void)?
     let onFrameChange: ((CGRect) -> Void)?
+    @StateObject private var heightTracker = ChatBubbleHeightTracker.shared
     
     init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil) {
         self.message = message
@@ -218,6 +254,8 @@ struct AnsweredChatBubble: View {
                     .preference(key: BubbleSizePreferenceKey.self, value: geometry.size)
                     .onPreferenceChange(BubbleSizePreferenceKey.self) { size in
                         onSizeChange?(size)
+                        // Track the height of this response bubble
+                        heightTracker.updateLastResponseBubbleHeight(size.height)
                     }
                     .onAppear {
                         let frame = geometry.frame(in: .global)

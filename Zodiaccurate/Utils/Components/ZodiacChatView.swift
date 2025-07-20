@@ -16,7 +16,6 @@ struct ZodiacChatView: View {
     @State private var keyboardHeight: CGFloat = 0
     @State private var animatedKeyboardOffset: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
-    @State private var lastCalculatedOffset: CGFloat = 0
 
     @State private var inputFieldFrame: CGRect = .zero
     @State private var showZodiacAlert = false
@@ -179,7 +178,7 @@ struct ZodiacChatView: View {
     
     @ViewBuilder
     private var topAnchorView: some View {
-        Color.red
+        Color.clear
             .frame(height: 1)
             .padding(.top, 50)
             .id("topAnchor")
@@ -197,7 +196,7 @@ struct ZodiacChatView: View {
             }
             .background(
                 GeometryReader { geometry in
-                    Color.green
+                    Color.clear
                         .onAppear {
                             // Ensure content doesn't extend into safe area
                             let safeAreaTop = geometry.safeAreaInsets.top
@@ -331,10 +330,11 @@ struct ZodiacChatView: View {
                     
                     // Recalculate keyboard offset when input field appears
                     if keyboardHeight > 0 {
+                        
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             let targetOffset = self.calculateKeyboardOffset()
-                            if targetOffset > 0 && self.lastCalculatedOffset != targetOffset {
-                                self.lastCalculatedOffset = targetOffset
+                            if targetOffset > 0 {
+                                print("kilroy 2")
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     self.animatedKeyboardOffset = targetOffset
                                 }
@@ -362,8 +362,8 @@ struct ZodiacChatView: View {
                     // Text field gained focus while keyboard is visible
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         let targetOffset = self.calculateKeyboardOffset()
-                        if targetOffset > 0 && self.lastCalculatedOffset != targetOffset {
-                            self.lastCalculatedOffset = targetOffset
+                        if targetOffset < 0 {
+                            print("kilroy 1")
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 self.animatedKeyboardOffset = targetOffset
                             }
@@ -473,75 +473,26 @@ struct ZodiacChatView: View {
         guard keyboardHeight > 0 else { return 0 }
         
         let screenHeight = UIScreen.main.bounds.height
-        let safeAreaInsets = getSafeAreaInsets()
-        let bottomSafeArea = safeAreaInsets.bottom
+        let viewableArea = screenHeight - keyboardHeight
+        let getLastChatBubbleMaxY = getLastChatBubbleMaxY()
         
-        // Get the bubble's bottom position from the top of the screen
-        let bubbleBottomFromTop = getLastChatBubbleBottomFromTop()
-        
-        // If bubble position is not available, use a reasonable estimate
-        guard bubbleBottomFromTop > 0 else { return 0 }
-        
-        // Calculate bubble's distance from bottom of screen
-        let bubbleBottomFromBottom = screenHeight - bubbleBottomFromTop
-        
-        // Check if keyboard is covering the bubble
-        // Account for the fact that ScrollView ignores bottom safe area
-        let keyboardTop = screenHeight - keyboardHeight - bottomSafeArea
-        let availableSpace = keyboardTop - bubbleBottomFromTop
-        
-        print("🔧 [calculateKeyboardOffset] bubbleBottomFromTop: \(bubbleBottomFromTop), keyboardTop: \(keyboardTop), availableSpace: \(availableSpace)")
-        
-        // If keyboard is covering the bubble, move it up
-        if availableSpace < 0 {
-            let offset = abs(availableSpace)
-            // Add 20 points of padding so the bubble isn't flush with the keyboard
-            let paddingOffset: CGFloat = 20
-            let totalOffset = offset + paddingOffset
-            let roundedOffset = round(totalOffset / 10) * 10
-            print("🔧 [calculateKeyboardOffset] calculated offset: \(roundedOffset) (base: \(offset) + padding: \(paddingOffset))")
-            return roundedOffset
+        // Get the height of the last response bubble for additional context
+        let lastResponseBubbleHeight = ChatBubbleHeightTracker.getLastResponseBubbleHeight()
+    
+        let viewableAreaDiff = viewableArea - getLastChatBubbleMaxY
+
+        if viewableAreaDiff < 0 {
+            let offset = viewableArea - keyboardHeight + lastResponseBubbleHeight + 24 //padding
+            print("viewableArea \(viewableArea) - keyboardHeight \(keyboardHeight) + lastResponseBubbleHeight \(lastResponseBubbleHeight) + 24")
+            return offset
+        } else {
+            return 0
         }
-        
-        // For the first input field, add a calculated offset to ensure it's visible
-        if messages.count == 1 && showInputField && showResponseChatBubble {
-            // Calculate a reasonable offset based on keyboard height and screen dimensions
-            let estimatedInputFieldHeight: CGFloat = 80
-            let padding: CGFloat = 20
-            let firstInputOffset = min(keyboardHeight * 0.3, 120) + padding
-            print("🔧 [calculateKeyboardOffset] First input field - calculated offset: \(firstInputOffset)")
-            return firstInputOffset
-        }
-        
-        return 0
     }
     
-    private func getLastChatBubbleBottomFromTop() -> CGFloat {
-        // If input field is visible and has a valid frame, use that instead
-        if showInputField && showResponseChatBubble && inputFieldFrame.height > 0 {
-            print("🔧 [getLastChatBubbleBottomFromTop] Using frame: \(inputFieldFrame.maxY)")
-            return inputFieldFrame.maxY
-        }
-        
-        // For the first input field, use a more conservative estimate
-        if messages.count == 1 && showInputField && showResponseChatBubble {
-            let estimatedBubbleHeight: CGFloat = 60 // Average bubble height
-            let inputFieldHeight: CGFloat = 80 // Estimated input field height
-            let spacing: CGFloat = 16 // Spacing between bubbles
-            let topSpacing: CGFloat = contentTopSpacing
-            
-            let result = topSpacing + estimatedBubbleHeight + spacing + inputFieldHeight
-            print("🔧 [getLastChatBubbleBottomFromTop] First input field estimate: \(result)")
-            return result
-        }
-        
-        // Fallback to estimation if frame not tracked yet
-        let estimatedBubbleHeight: CGFloat = 60 // Average bubble height
-        let spacing: CGFloat = 16 // Spacing between bubbles
-        let topSpacing: CGFloat = contentTopSpacing
-        
-        let estimatedBottom = topSpacing + (CGFloat(messages.count) * (estimatedBubbleHeight + spacing))
-        return estimatedBottom
+    private func getLastChatBubbleMaxY() -> CGFloat {
+        print("🔧 [getLastChatBubbleBottomFromTop] inputFieldFrame.maxY: \(inputFieldFrame.maxY)")
+        return inputFieldFrame.maxY
     }
     
     private func calculateTypingDelay(for text: String) -> Double {
@@ -613,12 +564,11 @@ struct ZodiacChatView: View {
             print("🔧 [InputDebug] Resetting keyboard offset before response bubble")
             withAnimation(.easeInOut(duration: 0.2)) {
                 animatedKeyboardOffset = 0
-                lastCalculatedOffset = 0
             }
         }
         
         // Set transition state to prevent scrolling when response bubble disappears
-        print("🔍 [TransitionDebug] Setting isTransitioning = true")
+//        print("🔍 [TransitionDebug] Setting isTransitioning = true")
         isTransitioning = true
         isProcessingUserInput = true
         
@@ -646,7 +596,7 @@ struct ZodiacChatView: View {
         
         // Reset transition state after the response bubble is displayed
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            print("🔍 [TransitionDebug] Setting isTransitioning = false (after user input)")
+//            print("🔍 [TransitionDebug] Setting isTransitioning = false (after user input)")
             isTransitioning = false
         }
         
@@ -658,7 +608,7 @@ struct ZodiacChatView: View {
         
         // Reset processing flag after the next question appears
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            print("🔍 [TransitionDebug] Setting isProcessingUserInput = false (after full cycle)")
+//            print("🔍 [TransitionDebug] Setting isProcessingUserInput = false (after full cycle)")
             isProcessingUserInput = false
         }
     }
@@ -693,14 +643,14 @@ struct ZodiacChatView: View {
                 
                 // Reset processing flag once the input field is shown
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    print("🔍 [TransitionDebug] Setting isProcessingUserInput = false (input field shown)")
+//                    print("🔍 [TransitionDebug] Setting isProcessingUserInput = false (input field shown)")
                     isProcessingUserInput = false
                 }
             }
             
             // Reset transition state after the AI message is displayed
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                print("🔍 [TransitionDebug] Setting isTransitioning = false (after AI message)")
+//                print("🔍 [TransitionDebug] Setting isTransitioning = false (after AI message)")
                 isTransitioning = false
             }
         }
@@ -721,7 +671,7 @@ struct ZodiacChatView: View {
     
     // MARK: - Auto-scroll Helper Functions
     private func handleMessageCountChange(oldCount: Int, newCount: Int) {
-        print("🔍 [AutoScroll] Message count changed from \(oldCount) to \(newCount)")
+//        print("🔍 [AutoScroll] Message count changed from \(oldCount) to \(newCount)")
         
         // Cancel any existing debounce timer
         scrollDebounceTimer?.invalidate()
@@ -740,7 +690,7 @@ struct ZodiacChatView: View {
     }
     
     private func scrollToBottom(animated: Bool) {
-        print("🔍 [AutoScroll] Scrolling to bottom, animated: \(animated)")
+//        print("🔍 [AutoScroll] Scrolling to bottom, animated: \(animated)")
         
         // Prevent rapid successive scroll calls
         guard !shouldScrollToBottom else { return }
@@ -757,29 +707,16 @@ struct ZodiacChatView: View {
     private func handleKeyboardHeightChange(_ keyboardHeight: CGFloat) {
         print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
         self.keyboardHeight = keyboardHeight
-        
-        // Handle keyboard appearance and disappearance
-        if keyboardHeight > 0 {
-            // Keyboard appeared - calculate offset if needed
-            if self.lastCalculatedOffset == 0 {
-                // Add longer delay for first input field to ensure it's rendered
-                let delay = showInputField && showResponseChatBubble ? 0.3 : 0.1
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    let targetOffset = self.calculateKeyboardOffset()
-                    self.lastCalculatedOffset = targetOffset
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        self.animatedKeyboardOffset = targetOffset
-                    }
-                }
-            }
-        } else {
-            // Keyboard disappeared - reset offset to 0
-            if self.lastCalculatedOffset > 0 {
-                print("🔧 [KeyboardDebug] Keyboard disappeared, resetting offset to 0")
-                self.lastCalculatedOffset = 0
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    self.animatedKeyboardOffset = 0
-                    self.lastCalculatedOffset = 0
+
+        // Add longer delay for first input field to ensure it's rendered
+        let delay = showInputField && showResponseChatBubble ? 0.3 : 0.1
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            print("kilroy3")
+            let targetOffset = self.calculateKeyboardOffset()
+
+            if targetOffset > 0 {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    self.animatedKeyboardOffset = targetOffset
                 }
             }
         }

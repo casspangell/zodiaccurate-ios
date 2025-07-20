@@ -12,7 +12,7 @@ struct ZodiacChatView: View {
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
     @State private var showInputField = false
-    @State private var showResponseChatBubble = false
+@State private var showResponseChatBubble = false
     @State private var keyboardHeight: CGFloat = 0
     @State private var animatedKeyboardOffset: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
@@ -26,12 +26,13 @@ struct ZodiacChatView: View {
     @State private var highlightInputField = false
     @State private var isTransitioning = false
     @State private var isProcessingUserInput = false
+    @State private var scrollViewOffset: CGFloat = 0
+    @State private var headerFrame: CGRect = .zero
     
     // MARK: - Auto-scroll Properties
     @State private var isUserAtBottom = true
-    @State private var showScrollToBottomButton = false
+    @State private var isUserAtTop = true
     @State private var lastMessageCount = 0
-    @State private var scrollToBottomButtonOpacity: Double = 0
     @State private var shouldScrollToBottom = false
     @State private var scrollDebounceTimer: Timer?
     
@@ -74,11 +75,11 @@ struct ZodiacChatView: View {
     
     // MARK: - Computed Properties
     private var contentTopSpacing: CGFloat {
-        return headerHeight + ZodiacHeader.profileBadgeHeight()
+        return 0
     }
     
     private var contentTopPadding: CGFloat {
-        return max(headerHeight * 0.67, 80)
+        return 0
     }
     
     private var totalScrollOffset: CGFloat {
@@ -148,16 +149,12 @@ struct ZodiacChatView: View {
     private var bottomAnchorView: some View {
         Color.clear
             .frame(height: 1)
-            .padding(.bottom, 20)
+            .padding(.bottom, 50)
             .id("bottomAnchor")
             .onAppear {
                 // User scrolled to bottom
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     isUserAtBottom = true
-                    showScrollToBottomButton = false
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        scrollToBottomButtonOpacity = 0
-                    }
                 }
             }
             .onDisappear {
@@ -166,51 +163,69 @@ struct ZodiacChatView: View {
                     isUserAtBottom = false
                 }
             }
+            .background(
+                GeometryReader { geometry in
+                    Color.clear
+                        .onAppear {
+                            // Ensure content doesn't extend into safe area
+                            let safeAreaBottom = geometry.safeAreaInsets.bottom
+                            if safeAreaBottom > 0 {
+                                print("🔧 [SafeArea] Bottom safe area detected: \(safeAreaBottom)")
+                            }
+                        }
+                }
+            )
     }
     
     @ViewBuilder
-    private var scrollToBottomButtonView: some View {
-        if showScrollToBottomButton {
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        // Trigger scroll to bottom by updating a state variable
-                        isUserAtBottom = true
-                        showScrollToBottomButton = false
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            scrollToBottomButtonOpacity = 0
-                        }
-                    }) {
-                        Image(systemName: "arrow.down.circle.fill")
-                            .font(.system(size: 44, weight: .medium))
-                            .foregroundColor(.white)
-                            .background(
-                                Circle()
-                                    .fill(Color.accentGold.opacity(0.9))
-                                    .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
-                            )
-                    }
-                    .opacity(scrollToBottomButtonOpacity)
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 100)
+    private var topAnchorView: some View {
+        Color.red
+            .frame(height: 1)
+            .padding(.top, 50)
+            .id("topAnchor")
+            .onAppear {
+                // User scrolled to top
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isUserAtTop = true
                 }
             }
-            .allowsHitTesting(scrollToBottomButtonOpacity > 0)
-        }
+            .onDisappear {
+                // User scrolled away from top
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isUserAtTop = false
+                }
+            }
+            .background(
+                GeometryReader { geometry in
+                    Color.green
+                        .onAppear {
+                            // Ensure content doesn't extend into safe area
+                            let safeAreaTop = geometry.safeAreaInsets.top
+                            if safeAreaTop > 0 {
+                                print("🔧 [SafeArea] Top safe area detected: \(safeAreaTop)")
+                            }
+                        }
+                }
+            )
     }
+    
+
     
     // MARK: - Computed Views
     @ViewBuilder
     private var chatScrollView: some View {
         ScrollViewReader { proxy in
             ScrollView {
+                GeometryReader { geometry in
+                    Color.clear
+                        .preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).minY)
+                }
+                .frame(height: 0)
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    Spacer().frame(height: contentTopSpacing)
-                    
-                    // Chat Content
-                    ChatContentView(
+                    topAnchorView
+                        
+                    // Chat History Content
+                    ChatHistoryContentView(
                         messages: messages,
                         currentStep: currentStep,
                         onboardingConversationSteps: conversationSteps,
@@ -224,6 +239,7 @@ struct ZodiacChatView: View {
                         onUnknownTime: handleUnknownTime,
                         tutorialManager: tutorialManager
                     )
+                    .opacity(calculateContentOpacity())
                     
                     // Input
                     ChatInputView(
@@ -280,13 +296,21 @@ struct ZodiacChatView: View {
                     bottomAnchorView
                 }
                 .padding(.horizontal)
-                .padding(.top, -contentTopPadding)
             }
             .scrollDismissesKeyboard(.interactively)
             .clipped()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .offset(y: -totalScrollOffset)
             .zIndex(1)
+            .background(Color.clear)
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: 0)
+            }
+            .coordinateSpace(name: "scroll")
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                scrollViewOffset = value
+            }
+            .padding(.top, -headerFrame.midY)
             .onChange(of: messages.count) { oldCount, newCount in
                 handleMessageCountChange(oldCount: oldCount, newCount: newCount)
             }
@@ -325,14 +349,7 @@ struct ZodiacChatView: View {
                     scrollToBottom(animated: false)
                 }
             }
-            .onChange(of: isUserAtBottom) { _, atBottom in
-                if atBottom && showScrollToBottomButton {
-                    // User clicked scroll to bottom button
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        scrollToBottom(animated: true)
-                    }
-                }
-            }
+
             .onChange(of: shouldScrollToBottom) { _, shouldScroll in
                 if shouldScroll {
                     withAnimation(.easeInOut(duration: 0.8)) {
@@ -357,15 +374,18 @@ struct ZodiacChatView: View {
             .simultaneousGesture(
                 DragGesture(minimumDistance: 10)
                     .onChanged { value in
-                        // Only mark as not at bottom if user scrolls up significantly
+                        // Track when user scrolls away from top or bottom
                         if value.translation.height < -20 && isUserAtBottom {
                             isUserAtBottom = false
                         }
+                        if value.translation.height > 20 && isUserAtTop {
+                            isUserAtTop = false
+                        }
                     }
                     .onEnded { _ in
-                        // Check if user scrolled to bottom after drag ends
+                        // Check if user scrolled to top or bottom after drag ends
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                            // This will be handled by the bottom anchor's onAppear/onDisappear
+                            // This will be handled by the anchor's onAppear/onDisappear
                         }
                     }
             )
@@ -404,7 +424,17 @@ struct ZodiacChatView: View {
             
             VStack(spacing: 0) {
                 headerView
-                
+                    .background(
+                        GeometryReader { geometry in
+                            Color.clear
+                                .onAppear {
+                                    headerFrame = geometry.frame(in: .global)
+                                }
+                                .onChange(of: geometry.frame(in: .global)) { _, newFrame in
+                                    headerFrame = newFrame
+                                }
+                        }
+                    )
                 chatScrollView
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -419,8 +449,6 @@ struct ZodiacChatView: View {
                     }
                 )
             }
-            
-            scrollToBottomButtonView
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.all, edges: .all)
@@ -699,19 +727,11 @@ struct ZodiacChatView: View {
         scrollDebounceTimer?.invalidate()
         
         // Only auto-scroll if user is at bottom or if it's a new message (not deletion)
-        if newCount > oldCount {
-            if isUserAtBottom {
-                // User is at bottom, debounce auto-scroll to prevent jitter
-                scrollDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { _ in
-                    DispatchQueue.main.async {
-                        scrollToBottom(animated: true)
-                    }
-                }
-            } else {
-                // User has scrolled up, show scroll to bottom button
-                showScrollToBottomButton = true
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    scrollToBottomButtonOpacity = 1.0
+        if newCount > oldCount && isUserAtBottom {
+            // User is at bottom, debounce auto-scroll to prevent jitter
+            scrollDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { _ in
+                DispatchQueue.main.async {
+                    scrollToBottom(animated: true)
                 }
             }
         }
@@ -764,11 +784,34 @@ struct ZodiacChatView: View {
             }
         }
     }
+    
+    // MARK: - Fade Effect Helper
+    private func calculateContentOpacity() -> Double {
+        let fadeStart: CGFloat = 0
+        let fadeEnd: CGFloat = headerHeight * 0.5
+        
+        if scrollViewOffset >= fadeStart {
+            return 1.0
+        } else if scrollViewOffset <= -fadeEnd {
+            return 0.0
+        } else {
+            let progress = abs(scrollViewOffset) / fadeEnd
+            return 1.0 - progress
+        }
+    }
 }
 
-// MARK: - Chat Content View
-// Break out the chat content into a separate view
-struct ChatContentView: View {
+// MARK: - Scroll Offset Preference Key
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+// MARK: - Chat History Content View
+// Break out the chat history content into a separate view
+struct ChatHistoryContentView: View {
     let messages: [ChatMessage]
     let currentStep: Int
     let onboardingConversationSteps: [ConversationStep]
@@ -823,7 +866,6 @@ struct ChatContentView: View {
                 .id("chatBottom")
         }
         .padding(.horizontal)
-        .padding(.bottom, 20)
         .animation(.easeInOut(duration: 0.3), value: messages)
         .animation(.easeInOut(duration: 0.3), value: showResponseChatBubble)
     }

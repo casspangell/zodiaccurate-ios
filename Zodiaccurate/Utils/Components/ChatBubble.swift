@@ -118,7 +118,7 @@ struct ResponseChatBubble: View {
     }
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 0) {
             // Conditional input based on step type
             if currentStep.inputType == "text" {
                 // Text input
@@ -148,7 +148,7 @@ struct ResponseChatBubble: View {
                     step: currentStep,
                     selectedDate: $selectedDate,
                     selectedTime: $selectedTime,
-                    onDateSelected: onDateSelected,s
+                    onDateSelected: onDateSelected,
                     onTimeSelected: onTimeSelected,
                     onUnknownTime: onUnknownTime
                 )

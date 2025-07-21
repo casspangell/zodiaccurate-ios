@@ -1,5 +1,16 @@
 import SwiftUI
 
+struct SecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 14, weight: .bold))
+            .frame(maxWidth: .infinity, minHeight: 40)
+            .background(Color.utilsBackground)
+            .foregroundColor(.white)
+            .cornerRadius(30)
+    }
+}
+
 struct PrimaryGradientButton: View {
     let title: String
     let action: () -> Void

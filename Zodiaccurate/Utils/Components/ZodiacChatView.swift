@@ -332,7 +332,11 @@ struct ZodiacChatView: View {
                     if keyboardHeight > 0 {
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            let targetOffset = self.calculateKeyboardOffset()
+                            let targetOffset = calculateKeyboardOffset(
+                                keyboardHeight: self.keyboardHeight,
+                                inputFieldFrame: self.inputFieldFrame,
+                                lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
+                            )
                             if targetOffset > 0 {
                                 print("kilroy 2")
                                 withAnimation(.easeInOut(duration: 0.3)) {
@@ -361,7 +365,11 @@ struct ZodiacChatView: View {
                 if isFocused && keyboardHeight > 0 {
                     // Text field gained focus while keyboard is visible
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        let targetOffset = self.calculateKeyboardOffset()
+                        let targetOffset = calculateKeyboardOffset(
+                            keyboardHeight: self.keyboardHeight,
+                            inputFieldFrame: self.inputFieldFrame,
+                            lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
+                        )
                         if targetOffset < 0 {
                             print("kilroy 1")
                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -469,31 +477,8 @@ struct ZodiacChatView: View {
     }
     
     // MARK: - Helper Functions
-    private func calculateKeyboardOffset() -> CGFloat {
-        guard keyboardHeight > 0 else { return 0 }
-        
-        let screenHeight = UIScreen.main.bounds.height
-        let viewableArea = screenHeight - keyboardHeight
-        let getLastChatBubbleMaxY = getLastChatBubbleMaxY()
-        
-        // Get the height of the last response bubble for additional context
-        let lastResponseBubbleHeight = ChatBubbleHeightTracker.getLastResponseBubbleHeight()
     
-        let viewableAreaDiff = viewableArea - getLastChatBubbleMaxY
 
-        if viewableAreaDiff < 0 {
-            let offset = viewableArea - keyboardHeight + lastResponseBubbleHeight + 24 //padding
-            print("viewableArea \(viewableArea) - keyboardHeight \(keyboardHeight) + lastResponseBubbleHeight \(lastResponseBubbleHeight) + 24")
-            return offset
-        } else {
-            return 0
-        }
-    }
-    
-    private func getLastChatBubbleMaxY() -> CGFloat {
-        print("🔧 [getLastChatBubbleBottomFromTop] inputFieldFrame.maxY: \(inputFieldFrame.maxY)")
-        return inputFieldFrame.maxY
-    }
     
     private func calculateTypingDelay(for text: String) -> Double {
         let wordCount = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.count
@@ -552,11 +537,7 @@ struct ZodiacChatView: View {
     
     private func handleUserInput(input: String) {
         guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        
-        print("🔍 [InputDebug] handleUserInput called with: '\(input)'")
-        print("🔍 [InputDebug] currentStep: \(currentStep), keyboardHeight: \(keyboardHeight)")
-        print("🔍 [InputDebug] Before state changes - showInputField: \(showInputField), showResponseChatBubble: \(showResponseChatBubble)")
-        
+
         tutorialManager.stopTutorial()
         
         // Reset keyboard offset immediately before response bubble appears
@@ -566,16 +547,12 @@ struct ZodiacChatView: View {
                 animatedKeyboardOffset = 0
             }
         }
-        
-        // Set transition state to prevent scrolling when response bubble disappears
-//        print("🔍 [TransitionDebug] Setting isTransitioning = true")
+
         isTransitioning = true
         isProcessingUserInput = true
         
         showInputField = false
         showResponseChatBubble = false
-        
-        print("🔍 [InputDebug] After hiding input - showInputField: \(showInputField), showResponseChatBubble: \(showResponseChatBubble)")
         
         let responseMessage = ChatMessage(
             text: input,
@@ -592,8 +569,6 @@ struct ZodiacChatView: View {
         currentStep += 1
         onStepComplete(currentStep)
         
-        print("🔍 [InputDebug] Step completed, new currentStep: \(currentStep)")
-        
         // Reset transition state after the response bubble is displayed
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
 //            print("🔍 [TransitionDebug] Setting isTransitioning = false (after user input)")
@@ -602,7 +577,6 @@ struct ZodiacChatView: View {
         
         // Trigger next question after a delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            print("🔍 [InputDebug] Triggering next question after user input")
             triggerNextQuestion()
         }
         
@@ -712,7 +686,11 @@ struct ZodiacChatView: View {
         let delay = showInputField && showResponseChatBubble ? 0.3 : 0.1
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             print("kilroy3")
-            let targetOffset = self.calculateKeyboardOffset()
+            let targetOffset = calculateKeyboardOffset(
+                keyboardHeight: self.keyboardHeight,
+                inputFieldFrame: self.inputFieldFrame,
+                lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
+            )
 
             if targetOffset > 0 {
                 withAnimation(.easeInOut(duration: 0.3)) {

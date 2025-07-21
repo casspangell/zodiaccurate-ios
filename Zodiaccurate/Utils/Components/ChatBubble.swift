@@ -137,6 +137,7 @@ struct ResponseChatBubble: View {
     let onFrameChange: (CGRect) -> Void
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
+    @State private var previousFrame: CGRect = .zero
     
     init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil) {
         self.currentStep = currentStep
@@ -170,7 +171,32 @@ struct ResponseChatBubble: View {
                     GeometryReader { geometry in
                         Color.clear
                             .onAppear {
-                                onFrameChange(geometry.frame(in: .global))
+                                let frame = geometry.frame(in: .global)
+                                onFrameChange(frame)
+                                previousFrame = frame
+                                print("🔧 [ResponseChatBubble] Initial frame (text input): \(frame)")
+                            }
+                            .onChange(of: geometry.frame(in: .global)) { oldFrame, newFrame in
+                                // Only update if the frame has changed significantly (more than 1 point)
+                                if abs(newFrame.minX - oldFrame.minX) > 1 || 
+                                   abs(newFrame.minY - oldFrame.minY) > 1 ||
+                                   abs(newFrame.width - oldFrame.width) > 1 ||
+                                   abs(newFrame.height - oldFrame.height) > 1 {
+                                    
+                                    let xDiff = newFrame.minX - oldFrame.minX
+                                    let yDiff = newFrame.minY - oldFrame.minY
+                                    let widthDiff = newFrame.width - oldFrame.width
+                                    let heightDiff = newFrame.height - oldFrame.height
+                                    
+                                    print("🔧 [ResponseChatBubble] Frame change detected (text input):")
+                                    print("   X: \(oldFrame.minX) → \(newFrame.minX) (diff: \(xDiff))")
+                                    print("   Y: \(oldFrame.minY) → \(newFrame.minY) (diff: \(yDiff))")
+                                    print("   Width: \(oldFrame.width) → \(newFrame.width) (diff: \(widthDiff))")
+                                    print("   Height: \(oldFrame.height) → \(newFrame.height) (diff: \(heightDiff))")
+                                    
+                                    onFrameChange(newFrame)
+                                    previousFrame = newFrame
+                                }
                             }
                     }
                 )
@@ -191,7 +217,32 @@ struct ResponseChatBubble: View {
                     GeometryReader { geometry in
                         Color.clear
                             .onAppear {
-                                onFrameChange(geometry.frame(in: .global))
+                                let frame = geometry.frame(in: .global)
+                                onFrameChange(frame)
+                                previousFrame = frame
+                                print("🔧 [ResponseChatBubble] Initial frame (picker): \(frame)")
+                            }
+                            .onChange(of: geometry.frame(in: .global)) { oldFrame, newFrame in
+                                // Only update if the frame has changed significantly (more than 1 point)
+                                if abs(newFrame.minX - oldFrame.minX) > 1 || 
+                                   abs(newFrame.minY - oldFrame.minY) > 1 ||
+                                   abs(newFrame.width - oldFrame.width) > 1 ||
+                                   abs(newFrame.height - oldFrame.height) > 1 {
+                                    
+                                    let xDiff = newFrame.minX - oldFrame.minX
+                                    let yDiff = newFrame.minY - oldFrame.minY
+                                    let widthDiff = newFrame.width - oldFrame.width
+                                    let heightDiff = newFrame.height - oldFrame.height
+                                    
+                                    print("🔧 [ResponseChatBubble] Frame change detected (picker):")
+                                    print("   X: \(oldFrame.minX) → \(newFrame.minX) (diff: \(xDiff))")
+                                    print("   Y: \(oldFrame.minY) → \(newFrame.minY) (diff: \(yDiff))")
+                                    print("   Width: \(oldFrame.width) → \(newFrame.width) (diff: \(widthDiff))")
+                                    print("   Height: \(oldFrame.height) → \(newFrame.height) (diff: \(heightDiff))")
+                                    
+                                    onFrameChange(newFrame)
+                                    previousFrame = newFrame
+                                }
                             }
                     }
                 )

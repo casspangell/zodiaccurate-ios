@@ -280,9 +280,22 @@ struct ZodiacChatView: View {
                         },
                         isTextFieldFocused: $isTextFieldFocused,
                         onFrameChange: { frame in
-                            // Track input field frame for keyboard offset calculation
-                            print("🔧 [onFrameChange] Input field frame updated: \(frame)")
                             inputFieldFrame = frame
+                            // Recalculate keyboard offset when input field appears
+                            if keyboardHeight > 0 {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    let targetOffset = calculateKeyboardOffset(
+                                        keyboardHeight: self.keyboardHeight,
+                                        inputFieldFrame: self.inputFieldFrame,
+                                        lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
+                                    )
+                                    if targetOffset > 0 {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            self.animatedKeyboardOffset = 20 //bump it about the height of a text line
+                                        }
+                                    }
+                                }
+                            }
                         },
                         tutorialManager: tutorialManager,
                         highlightInputField: $highlightInputField,
@@ -818,13 +831,16 @@ struct ChatInputView: View {
     let tutorialManager: TutorialManager
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
-        
+    
+    // Frame tracking state
+    @State private var previousFrame: CGRect = .zero
+    
     var body: some View {
         if currentStep < conversationSteps.count && !conversationSteps[currentStep].isFinal {
             let isVisible = showInputField && showResponseChatBubble
             
             VStack(spacing: 0) {
-                // Response chat bubble
+                // Response chat bubble with frame tracking
                 ResponseChatBubble(
                     currentStep: conversationSteps[currentStep],
                     currentInput: currentInput,
@@ -834,9 +850,63 @@ struct ChatInputView: View {
                     onDateSelected: onDateSelected,
                     onTimeSelected: onTimeSelected,
                     onUnknownTime: onUnknownTime,
-                    onFrameChange: onFrameChange,
+                    onFrameChange: { frame in
+                        // Only update if the frame has changed significantly (more than 1 point)
+                        if abs(frame.minX - previousFrame.minX) > 1 || 
+                           abs(frame.minY - previousFrame.minY) > 1 ||
+                           abs(frame.width - previousFrame.width) > 1 ||
+                           abs(frame.height - previousFrame.height) > 1 {
+                            
+                            let xDiff = frame.minX - previousFrame.minX
+                            let yDiff = frame.minY - previousFrame.minY
+                            let widthDiff = frame.width - previousFrame.width
+                            let heightDiff = frame.height - previousFrame.height
+                            
+                            print("🔧 [ChatInputView] Frame change detected:")
+                            print("   X: \(previousFrame.minX) → \(frame.minX) (diff: \(xDiff))")
+                            print("   Y: \(previousFrame.minY) → \(frame.minY) (diff: \(yDiff))")
+                            print("   Width: \(previousFrame.width) → \(frame.width) (diff: \(widthDiff))")
+                            print("   Height: \(previousFrame.height) → \(frame.height) (diff: \(heightDiff))")
+                            
+                            onFrameChange(frame)
+                            previousFrame = frame
+                        }
+                    },
                     highlightInputField: $highlightInputField,
                     onHeightChange: onHeightChange
+                )
+                .background(
+                    GeometryReader { geometry in
+                        Color.clear
+                            .onAppear {
+                                let frame = geometry.frame(in: .global)
+                                onFrameChange(frame)
+                                previousFrame = frame
+                                print("🔧 [ChatInputView] Initial frame: \(frame)")
+                            }
+                            .onChange(of: geometry.frame(in: .global)) { oldFrame, newFrame in
+                                // Only update if the frame has changed significantly (more than 1 point)
+                                if abs(newFrame.minX - oldFrame.minX) > 1 || 
+                                   abs(newFrame.minY - oldFrame.minY) > 1 ||
+                                   abs(newFrame.width - oldFrame.width) > 1 ||
+                                   abs(newFrame.height - oldFrame.height) > 1 {
+                                    
+                                    let xDiff = newFrame.minX - oldFrame.minX
+                                    let yDiff = newFrame.minY - oldFrame.minY
+                                    let widthDiff = newFrame.width - oldFrame.width
+                                    let heightDiff = newFrame.height - oldFrame.height
+                                    
+                                    print("🔧 [ChatInputView] Frame change detected (GeometryReader):")
+                                    print("   X: \(oldFrame.minX) → \(newFrame.minX) (diff: \(xDiff))")
+                                    print("   Y: \(oldFrame.minY) → \(newFrame.minY) (diff: \(yDiff))")
+                                    print("   Width: \(oldFrame.width) → \(newFrame.width) (diff: \(widthDiff))")
+                                    print("   Height: \(oldFrame.height) → \(newFrame.height) (diff: \(heightDiff))")
+                                    
+                                    onFrameChange(newFrame)
+                                    previousFrame = newFrame
+                                }
+                            }
+                    }
                 )
                 .transition(.opacity)
                 .opacity(isVisible ? 1 : 0)

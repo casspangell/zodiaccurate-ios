@@ -31,9 +31,13 @@ struct ConversationalOnboardingView: View {
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
 
     var onComplete: () -> Void = {}
+    let backgroundColor: Color?
+    let bubbleColor: ChatBubbleColor?
     
-    init(onComplete: @escaping () -> Void = {}) {
+    init(onComplete: @escaping () -> Void = {}, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
         self.onComplete = onComplete
+        self.backgroundColor = backgroundColor
+        self.bubbleColor = bubbleColor
     }
     
 
@@ -72,7 +76,9 @@ struct ConversationalOnboardingView: View {
                     triggerBadgeAnimation: { newAssetName in
                         badgeAnimationManager.triggerBadgeAnimation(andSwapTo: newAssetName)
                     },
-                    badgeAnimationManager: badgeAnimationManager
+                    badgeAnimationManager: badgeAnimationManager,
+                    backgroundColor: backgroundColor,
+                    bubbleColor: bubbleColor
                 )
             }
             
@@ -335,7 +341,7 @@ struct ConversationalOnboardingView: View {
 
 
 #Preview {
-    ConversationalOnboardingView()
+    ConversationalOnboardingView(bubbleColor: .active)
 }
 
 // Preference key for header height

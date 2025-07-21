@@ -47,6 +47,8 @@ struct ZodiacChatView: View {
     let determineZodiacSign: (String) -> String
     let triggerBadgeAnimation: (String) -> Void
     let badgeAnimationManager: BadgeAnimationManager
+    let backgroundColor: Color?
+    let bubbleColor: ChatBubbleColor?
     
     // MARK: - Initialization
     init(
@@ -59,7 +61,9 @@ struct ZodiacChatView: View {
         personalizeMessage: @escaping (String, String) -> String,
         determineZodiacSign: @escaping (String) -> String,
         triggerBadgeAnimation: @escaping (String) -> Void,
-        badgeAnimationManager: BadgeAnimationManager
+        badgeAnimationManager: BadgeAnimationManager,
+        backgroundColor: Color? = nil,
+        bubbleColor: ChatBubbleColor? = nil
     ) {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
@@ -71,6 +75,8 @@ struct ZodiacChatView: View {
         self.determineZodiacSign = determineZodiacSign
         self.triggerBadgeAnimation = triggerBadgeAnimation
         self.badgeAnimationManager = badgeAnimationManager
+        self.backgroundColor = backgroundColor
+        self.bubbleColor = bubbleColor
     }
     
     // MARK: - Computed Properties
@@ -94,6 +100,8 @@ struct ZodiacChatView: View {
         
         return (isFinalStep && hasMessages && lastMessageIsAI) || isConversationComplete
     }
+    
+
     
     // MARK: - Helper Views
     @ViewBuilder
@@ -181,7 +189,7 @@ struct ZodiacChatView: View {
     private var topAnchorView: some View {
         Color.clear
             .frame(height: 1)
-            .padding(.top, 50)
+            .padding(.top, 60)
             .id("topAnchor")
             .onAppear {
                 // User scrolled to top
@@ -237,7 +245,10 @@ struct ZodiacChatView: View {
                         onDateSelected: handleDateSelected,
                         onTimeSelected: handleTimeSelected,
                         onUnknownTime: handleUnknownTime,
-                        tutorialManager: tutorialManager
+                        tutorialManager: tutorialManager,
+                        backgroundColor: backgroundColor,
+                        questionBubbleColor: bubbleColor,
+                        answeredBubbleColor: bubbleColor
                     )
                     .opacity(calculateContentOpacity())
                     
@@ -290,6 +301,7 @@ struct ZodiacChatView: View {
                                         lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
                                     )
                                     if targetOffset > 0 {
+                                        print("kilroy: 22")
                                         withAnimation(.easeInOut(duration: 0.3)) {
                                             self.animatedKeyboardOffset = 20 //bump it about the height of a text line
                                         }
@@ -302,7 +314,9 @@ struct ZodiacChatView: View {
                         onHeightChange: { heightDifference in
                             // Keyboard offset handles all positioning
                             // No need for manual scroll adjustments
-                        }
+                        },
+                        backgroundColor: backgroundColor,
+                        bubbleColor: bubbleColor
                     )
                     .id("inputSection")
                     
@@ -777,8 +791,11 @@ struct ChatHistoryContentView: View {
     let onTimeSelected: (Date) -> Void
     let onUnknownTime: () -> Void
     let tutorialManager: TutorialManager
+    let backgroundColor: Color?
+    let questionBubbleColor: ChatBubbleColor?
+    let answeredBubbleColor: ChatBubbleColor?
     
-    init(messages: [ChatMessage], currentStep: Int, onboardingConversationSteps: [ConversationStep], showInputField: Bool, showResponseChatBubble: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager) {
+    init(messages: [ChatMessage], currentStep: Int, onboardingConversationSteps: [ConversationStep], showInputField: Bool, showResponseChatBubble: Bool, selectedDate: Binding<Date>, selectedTime: Binding<Date>, isTyping: Bool, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, tutorialManager: TutorialManager, backgroundColor: Color?, questionBubbleColor: ChatBubbleColor?, answeredBubbleColor: ChatBubbleColor?) {
         self.messages = messages
         self.currentStep = currentStep
         self.onboardingConversationSteps = onboardingConversationSteps
@@ -791,22 +808,24 @@ struct ChatHistoryContentView: View {
         self.onTimeSelected = onTimeSelected
         self.onUnknownTime = onUnknownTime
         self.tutorialManager = tutorialManager
+        self.backgroundColor = backgroundColor
+        self.questionBubbleColor = questionBubbleColor
+        self.answeredBubbleColor = answeredBubbleColor
     }
     
     var body: some View {
         VStack(spacing: 0) {
             ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
-                if message.isUser {
-                    // User response - use AnsweredChatBubble
-                    AnsweredChatBubble(message: message)
-                        .id("message_\(index)")
-                        .transition(.opacity)
-                } else {
-                    // AI question - use QuestionChatBubble
-                    QuestionChatBubble(message: message)
-                        .id("message_\(index)")
-                        .transition(.opacity)
-                }
+                MessageBubbleView(
+                    index: index,
+                    message: message,
+                    messages: messages,
+                    backgroundColor: backgroundColor,
+                    questionBubbleColor: questionBubbleColor,
+                    answeredBubbleColor: answeredBubbleColor
+                )
+                .id("message_\(index)")
+                .transition(.opacity)
             }
             
             TypingIndicator(isAnimating: isTyping)
@@ -821,6 +840,34 @@ struct ChatHistoryContentView: View {
         .padding(.horizontal)
         .animation(.easeInOut(duration: 0.3), value: messages)
         .animation(.easeInOut(duration: 0.3), value: showResponseChatBubble)
+    }
+}
+
+// MARK: - Message Bubble View Helper
+struct MessageBubbleView: View {
+    let index: Int
+    let message: ChatMessage
+    let messages: [ChatMessage]
+    let backgroundColor: Color?
+    let questionBubbleColor: ChatBubbleColor?
+    let answeredBubbleColor: ChatBubbleColor?
+    
+    var body: some View {
+        if message.isUser {
+            // User response - use AnsweredChatBubble
+            AnsweredChatBubble(message: message, backgroundColor: backgroundColor, bubbleColor: .submitted)
+        } else {
+            // AI question - determine color based on whether it's been answered
+            let bubbleColorForQuestion: ChatBubbleColor? = {
+                if let bubbleColor = questionBubbleColor {
+                    return bubbleColor
+                }
+                let hasBeenAnswered = index + 1 < messages.count && messages[index + 1].isUser
+                return hasBeenAnswered ? .submitted : .active
+            }()
+            
+            QuestionChatBubble(message: message, backgroundColor: backgroundColor, bubbleColor: bubbleColorForQuestion)
+        }
     }
 }
 
@@ -844,6 +891,8 @@ struct ChatInputView: View {
     let tutorialManager: TutorialManager
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
+    let backgroundColor: Color?
+    let bubbleColor: ChatBubbleColor?
     
     // Frame tracking state
     @State private var previousFrame: CGRect = .zero
@@ -886,7 +935,9 @@ struct ChatInputView: View {
                         }
                     },
                     highlightInputField: $highlightInputField,
-                    onHeightChange: onHeightChange
+                    onHeightChange: onHeightChange,
+                    backgroundColor: backgroundColor,
+                    bubbleColor: ChatBubbleColor.clear
                 )
                 .background(
                     GeometryReader { geometry in

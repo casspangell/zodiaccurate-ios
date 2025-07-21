@@ -37,7 +37,7 @@ struct DatePickerView: View {
                 }
             }
             .padding()
-            .background(Color.bubbleFrost.opacity(0.8))
+            .background(ChatBubbleColor.active.color)
             .foregroundColor(.white)
             .cornerRadius(20)
             .frame(maxWidth: 280, alignment: .trailing)
@@ -97,7 +97,7 @@ struct TimePickerView: View {
                 }
             }
             .padding()
-            .background(Color.bubbleFrost.opacity(0.8))
+            .background(ChatBubbleColor.active.color)
             .foregroundColor(.white)
             .cornerRadius(20)
             .frame(maxWidth: 280, alignment: .trailing)
@@ -132,6 +132,7 @@ struct InteractivePickerView: View {
                 EmptyView()
             }
         }
+        .background(Color.clear)
     }
 }
 

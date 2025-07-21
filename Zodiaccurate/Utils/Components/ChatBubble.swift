@@ -4,12 +4,29 @@
 //
 //  Created by Cass Pangell on 7/18/25.
 //
-// MARK: - Usage Example
-// To get the height of the last response chat bubble:
-// let height = ChatBubbleHeightTracker.getLastResponseBubbleHeight()
-//
 
 import SwiftUI
+
+// MARK: - Chat Bubble Color Enum
+enum ChatBubbleColor {
+    case submitted
+    case active
+    case test
+    case clear
+    
+    var color: Color {
+        switch self {
+        case .submitted:
+            return Color.red
+        case .active:
+            return Color.blue
+        case .test:
+            return Color.yellow
+        case .clear:
+            return Color.clear
+        }
+    }
+}
 
 // MARK: - Chat Message Model
 struct ChatMessage: Identifiable, Equatable {
@@ -62,11 +79,25 @@ struct QuestionChatBubble: View {
     let message: ChatMessage
     let onSizeChange: ((CGSize) -> Void)?
     let onFrameChange: ((CGRect) -> Void)?
+    let backgroundColor: Color?
+    let bubbleColor: ChatBubbleColor?
     
-    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil) {
+    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
         self.message = message
         self.onSizeChange = onSizeChange
         self.onFrameChange = onFrameChange
+        self.backgroundColor = backgroundColor
+        self.bubbleColor = bubbleColor
+    }
+    
+    private var finalBackgroundColor: Color {
+        if let backgroundColor = backgroundColor {
+            return backgroundColor
+        } else if let bubbleColor = bubbleColor {
+            return bubbleColor.color
+        } else {
+            return Color.bubblePearl
+        }
     }
     
     var body: some View {
@@ -75,7 +106,7 @@ struct QuestionChatBubble: View {
                 Spacer()
                 Text(message.text)
                     .padding()
-                    .background(Color.bubblePearl)
+                    .background(finalBackgroundColor)
                     .foregroundColor(.white)
                     .cornerRadius(20)
                     .frame(maxWidth: 280, alignment: .trailing)
@@ -89,7 +120,7 @@ struct QuestionChatBubble: View {
                     
                     Text(message.text)
                         .padding()
-                        .background(Color.bubblePearl)
+                        .background(finalBackgroundColor)
                         .foregroundColor(.white)
                         .cornerRadius(20)
                         .fixedSize(horizontal: false, vertical: true)
@@ -137,8 +168,10 @@ struct ResponseChatBubble: View {
     let onFrameChange: (CGRect) -> Void
     @Binding var highlightInputField: Bool
     let onHeightChange: ((CGFloat) -> Void)?
+    let backgroundColor: Color?
+    let bubbleColor: ChatBubbleColor?
     
-    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil) {
+    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
         self.currentStep = currentStep
         self._currentInput = currentInput
         self._selectedDate = selectedDate
@@ -150,24 +183,65 @@ struct ResponseChatBubble: View {
         self.onFrameChange = onFrameChange
         self._highlightInputField = highlightInputField
         self.onHeightChange = onHeightChange
+        self.backgroundColor = backgroundColor
+        self.bubbleColor = bubbleColor
+    }
+    
+    private var finalBackgroundColor: Color {
+        if let backgroundColor = backgroundColor {
+            return backgroundColor
+        } else if let bubbleColor = bubbleColor {
+            return bubbleColor.color
+        } else {
+            return Color.bubbleFrost
+        }
     }
     
     var body: some View {
         HStack(spacing: 0) {
             // Conditional input based on step type
-            if currentStep.inputType == "text" {
-                // Text input
-                InputTextField(
-                    text: $currentInput,
-                    placeholder: currentStep.placeholder,
-                    isFocused: $isTextFieldFocused,
-                    onSubmit: onSend,
-                    onTap: { isTextFieldFocused = true },
-                    highlightInputField: $highlightInputField,
-                    onHeightChange: onHeightChange
-                )
-                .onTapGesture {
-                    isTextFieldFocused = true
+            if currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
+                // Text input - choose appropriate component
+                if currentStep.inputType == "singleLine" {
+                    SingleLineTextField(
+                        text: $currentInput,
+                        placeholder: currentStep.placeholder,
+                        isFocused: $isTextFieldFocused,
+                        onSubmit: onSend,
+                        onTap: { isTextFieldFocused = true },
+                        highlightInputField: $highlightInputField,
+                        onHeightChange: onHeightChange
+                    )
+                    .onTapGesture {
+                        isTextFieldFocused = true
+                    }
+                } else if currentStep.inputType == "multiLine" {
+                    MultiLineTextField(
+                        text: $currentInput,
+                        placeholder: currentStep.placeholder,
+                        isFocused: $isTextFieldFocused,
+                        onSubmit: onSend,
+                        onTap: { isTextFieldFocused = true },
+                        highlightInputField: $highlightInputField,
+                        onHeightChange: onHeightChange
+                    )
+                    .onTapGesture {
+                        isTextFieldFocused = true
+                    }
+                } else {
+                    // Legacy "text" type - use original InputTextField
+                    InputTextField(
+                        text: $currentInput,
+                        placeholder: currentStep.placeholder,
+                        isFocused: $isTextFieldFocused,
+                        onSubmit: onSend,
+                        onTap: { isTextFieldFocused = true },
+                        highlightInputField: $highlightInputField,
+                        onHeightChange: onHeightChange
+                    )
+                    .onTapGesture {
+                        isTextFieldFocused = true
+                    }
                 }
             } else if currentStep.inputType == "date" || currentStep.inputType == "time" {
                 // Interactive picker
@@ -181,8 +255,8 @@ struct ResponseChatBubble: View {
                 )
             }
             
-            // Send button (only show for text input)
-            if currentStep.inputType == "text" {
+            // Send button (only show for text input types)
+            if currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
                 Spacer()
                 Button(action: onSend) {
                     Image(systemName: "paperplane.fill")
@@ -201,10 +275,10 @@ struct ResponseChatBubble: View {
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.horizontal, currentStep.inputType == "text" ? 16 : 0)
-        .padding(.vertical, currentStep.inputType == "text" ? 12 : 0)
-        .background(currentStep.inputType == "text" ? Color.bubbleFrost : Color.clear)
-        .cornerRadius(currentStep.inputType == "text" ? 20 : 0)
+        .padding(.horizontal, (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 16 : 0)
+        .padding(.vertical, (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine") ? 12 : 0)
+        .background((currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? finalBackgroundColor : Color.clear)
+        .cornerRadius((currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 20 : 0)
     }
 }
 
@@ -213,12 +287,26 @@ struct AnsweredChatBubble: View {
     let message: ChatMessage
     let onSizeChange: ((CGSize) -> Void)?
     let onFrameChange: ((CGRect) -> Void)?
+    let backgroundColor: Color?
+    let bubbleColor: ChatBubbleColor?
     @StateObject private var heightTracker = ChatBubbleHeightTracker.shared
     
-    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil) {
+    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
         self.message = message
         self.onSizeChange = onSizeChange
         self.onFrameChange = onFrameChange
+        self.backgroundColor = backgroundColor
+        self.bubbleColor = bubbleColor
+    }
+    
+    private var finalBackgroundColor: Color {
+        if let backgroundColor = backgroundColor {
+            return backgroundColor
+        } else if let bubbleColor = bubbleColor {
+            return bubbleColor.color
+        } else {
+            return Color.bubbleWarm
+        }
     }
     
     var body: some View {
@@ -226,7 +314,7 @@ struct AnsweredChatBubble: View {
             Spacer()
             Text(message.text)
                 .padding()
-                .background(Color.bubbleWarm)
+                .background(finalBackgroundColor)
                 .foregroundColor(.white)
                 .cornerRadius(20)
                 .frame(maxWidth: 280, alignment: .trailing)

@@ -15,7 +15,7 @@ struct Tutorial {
 
 struct ConversationStep {
     let message: String
-    let inputType: String // "text", "date", "time"
+    let inputType: String // "text", "singleLine", "multiLine", "date", "time"
     let placeholder: String
     let dataKey: String
     let isFinal: Bool
@@ -34,12 +34,12 @@ struct ConversationStep {
 let onboardingConversationSteps: [ConversationStep] = [
     ConversationStep(
         message: "✨ Welcome, beautiful soul. I can sense you're here for a reason... The universe has guided you to me. What do you call yourself?",
-        inputType: "text",
+        inputType: "singleLine",
         placeholder: "Your first name...",
         dataKey: "firstName",
         tutorial: Tutorial(
             title: "Use Your Voice!",
-            subtitle: "Tap the microphone icon on the keyboardto speak your response.",
+            subtitle: "Tap the microphone icon on the keyboard to speak your response.",
             arrow: "up"
         )
     ),
@@ -57,13 +57,13 @@ let onboardingConversationSteps: [ConversationStep] = [
     ),
     ConversationStep(
         message: "I'm getting strong intuitive energy from you, {name}... Tell me, do you often get \"gut feelings\" about people or situations that turn out to be right?",
-        inputType: "text",
+        inputType: "multiLine",
         placeholder: "Share your thoughts...",
         dataKey: "intuition"
     ),
     ConversationStep(
         message: "Fascinating... {name}, I need to ask you something personal. When you walk into a room, do you tend to absorb the energy around you, or do people seem drawn to your energy?",
-        inputType: "text",
+        inputType: "multiLine",
         placeholder: "How do you experience energy?",
         dataKey: "energy"
     ),
@@ -73,6 +73,46 @@ let onboardingConversationSteps: [ConversationStep] = [
         placeholder: "",
         dataKey: "final",
         isFinal: true
+    )
+]
+
+// Example conversation steps demonstrating different input types
+let exampleConversationSteps: [ConversationStep] = [
+    ConversationStep(
+        message: "What's your name?",
+        inputType: "singleLine",
+        placeholder: "Enter your name...",
+        dataKey: "name"
+    ),
+    ConversationStep(
+        message: "Tell me about your day in detail...",
+        inputType: "multiLine",
+        placeholder: "Share your thoughts...",
+        dataKey: "dayDescription"
+    ),
+    ConversationStep(
+        message: "When is your birthday?",
+        inputType: "date",
+        placeholder: "Select your birth date",
+        dataKey: "birthday"
+    ),
+    ConversationStep(
+        message: "What time do you usually wake up?",
+        inputType: "time",
+        placeholder: "Select your wake up time",
+        dataKey: "wakeUpTime"
+    ),
+    ConversationStep(
+        message: "What's your favorite color?",
+        inputType: "singleLine",
+        placeholder: "Enter your favorite color...",
+        dataKey: "favoriteColor"
+    ),
+    ConversationStep(
+        message: "Describe your perfect vacation...",
+        inputType: "multiLine",
+        placeholder: "Tell me about your dream vacation...",
+        dataKey: "vacationDescription"
     )
 ]
 

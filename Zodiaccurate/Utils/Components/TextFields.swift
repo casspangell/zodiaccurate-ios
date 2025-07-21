@@ -83,7 +83,6 @@ struct InputTextField: View {
                 if !text.isEmpty {
                     Button(action: {
                         text = ""
-                        isFocused.wrappedValue = false
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.gray)
@@ -212,7 +211,6 @@ struct SingleLineTextField: View {
                 if !text.isEmpty {
                     Button(action: {
                         text = ""
-                        isFocused.wrappedValue = false
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.gray)
@@ -339,7 +337,6 @@ struct MultiLineTextField: View {
                 if !text.isEmpty {
                     Button(action: {
                         text = ""
-                        isFocused.wrappedValue = false
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.gray)

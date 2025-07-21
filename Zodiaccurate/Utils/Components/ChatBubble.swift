@@ -17,9 +17,9 @@ enum ChatBubbleColor {
     var color: Color {
         switch self {
         case .submitted:
-            return Color.red
+            return Color.bubbleWarm
         case .active:
-            return Color.blue
+            return Color.bubbleSilver
         case .test:
             return Color.yellow
         case .clear:

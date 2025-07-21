@@ -814,7 +814,7 @@ struct ChatHistoryContentView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: -20) { //space between question and response bubbles
             ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
                 MessageBubbleView(
                     index: index,
@@ -825,22 +825,23 @@ struct ChatHistoryContentView: View {
                     answeredBubbleColor: answeredBubbleColor
                 )
                 .id("message_\(index)")
-                .transition(.opacity)
-            }
+                .transition(.opacity)             }
             
             TypingIndicator(isAnimating: isTyping)
                 .opacity(isTyping ? 1 : 0)
                 .id("typingIndicator")
 
             // Ensure we always have a bottom anchor for scrolling
+            // Adjust this for ++padding between question and response bubbles kilroy
             Color.clear
-                .frame(height: 1)
+                .frame(height: 20)
                 .id("chatBottom")
         }
         .padding(.horizontal)
         .animation(.easeInOut(duration: 0.3), value: messages)
         .animation(.easeInOut(duration: 0.3), value: showResponseChatBubble)
     }
+        
 }
 
 // MARK: - Message Bubble View Helper

@@ -7,19 +7,27 @@
 
 import Foundation
 
+struct Tutorial {
+    let title: String
+    let subtitle: String
+    let arrow: String // Direction or type of arrow
+}
+
 struct ConversationStep {
     let message: String
     let inputType: String // "text", "date", "time"
     let placeholder: String
     let dataKey: String
     let isFinal: Bool
+    let tutorial: Tutorial?
     
-    init(message: String, inputType: String, placeholder: String, dataKey: String, isFinal: Bool = false) {
+    init(message: String, inputType: String, placeholder: String, dataKey: String, isFinal: Bool = false, tutorial: Tutorial? = nil) {
         self.message = message
         self.inputType = inputType
         self.placeholder = placeholder
         self.dataKey = dataKey
         self.isFinal = isFinal
+        self.tutorial = tutorial
     }
 }
 
@@ -28,7 +36,12 @@ let onboardingConversationSteps: [ConversationStep] = [
         message: "✨ Welcome, beautiful soul. I can sense you're here for a reason... The universe has guided you to me. What do you call yourself?",
         inputType: "text",
         placeholder: "Your first name...",
-        dataKey: "firstName"
+        dataKey: "firstName",
+        tutorial: Tutorial(
+            title: "Use Your Voice!",
+            subtitle: "Tap the microphone icon on the keyboardto speak your response.",
+            arrow: "up"
+        )
     ),
     ConversationStep(
         message: "{name}... what a beautiful name. I can already feel your energy resonating through the cosmos. Now, tell me - when did you choose to come into this world?",

@@ -12,7 +12,8 @@ struct ZodiacChatView: View {
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
     @State private var showInputField = false
-@State private var showResponseChatBubble = false
+    @State private var showResponseChatBubble = false
+    @State private var showTutorialBubble = false
     @State private var keyboardHeight: CGFloat = 0
     @State private var animatedKeyboardOffset: CGFloat = 0
     @State private var headerHeight: CGFloat = 0
@@ -246,6 +247,7 @@ struct ZodiacChatView: View {
                         conversationSteps: conversationSteps,
                         showInputField: showInputField,
                         showResponseChatBubble: showResponseChatBubble,
+                        showTutorialBubble: $showTutorialBubble,
                         currentInput: $currentInput,
                         selectedDate: $selectedDate,
                         selectedTime: $selectedTime,
@@ -496,6 +498,7 @@ struct ZodiacChatView: View {
     private func startConversation() {
         showInputField = false
         showResponseChatBubble = false
+        showTutorialBubble = false
         
         let initialMessage = conversationSteps[0].message
         let personalizedInitialMessage = personalizeMessage(initialMessage, userName)
@@ -519,6 +522,10 @@ struct ZodiacChatView: View {
                     withAnimation {
                         showResponseChatBubble = true
                         showInputField = true
+                        // Show tutorial bubble if the current step has a tutorial
+                        if currentStep < conversationSteps.count && conversationSteps[currentStep].tutorial != nil {
+                            showTutorialBubble = true
+                        }
                     }
                 }
             }
@@ -553,6 +560,7 @@ struct ZodiacChatView: View {
         
         showInputField = false
         showResponseChatBubble = false
+        showTutorialBubble = false
         
         let responseMessage = ChatMessage(
             text: input,
@@ -612,6 +620,10 @@ struct ZodiacChatView: View {
                     showResponseChatBubble = true
                     if currentStep < conversationSteps.count {
                         showInputField = true
+                        // Show tutorial bubble if the current step has a tutorial
+                        if currentStep < conversationSteps.count && conversationSteps[currentStep].tutorial != nil {
+                            showTutorialBubble = true
+                        }
                     }
                 }
                 
@@ -793,6 +805,7 @@ struct ChatInputView: View {
     let conversationSteps: [ConversationStep]
     let showInputField: Bool
     let showResponseChatBubble: Bool
+    @Binding var showTutorialBubble: Bool
     let currentInput: Binding<String>
     let selectedDate: Binding<Date>
     let selectedTime: Binding<Date>
@@ -828,7 +841,33 @@ struct ChatInputView: View {
                 .transition(.opacity)
                 .opacity(isVisible ? 1 : 0)
                 .allowsHitTesting(isVisible)
+
+                Spacer()
+                
+                // Dynamic tutorial bubble based on conversation step
+                if showTutorialBubble, 
+                   currentStep < conversationSteps.count,
+                   let tutorial = conversationSteps[currentStep].tutorial {
+                    
+                    TutorialBubble.custom(
+                        title: tutorial.title,
+                        subtitle: tutorial.subtitle,
+                        icon: "sparkles",
+                        arrowPosition: TutorialBubble.getArrowPosition(from: tutorial.arrow),
+                        pulse: true,
+                        onDismiss: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showTutorialBubble = false
+                            }
+                        }
+                    )
+                    .padding(.bottom, 16)
+                    .transition(.opacity)
+                }
             }
+        } else {
+            // Return empty view when conditions are not met
+            EmptyView()
         }
     }
 }

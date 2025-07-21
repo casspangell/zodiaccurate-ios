@@ -27,7 +27,7 @@ enum TutorialType {
     var subtitle: String {
         switch self {
         case .speech:
-            return "Tap the microphone button to use speech-to-text"
+            return "Tap the microphone button on the keyboard to use speech-to-text"
         case .voice:
             return "Use your voice to respond quickly"
         case .custom(_, let subtitle, _):
@@ -288,6 +288,25 @@ extension TutorialBubble {
     // Tutorial bubble without arrow
     static func speechNoArrow(pulse: Bool = false, onDismiss: (() -> Void)? = nil, style: TutorialBubbleStyle = .speech) -> TutorialBubble {
         TutorialBubble(type: .speech, arrowPosition: .bottom, pulse: pulse, onDismiss: onDismiss, style: style, showArrow: false)
+    }
+}
+
+// MARK: - Helper Functions
+extension TutorialBubble {
+    /// Converts a string representation of arrow direction to ArrowPosition enum
+    static func getArrowPosition(from arrowString: String) -> ArrowPosition {
+        switch arrowString.lowercased() {
+        case "up":
+            return .top
+        case "down":
+            return .bottom
+        case "left":
+            return .left
+        case "right":
+            return .right
+        default:
+            return .bottom
+        }
     }
 }
 

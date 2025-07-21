@@ -489,11 +489,18 @@ struct ZodiacChatView: View {
         .onReceive(Publishers.keyboardHeight) { keyboardHeight in
             handleKeyboardHeightChange(keyboardHeight)
         }
+
     }
     
     // MARK: - Helper Functions
     
-
+    private func dismissTutorialOnTyping() {
+        if showTutorialBubble {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showTutorialBubble = false
+            }
+        }
+    }
     
     private func calculateTypingDelay(for text: String) -> Double {
         let wordCount = text.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.count
@@ -705,6 +712,12 @@ struct ZodiacChatView: View {
     
     private func handleKeyboardHeightChange(_ keyboardHeight: CGFloat) {
         print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
+        
+        // Dismiss tutorial bubble when keyboard appears
+        if keyboardHeight > 0 && showTutorialBubble {
+            dismissTutorialOnTyping()
+        }
+        
         self.keyboardHeight = keyboardHeight
 
         // Add longer delay for first input field to ensure it's rendered

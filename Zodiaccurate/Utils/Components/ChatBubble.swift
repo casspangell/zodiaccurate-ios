@@ -19,7 +19,7 @@ enum ChatBubbleColor {
         case .submitted:
             return Color.bubbleWarm
         case .active:
-            return Color.bubbleSilver
+            return Color.bubbleCool
         case .test:
             return Color.yellow
         case .clear:

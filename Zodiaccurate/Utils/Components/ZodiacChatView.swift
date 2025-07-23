@@ -841,7 +841,6 @@ struct ChatHistoryContentView: View {
         .animation(.easeInOut(duration: 0.3), value: messages)
         .animation(.easeInOut(duration: 0.3), value: showResponseChatBubble)
     }
-        
 }
 
 // MARK: - Message Bubble View Helper

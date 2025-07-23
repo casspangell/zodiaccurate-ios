@@ -54,6 +54,11 @@ struct ConversationalOnboardingView: View {
                     userName: $userData.firstName,
                     onUserDataUpdate: { input, step in
                         storeUserData(input: input, step: step)
+                        
+                        // Handle badge animation for birth date specifically
+                        if step.dataKey == "birthDate" {
+                            handleZodiacSignAcquisition(from: input)
+                        }
                     },
                     onStepComplete: { step in
                         // Handle step completion if needed
@@ -124,24 +129,15 @@ struct ConversationalOnboardingView: View {
         }
         .animation(Animation.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
     }
-    
 
-    
-
-    
-
-    
     private func storeUserData(input: String, step: ConversationStep) {
         switch step.dataKey {
         case "firstName":
             userData.firstName = input
         case "birthDate":
             userData.birthDate = input
-            let (zodiacSign, assetName) = determineZodiacSignAndAsset(from: input)
+            let (zodiacSign, _) = determineZodiacSignAndAsset(from: input)
             userData.zodiacSign = zodiacSign
-            
-            // Trigger badge acquisition animation, swapping the image mid-way
-            badgeAnimationManager.triggerBadgeAnimation(andSwapTo: assetName)
         case "birthTime":
             userData.birthTime = input
         case "intuition":
@@ -322,6 +318,17 @@ struct ConversationalOnboardingView: View {
     //             }
     //         }
     //     }
+    // }
+    
+    // MARK: - Event Handlers
+    
+    /// Handles badge animation when zodiac sign is determined
+    private func handleZodiacSignAcquisition(from dateString: String) {
+        let (_, assetName) = determineZodiacSignAndAsset(from: dateString)
+        badgeAnimationManager.triggerBadgeAnimation(andSwapTo: assetName)
+    }
+    
+    // MARK: - Data Management
 }
 
 

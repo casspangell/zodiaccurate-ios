@@ -76,37 +76,35 @@ struct ZodiacHeader: View {
             // Fixed Header Content
             VStack(spacing: 8) {
                 ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(profileImage == "logo" ? 0.5 : 0.8))
-                        .frame(width: 130, height: 130)
-                        .scaleEffect(badgeScale)
-                        .rotationEffect(.degrees(badgeRotation))
-                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                        .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
-                    
-                    CosmicBadgeEffects(
-                        badgeScale: badgeScale,
-                        badgeRotation: badgeRotation,
-                        cosmicGlowOpacity: cosmicGlowOpacity,
-                        nebulaOpacity: nebulaOpacity,
-                        starFieldOpacity: starFieldOpacity,
-                        cosmicParticlesOpacity: cosmicParticlesOpacity,
-                        sparkleOpacity: sparkleOpacity,
-                        currentProfileImage: profileImage
-                    )
-                    
-                    ZStack {
+                    // Show original white circle for logo, ZodiacProfileBadge for zodiac signs
+                    if profileImage == "logo" {
+                        // Original simple white circle for logo state
+                        Circle()
+                            .fill(Color.white.opacity(0.5))
+                            .frame(width: 130, height: 130)
+                            .scaleEffect(badgeScale)
+                            .rotationEffect(.degrees(badgeRotation))
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                            .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
+                        
                         Image(profileImage)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 140, height: 140)
                             .id(profileImage)
+                            .scaleEffect(badgeScale)
+                            .rotationEffect(.degrees(badgeRotation))
+                    } else {
+                        // Use ZodiacProfileBadge for zodiac signs
+                        ZodiacProfileBadgeWhite(zodiacImage: Image(profileImage))
+                            .scaleEffect(badgeScale)
+                            .rotationEffect(.degrees(badgeRotation))
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                            .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
                     }
-                    .scaleEffect(badgeScale)
-                    .rotationEffect(.degrees(badgeRotation))
                 }
                 .frame(height: 150)
-                .padding(.top, 60)
+                .padding(.top, profileImage == "logo" ? 60 : 36) // Adjust padding based on badge type
                 
                 Text("")
                     .font(.system(size: 24, weight: .semibold))

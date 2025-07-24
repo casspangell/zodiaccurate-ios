@@ -101,6 +101,7 @@ struct ZodiacChatView: View {
         return (isFinalStep && hasMessages && lastMessageIsAI) || isConversationComplete
     }
     
+    @State private var tapHintOpacity: Double = 0.0
 
     
     // MARK: - Helper Views
@@ -130,27 +131,37 @@ struct ZodiacChatView: View {
     }
     
     @ViewBuilder
-    private var completeButtonView: some View {
+    private var tapToContinueLabel: some View {
         if shouldShowCompleteButton {
-            Button(action: { 
-                onConversationComplete()
-            }) {
-                HStack {
-                    Image(systemName: "sparkles")
-                    Text("See Your First Zodiaccurate")
-                    Image(systemName: "arrow.right")
+            HStack {
+                Spacer()
+                HStack(spacing: 8) {
+                    Circle()
+                        .stroke(Color.gray.opacity(0.6), lineWidth: 2)
+                        .frame(width: 18, height: 18)
+                        .scaleEffect(tapHintOpacity > 0.5 ? 1.1 : 1.0)
+                    Text("Tap anywhere to continue")
+                        .font(.dmSansMedium13_4)
+                        .foregroundColor(Color.gray.opacity(0.7))
                 }
-                .font(.headline)
-                .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.accentGold)
-                .cornerRadius(12)
+                Spacer()
             }
-            .padding(.horizontal)
             .padding(.bottom, 50)
-            .transition(.opacity)
-            .id("completeButton")
+            .opacity(tapHintOpacity)
+            .animation(
+                Animation.easeInOut(duration: 2.0)
+                    .repeatForever(autoreverses: true),
+                value: tapHintOpacity
+            )
+            .onAppear {
+                withAnimation(.easeInOut(duration: 1.0)) {
+                    tapHintOpacity = 1.0
+                }
+            }
+            .onDisappear {
+                tapHintOpacity = 0.0
+            }
         }
     }
     
@@ -321,10 +332,16 @@ struct ZodiacChatView: View {
                     )
                     .id("inputSection")
                     
-                    completeButtonView
+                    tapToContinueLabel
                     bottomAnchorView
                 }
                 .padding(.horizontal)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if shouldShowCompleteButton {
+                        onConversationComplete()
+                    }
+                }
             }
             .scrollDismissesKeyboard(.interactively)
             .clipped()

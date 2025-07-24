@@ -146,10 +146,7 @@ struct OnboardingHoroscopeView: View {
                             .zIndex(101)
                         )
                 }
-                // Background
-//                VideoBackgroundView(videoName: "purple-bg", videoType: "mp4")
-//                    .ignoresSafeArea()
-                
+
                 VStack(spacing: 0) {
                     // Top padding for safe area
                     Spacer()

@@ -280,19 +280,17 @@ struct MultiLineTextField: View {
                     // Placeholder text
                     if text.isEmpty {
                         Text(placeholder)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color.white.opacity(0.85))
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 16)
                             .allowsHitTesting(false)
                     }
                     
-                    // Multi-line TextEditor - fixed height like original "text" type
-                    TextEditor(text: $text)
-                        .focused(isFocused)
-                        .frame(minHeight: 100, maxHeight: 100) // Fixed height for 4 lines like original
+                    // Multi-line TransparentTextEditor - fixed height like original "text" type
+                    TransparentTextEditor(text: $text)
+                        .frame(minHeight: 100, maxHeight: 100)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .foregroundColor(.white)
                         .background(
                             CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                 .fill(backgroundColor)
@@ -304,7 +302,6 @@ struct MultiLineTextField: View {
                         .onChange(of: text) { _, newValue in
                             // Cancel any pending text change work
                             textChangeWorkItem?.cancel()
-                            
                             // Check if the new text contains a newline character (handle immediately)
                             if newValue.contains("\n") {
                                 // Remove the newline and trigger submit
@@ -313,7 +310,6 @@ struct MultiLineTextField: View {
                                 onSubmit()
                                 return
                             }
-                            
                             // Debounce other text changes to prevent multiple updates per frame
                             let workItem = DispatchWorkItem {
                                 if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -322,7 +318,6 @@ struct MultiLineTextField: View {
                                 // Calculate new height based on content
                                 updateTextFieldHeight(for: newValue)
                             }
-                            
                             textChangeWorkItem = workItem
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
                         }
@@ -334,7 +329,6 @@ struct MultiLineTextField: View {
                         }
                         .offset(x: shakeOffset)
                         .animation(.default, value: shakeOffset)
-                        .submitLabel(.send)
                         .accessibilityLabel("Multi-line input field")
                         .accessibilityHint("Type your message and tap return to send")
                 }
@@ -391,6 +385,46 @@ struct MultiLineTextField: View {
         
         withAnimation(.easeInOut(duration: 0.2)) {
             textFieldHeight = estimatedHeight
+        }
+    }
+}
+
+// MARK: - Transparent Text Editor
+struct TransparentTextEditor: UIViewRepresentable {
+    @Binding var text: String
+    var textColor: UIColor = .white
+    var font: UIFont = .systemFont(ofSize: 17)
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.backgroundColor = .clear
+        textView.textColor = textColor
+        textView.font = font
+        textView.isScrollEnabled = true
+        textView.delegate = context.coordinator
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return textView
+    }
+
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+        }
+        uiView.textColor = textColor
+        uiView.font = font
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: TransparentTextEditor
+        init(_ parent: TransparentTextEditor) {
+            self.parent = parent
+        }
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
         }
     }
 }

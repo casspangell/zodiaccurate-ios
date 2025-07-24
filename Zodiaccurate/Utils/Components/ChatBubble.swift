@@ -81,13 +81,15 @@ struct QuestionChatBubble: View {
     let onFrameChange: ((CGRect) -> Void)?
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
+    var textColor: Color?
     
-    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
+    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil, textColor: Color? = nil) {
         self.message = message
         self.onSizeChange = onSizeChange
         self.onFrameChange = onFrameChange
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
+        self.textColor = textColor
     }
     
     private var finalBackgroundColor: Color {
@@ -99,7 +101,15 @@ struct QuestionChatBubble: View {
             return Color.bubblePearl
         }
     }
-    
+
+    private var finalTextColor: Color {
+        if bubbleColor == ChatBubbleColor.submitted {
+            return Color.white.opacity(0.5)
+        } else {
+            return Color.white
+        }
+    }
+
     var body: some View {
         HStack {
             if message.isUser {
@@ -107,7 +117,7 @@ struct QuestionChatBubble: View {
                 Text(message.text)
                     .padding()
                     .background(finalBackgroundColor)
-                    .foregroundColor(.white)
+                    .foregroundColor(finalTextColor)
                     .cornerRadius(bubbleCornerRadius)
                     .frame(maxWidth: 280, alignment: .trailing)
                     .fixedSize(horizontal: false, vertical: true)
@@ -121,7 +131,7 @@ struct QuestionChatBubble: View {
                     Text(message.text)
                         .padding()
                         .background(finalBackgroundColor)
-                        .foregroundColor(.white)
+                        .foregroundColor(finalTextColor)
                         .cornerRadius(bubbleCornerRadius)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -319,7 +329,7 @@ struct AnsweredChatBubble: View {
             Text(message.text)
                 .padding()
                 .background(finalBackgroundColor)
-                .foregroundColor(.white)
+                .foregroundColor(Color.white.opacity(0.5))
                 .clipShape(AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)))
                 .frame(maxWidth: 280, alignment: .trailing)
                 .fixedSize(horizontal: false, vertical: true)

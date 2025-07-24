@@ -45,4 +45,29 @@ extension Color {
     static let bubbleMist = Color(hex: "FFE0F0").opacity(0.15)       // Mist pink, very light
     static let bubbleFrost = Color(hex: "D0F0FF").opacity(0.32)      // Frost blue, minimal opacity
     static let bubbleSilver = Color(hex: "E0E0FF").opacity(0.12)     // Silver lavender, slightly more opaque
+
+    // Helper for color interpolation
+    static func lerp(from: Color, to: Color, fraction: CGFloat) -> Color {
+        let fromComponents = from.components()
+        let toComponents = to.components()
+        let r = fromComponents.r + (toComponents.r - fromComponents.r) * fraction
+        let g = fromComponents.g + (toComponents.g - fromComponents.g) * fraction
+        let b = fromComponents.b + (toComponents.b - fromComponents.b) * fraction
+        let a = fromComponents.a + (toComponents.a - fromComponents.a) * fraction
+        return Color(red: r, green: g, blue: b, opacity: a)
+    }
+    // Extract RGBA components (works for sRGB colors)
+    func components() -> (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat) {
+        #if canImport(UIKit)
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        UIColor(self).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        return (red, green, blue, alpha)
+        #elseif canImport(AppKit)
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        NSColor(self).usingColorSpace(.deviceRGB)?.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        return (red, green, blue, alpha)
+        #else
+        return (0,0,0,1)
+        #endif
+    }
 }

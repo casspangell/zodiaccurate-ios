@@ -295,22 +295,6 @@ struct ConversationalOnboardingView: View {
     // MARK: - Data Management
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #Preview {
     ConversationalOnboardingView(bubbleColor: .active)
 }

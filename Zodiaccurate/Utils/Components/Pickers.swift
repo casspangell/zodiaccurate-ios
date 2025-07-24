@@ -17,6 +17,7 @@ struct DatePickerView: View {
                 )
                 .datePickerStyle(.compact)
                 .colorScheme(.dark)
+                .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 
                 HStack {
                     Spacer()
@@ -38,8 +39,8 @@ struct DatePickerView: View {
             }
             .padding()
             .background(ChatBubbleColor.active.color)
+            .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
             .foregroundColor(.white)
-            .cornerRadius(20)
             .frame(maxWidth: 280, alignment: .trailing)
         }
     }
@@ -63,6 +64,7 @@ struct TimePickerView: View {
                 )
                 .datePickerStyle(.compact)
                 .colorScheme(.dark)
+                .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 
                 HStack(spacing: 12) {
                     Button(action: {
@@ -98,8 +100,8 @@ struct TimePickerView: View {
             }
             .padding()
             .background(ChatBubbleColor.active.color)
+            .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
             .foregroundColor(.white)
-            .cornerRadius(20)
             .frame(maxWidth: 280, alignment: .trailing)
         }
     }

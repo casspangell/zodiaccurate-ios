@@ -1,5 +1,8 @@
 import SwiftUI
 
+let bubbleCornerRadius: CGFloat = 20
+let bubbleTopRightRatio: CGFloat = 0.5
+
 struct InputTextField: View {
     @Binding var text: String
     var placeholder: String
@@ -34,10 +37,10 @@ struct InputTextField: View {
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
+                            CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                 .fill(Color(.systemGray6))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
+                                    CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
                                 )
                         )
@@ -170,10 +173,10 @@ struct SingleLineTextField: View {
                         .padding(.vertical, 8)
                         .frame(height: 44) // Fixed height for single line
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
+                            CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                 .fill(Color(.systemGray6))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
+                                    CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
                                 )
                         )
@@ -288,10 +291,10 @@ struct MultiLineTextField: View {
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
+                            CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                 .fill(Color(.systemGray6))
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
+                                    CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
                                 )
                         )

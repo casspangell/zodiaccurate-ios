@@ -108,7 +108,7 @@ struct QuestionChatBubble: View {
                     .padding()
                     .background(finalBackgroundColor)
                     .foregroundColor(.white)
-                    .cornerRadius(20)
+                    .cornerRadius(bubbleCornerRadius)
                     .frame(maxWidth: 280, alignment: .trailing)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
@@ -122,7 +122,7 @@ struct QuestionChatBubble: View {
                         .padding()
                         .background(finalBackgroundColor)
                         .foregroundColor(.white)
-                        .cornerRadius(20)
+                        .cornerRadius(bubbleCornerRadius)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: 280, alignment: .leading)
@@ -278,7 +278,11 @@ struct ResponseChatBubble: View {
         .padding(.horizontal, (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 16 : 0)
         .padding(.vertical, (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine") ? 12 : 0)
         .background((currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? finalBackgroundColor : Color.clear)
-        .cornerRadius((currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 20 : 0)
+        .clipShape(
+            (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time")
+                ? AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
+                : AnyShape(Rectangle())
+        )
     }
 }
 
@@ -316,7 +320,7 @@ struct AnsweredChatBubble: View {
                 .padding()
                 .background(finalBackgroundColor)
                 .foregroundColor(.white)
-                .cornerRadius(20)
+                .clipShape(AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)))
                 .frame(maxWidth: 280, alignment: .trailing)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -356,4 +360,135 @@ struct BubbleSizePreferenceKey: PreferenceKey {
         value = nextValue()
     }
 }
+
+// MARK: - Custom Bubble Shape for Asymmetric Corner Radii
+struct CustomBubbleShape: Shape {
+    var radius: CGFloat = 20
+    var topRightRatio: CGFloat = 1.0
+    var topLeftRatio: CGFloat = 1.0
+
+    func path(in rect: CGRect) -> Path {
+        let tr = radius * topRightRatio
+        let tl = radius * topLeftRatio
+        let bl = radius
+        let br = radius
+
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX + tl, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - tr, y: rect.minY))
+        path.addArc(center: CGPoint(x: rect.maxX - tr, y: rect.minY + tr), radius: tr, startAngle: .degrees(-90), endAngle: .degrees(0), clockwise: false)
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - br))
+        path.addArc(center: CGPoint(x: rect.maxX - br, y: rect.maxY - br), radius: br, startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false)
+        path.addLine(to: CGPoint(x: rect.minX + bl, y: rect.maxY))
+        path.addArc(center: CGPoint(x: rect.minX + bl, y: rect.maxY - bl), radius: bl, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + tl))
+        path.addArc(center: CGPoint(x: rect.minX + tl, y: rect.minY + tl), radius: tl, startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
+        return path
+    }
+}
+
+#if DEBUG
+import SwiftUI
+
+#Preview {
+    VStack(spacing: 24) {
+        // QuestionChatBubble (user and system)
+        QuestionChatBubble(
+            message: ChatMessage(text: "What's your name?", isUser: true, timestamp: Date()),
+            onSizeChange: nil,
+            onFrameChange: nil,
+            backgroundColor: .blue,
+            bubbleColor: .active
+        )
+        .padding()
+        .background(Color.black)
+        .previewDisplayName("Question (User)")
+
+        QuestionChatBubble(
+            message: ChatMessage(text: "What brings you here today?", isUser: false, timestamp: Date()),
+            onSizeChange: nil,
+            onFrameChange: nil,
+            backgroundColor: .purple,
+            bubbleColor: .submitted
+        )
+        .padding()
+        .background(Color.black)
+        .previewDisplayName("Question (System)")
+
+        // AnsweredChatBubble
+        AnsweredChatBubble(
+            message: ChatMessage(text: "My name is Cass!", isUser: true, timestamp: Date()),
+            onSizeChange: nil,
+            onFrameChange: nil,
+            backgroundColor: .green,
+            bubbleColor: .test
+        )
+        .padding()
+        .background(Color.black)
+        .previewDisplayName("Answered")
+
+        // ResponseChatBubble (singleLine input)
+        ResponseChatBubble(
+            currentStep: exampleConversationSteps[0],
+            currentInput: .constant(""),
+            selectedDate: .constant(Date()),
+            selectedTime: .constant(Date()),
+            onSend: {},
+            onDateSelected: { _ in },
+            onTimeSelected: { _ in },
+            onUnknownTime: {},
+            onFrameChange: { _ in },
+            highlightInputField: .constant(false),
+            onHeightChange: nil,
+            backgroundColor: Color.bubbleFrost,
+            bubbleColor: .active
+        )
+        .padding()
+        .background(Color.black)
+        .previewDisplayName("Response (SingleLine)")
+
+        // ResponseChatBubble (multiLine input)
+        ResponseChatBubble(
+            currentStep: exampleConversationSteps[1],
+            currentInput: .constant(""),
+            selectedDate: .constant(Date()),
+            selectedTime: .constant(Date()),
+            onSend: {},
+            onDateSelected: { _ in },
+            onTimeSelected: { _ in },
+            onUnknownTime: {},
+            onFrameChange: { _ in },
+            highlightInputField: .constant(false),
+            onHeightChange: nil,
+            backgroundColor: Color.bubbleFrost,
+            bubbleColor: .active
+        )
+        .padding()
+        .background(Color.black)
+        .previewDisplayName("Response (MultiLine)")
+
+        // ResponseChatBubble (date input)
+        ResponseChatBubble(
+            currentStep: exampleConversationSteps[2],
+            currentInput: .constant(""),
+            selectedDate: .constant(Date()),
+            selectedTime: .constant(Date()),
+            onSend: {},
+            onDateSelected: { _ in },
+            onTimeSelected: { _ in },
+            onUnknownTime: {},
+            onFrameChange: { _ in },
+            highlightInputField: .constant(false),
+            onHeightChange: nil,
+            backgroundColor: Color.bubbleFrost,
+            bubbleColor: .active
+        )
+        .padding()
+        .background(Color.black)
+        .previewDisplayName("Response (Date)")
+    }
+    .padding()
+    .background(Color.black)
+}
+#endif
 

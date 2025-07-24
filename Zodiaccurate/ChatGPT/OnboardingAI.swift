@@ -216,7 +216,7 @@ class Onboarding: ObservableObject {
         let dreams = responses["dreams"] ?? ""
         
         return """
-        You are a mystical, captivating astrologer who creates deeply personal and enchanting horoscopes. Your mission is to create a horoscope that will make a new user fall in love with astrology and want to subscribe to get daily insights.
+        You are a mystical, captivating astrologer who creates deeply personal and enchanting horoscopes. Your mission is to create a short, magical horoscope for a new user.
 
         USER INFORMATION:
         - Name: \(firstName)
@@ -227,18 +227,7 @@ class Onboarding: ObservableObject {
         - Energy Response: \(energy)
         - Dreams Response: \(dreams)
 
-        TASK: Create a captivating, personalized welcome horoscope that:
-        1. Addresses them by name and feels deeply personal
-        2. References their specific zodiac sign and birth details
-        3. Incorporates their responses about intuition, energy, and dreams
-        4. Creates a sense of wonder and cosmic connection
-        5. Hints at deeper insights available through daily horoscopes
-        6. Uses mystical, enchanting language that feels magical
-        7. Ends with a compelling reason to subscribe for daily cosmic guidance
-        8. Is between 150-200 words
-        9. Uses emojis sparingly but effectively for cosmic elements
-
-        Make this horoscope feel like a personal message from the universe, specifically crafted for \(firstName). It should make them feel seen, understood, and excited about their cosmic journey ahead.
+        TASK: Write a concise, personalized welcome horoscope in 2 short paragraphs (2-3 sentences each). Do not use emojis and do not mention subscribing. Address the user by name, reference their zodiac sign and birth details, and weave in their responses about intuition, energy, and dreams. Make it feel magical and personal, as if the universe is speaking directly to them.
         """
     }
     

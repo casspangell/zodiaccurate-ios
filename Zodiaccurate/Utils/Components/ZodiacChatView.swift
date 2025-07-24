@@ -124,7 +124,8 @@ struct ZodiacChatView: View {
             nebulaOpacity: badgeAnimationManager.nebulaOpacity,
             starFieldOpacity: badgeAnimationManager.starFieldOpacity,
             cosmicParticlesOpacity: badgeAnimationManager.cosmicParticlesOpacity,
-            sparkleOpacity: badgeAnimationManager.sparkleOpacity
+            sparkleOpacity: badgeAnimationManager.sparkleOpacity,
+            stardustPoints: 0 // TODO: Get from StardustManager
         )
     }
     

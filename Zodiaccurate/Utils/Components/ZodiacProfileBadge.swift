@@ -42,7 +42,6 @@ struct ZodiacProfileBadge: View {
         }
         .frame(width: 180, height: 180)
         .padding(.top, 24)
-        .padding(.leading, 16)
     }
 }
 
@@ -88,7 +87,6 @@ struct ZodiacProfileBadgeWhite: View {
         }
         .frame(width: 180, height: 180)
         .padding(.top, 24)
-        .padding(.leading, 16)
     }
 }
 
@@ -375,11 +373,132 @@ struct StardustIndicator: View {
     }
 }
 
+// MARK: - Localized Stardust Earning Animation
+/// A localized animation that happens directly on the profile badge when stardust is earned
+struct LocalizedStardustAnimation: View {
+    let amount: Int
+    let type: StardustTransactionType
+    @Binding var isShowing: Bool
+    
+    // Animation states
+    @State private var scale: CGFloat = 0.1
+    @State private var opacity: Double = 0
+    @State private var rotation: Double = 0
+    @State private var sparkleOpacity: Double = 0
+    @State private var glowIntensity: Double = 0
+    @State private var textScale: CGFloat = 0.5
+    @State private var particleOffset: CGFloat = 0
+    
+    var body: some View {
+        ZStack {
+            // Glow effect around the badge
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color.accentGold.opacity(0.8),
+                            Color.accentGold.opacity(0.4),
+                            Color.clear
+                        ]),
+                        center: .center,
+                        startRadius: 50,
+                        endRadius: 120
+                    )
+                )
+                .frame(width: 240, height: 240)
+                .scaleEffect(scale)
+                .opacity(glowIntensity)
+            
+            // Sparkles around the badge
+            ForEach(0..<6) { index in
+                Image(systemName: "sparkle")
+                    .font(.system(size: 12))
+                    .foregroundColor([Color.yellow, Color.cyan, Color.pink].randomElement()!)
+                    .offset(
+                        x: 100 * cos(Double(index) * .pi / 3),
+                        y: 100 * sin(Double(index) * .pi / 3)
+                    )
+                    .opacity(sparkleOpacity)
+                    .animation(
+                        .easeInOut(duration: 0.8)
+                        .delay(Double(index) * 0.1),
+                        value: sparkleOpacity
+                    )
+            }
+            
+            // Amount text floating up
+            VStack(spacing: 4) {
+                Text("+\(amount)")
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundColor(.accentGold)
+                    .scaleEffect(textScale)
+                
+                Text(type.emoji)
+                    .font(.system(size: 14))
+                    .scaleEffect(textScale)
+            }
+            .offset(y: particleOffset)
+            .opacity(opacity)
+        }
+        .onAppear {
+            startAnimation()
+        }
+    }
+    
+    private func startAnimation() {
+        // Initial state
+        scale = 0.1
+        opacity = 0
+        rotation = 0
+        sparkleOpacity = 0
+        glowIntensity = 0
+        textScale = 0.5
+        particleOffset = 0
+        
+        // Animate in
+        withAnimation(.easeOut(duration: 0.4)) {
+            scale = 1.0
+            glowIntensity = 1.0
+        }
+        
+        // Show sparkles
+        withAnimation(.easeInOut(duration: 0.3).delay(0.2)) {
+            sparkleOpacity = 1.0
+        }
+        
+        // Animate text
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.3)) {
+            textScale = 1.0
+            opacity = 1.0
+        }
+        
+        // Float text up
+        withAnimation(.easeOut(duration: 1.0).delay(0.5)) {
+            particleOffset = -60
+        }
+        
+        // Fade out
+        withAnimation(.easeIn(duration: 0.3).delay(1.2)) {
+            opacity = 0
+            glowIntensity = 0
+            sparkleOpacity = 0
+        }
+        
+        // Reset
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            isShowing = false
+        }
+    }
+}
+
 // MARK: - Enhanced Zodiac Profile Badge with Stardust
-/// Enhanced version of ZodiacProfileBadge that includes a stardust indicator
+/// Enhanced version of ZodiacProfileBadge that includes a stardust indicator and localized earning animation
 struct ZodiacProfileBadgeWithStardust: View {
     var zodiacImage: Image = Image("Capricorn")
     var stardustPoints: Int = 0
+    @State private var showEarningAnimation = false
+    @State private var earningAmount = 0
+    @State private var earningType: StardustTransactionType = .achievement
     
     var body: some View {
         ZStack {
@@ -390,15 +509,40 @@ struct ZodiacProfileBadgeWithStardust: View {
             if stardustPoints > 0 {
                 StardustIndicator(stardustPoints: stardustPoints)
             }
+            
+            // Localized earning animation
+            if showEarningAnimation {
+                LocalizedStardustAnimation(
+                    amount: earningAmount,
+                    type: earningType,
+                    isShowing: $showEarningAnimation
+                )
+            }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .stardustEarned)) { notification in
+            if let userInfo = notification.userInfo,
+               let amount = userInfo["amount"] as? Int,
+               let type = userInfo["type"] as? StardustTransactionType {
+                triggerEarningAnimation(amount: amount, type: type)
+            }
+        }
+    }
+    
+    private func triggerEarningAnimation(amount: Int, type: StardustTransactionType) {
+        earningAmount = amount
+        earningType = type
+        showEarningAnimation = true
     }
 }
 
 // MARK: - Enhanced White Zodiac Profile Badge with Stardust
-/// Enhanced version of ZodiacProfileBadgeWhite that includes a stardust indicator
+/// Enhanced version of ZodiacProfileBadgeWhite that includes a stardust indicator and localized earning animation
 struct ZodiacProfileBadgeWhiteWithStardust: View {
     var zodiacImage: Image = Image("Capricorn")
     var stardustPoints: Int = 0
+    @State private var showEarningAnimation = false
+    @State private var earningAmount = 0
+    @State private var earningType: StardustTransactionType = .achievement
     
     var body: some View {
         ZStack {
@@ -409,7 +553,29 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
             if stardustPoints > 0 {
                 StardustIndicator(stardustPoints: stardustPoints)
             }
+            
+            // Localized earning animation
+            if showEarningAnimation {
+                LocalizedStardustAnimation(
+                    amount: earningAmount,
+                    type: earningType,
+                    isShowing: $showEarningAnimation
+                )
+            }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .stardustEarned)) { notification in
+            if let userInfo = notification.userInfo,
+               let amount = userInfo["amount"] as? Int,
+               let type = userInfo["type"] as? StardustTransactionType {
+                triggerEarningAnimation(amount: amount, type: type)
+            }
+        }
+    }
+    
+    private func triggerEarningAnimation(amount: Int, type: StardustTransactionType) {
+        earningAmount = amount
+        earningType = type
+        showEarningAnimation = true
     }
 }
 
@@ -486,6 +652,11 @@ class BadgeAnimationManager: ObservableObject {
             self.isAcquiringBadge = false
         }
     }
+}
+
+// MARK: - Notification Extensions
+extension Notification.Name {
+    static let stardustEarned = Notification.Name("stardustEarned")
 }
 
 #Preview {

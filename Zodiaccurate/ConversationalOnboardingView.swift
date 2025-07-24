@@ -99,17 +99,7 @@ struct ConversationalOnboardingView: View {
                 )
             }
             
-            // Stardust earning animation
-            if let stardustManager = stardustManager, stardustManager.showEarningAnimation {
-                StardustEarningAnimation(
-                    amount: stardustManager.earningAnimationAmount,
-                    type: stardustManager.earningAnimationType,
-                    isShowing: Binding(
-                        get: { stardustManager.showEarningAnimation },
-                        set: { stardustManager.showEarningAnimation = $0 }
-                    )
-                )
-            }
+            // Localized stardust animation is now handled by the profile badge components
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.all, edges: .all)

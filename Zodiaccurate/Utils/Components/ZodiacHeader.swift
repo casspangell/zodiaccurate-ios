@@ -11,6 +11,7 @@ struct ZodiacHeader: View {
     let starFieldOpacity: Double
     let cosmicParticlesOpacity: Double
     let sparkleOpacity: Double
+    let stardustPoints: Int
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
@@ -32,7 +33,8 @@ struct ZodiacHeader: View {
         nebulaOpacity: Double = 0,
         starFieldOpacity: Double = 0,
         cosmicParticlesOpacity: Double = 0,
-        sparkleOpacity: Double = 0
+        sparkleOpacity: Double = 0,
+        stardustPoints: Int = 0
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -42,6 +44,7 @@ struct ZodiacHeader: View {
         self.starFieldOpacity = starFieldOpacity
         self.cosmicParticlesOpacity = cosmicParticlesOpacity
         self.sparkleOpacity = sparkleOpacity
+        self.stardustPoints = stardustPoints
     }
     
     // MARK: - Body
@@ -95,16 +98,20 @@ struct ZodiacHeader: View {
                             .scaleEffect(badgeScale)
                             .rotationEffect(.degrees(badgeRotation))
                     } else {
-                        // Use ZodiacProfileBadge for zodiac signs
-                        ZodiacProfileBadgeWhite(zodiacImage: Image(profileImage))
-                            .scaleEffect(badgeScale)
-                            .rotationEffect(.degrees(badgeRotation))
-                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                            .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
+                        // Use enhanced ZodiacProfileBadge with stardust for zodiac signs
+                        ZodiacProfileBadgeWhiteWithStardust(
+                            zodiacImage: Image(profileImage),
+                            stardustPoints: stardustPoints
+                        )
+                        .scaleEffect(badgeScale)
+                        .rotationEffect(.degrees(badgeRotation))
+                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                        .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
                     }
                 }
                 .frame(height: 150)
                 .padding(.top, profileImage == "logo" ? 60 : 36) // Adjust padding based on badge type
+                .frame(maxWidth: .infinity, alignment: .center) // Center the badge horizontally
                 
                 Text("")
                     .font(.system(size: 24, weight: .semibold))

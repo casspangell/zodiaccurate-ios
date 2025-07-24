@@ -98,11 +98,6 @@ class StardustManager: ObservableObject {
     @Published var recentTransactions: [StardustTransaction] = []
     @Published var isLoading: Bool = false
     
-    // Animation state
-    @Published var showEarningAnimation: Bool = false
-    @Published var earningAnimationAmount: Int = 0
-    @Published var earningAnimationType: StardustTransactionType = .achievement
-    
     var modelContext: ModelContext
     private var balanceModel: StardustBalance?
     
@@ -225,10 +220,15 @@ class StardustManager: ObservableObject {
             
             saveContext()
             
-            // Trigger earning animation
-            earningAnimationAmount = amount
-            earningAnimationType = type
-            showEarningAnimation = true
+            // Trigger localized earning animation via notification
+            NotificationCenter.default.post(
+                name: .stardustEarned,
+                object: nil,
+                userInfo: [
+                    "amount": amount,
+                    "type": type
+                ]
+            )
             
             print("✅ StardustManager: Earned \(amount) stardust. New balance: \(newBalance)")
         } catch {

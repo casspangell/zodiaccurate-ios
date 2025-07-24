@@ -188,8 +188,7 @@ struct MainView: View {
                     .zIndex(300)
                 }
                 
-                // Stardust earning animation (global overlay)
-                StardustEarningAnimationOverlay()
+                // Localized stardust animation is now handled by the profile badge components
             }
         }
     }

@@ -7,6 +7,19 @@ struct OnboardingHoroscopeView: View {
     @State private var onboardingDataAccess: OnboardingDataAccess?
     @State private var showWelcomeMessage = true
     @State private var refreshTrigger = false
+    // Mystical loading sentences
+    private let mysticalLoadingSentences = [
+        "Consulting the stars...",
+        "Aligning your cosmic energies...",
+        "Reading your astral chart...",
+        "Whispering to the cosmos...",
+        "Gathering celestial insights...",
+        "Translating zodiac wisdom...",
+        "Peering into the future...",
+        "Summoning your horoscope..."
+    ]
+    @State private var currentMysticalSentenceIndex = 0
+    @State private var mysticalSentenceTimer: Timer? = nil
     
     var body: some View {
         GeometryReader { geo in
@@ -103,10 +116,27 @@ struct OnboardingHoroscopeView: View {
                 
                 // Loading spinner overlay - appears on top of all content
                 if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
-                    VStack(spacing: 24) {
-                        // Zodiac loading spinner
-                        ZodiacLoadingSpinner(size: .large)
-                            .scaleEffect(1.2)
+                    ZStack {
+                        // Centered spinner
+                        VStack {
+                            Spacer()
+                            ZodiacLoadingSpinner(size: .large)
+                                .scaleEffect(1.2)
+                            Spacer()
+                        }
+                        // Bottom-anchored mystical sentence
+                        VStack {
+                            Spacer()
+                            Text(mysticalLoadingSentences[currentMysticalSentenceIndex])
+                                .id(currentMysticalSentenceIndex)
+                                .font(.headline)
+                                .foregroundColor(.white.opacity(0.85))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 24)
+                                .padding(.bottom, 48)
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 2.2), value: currentMysticalSentenceIndex)
+                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.black.opacity(0.5))
@@ -123,26 +153,36 @@ struct OnboardingHoroscopeView: View {
         }
         .onAppear {
             print("OnboardingHoroscopeView appeared, setting up data access...")
-            
+            // Start mystical sentence timer if loading
+            if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
+                startMysticalSentenceTimer()
+            }
             // Initialize OnboardingDataAccess with the correct ModelContext
             if onboardingDataAccess == nil {
                 onboardingDataAccess = OnboardingDataAccess(modelContext: modelContext)
             } else {
                 onboardingDataAccess?.updateModelContext(modelContext)
             }
-            
             // Load user data and trigger refresh
             onboardingDataAccess?.loadUserData()
-            
             // Check if horoscope is already generated
             if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
                 print("Horoscope already exists, showing welcome message")
                 showWelcomeMessage = true
-                
                 // Hide welcome message after 5 seconds
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                     showWelcomeMessage = false
                 }
+                // Stop mystical sentence timer if running
+                stopMysticalSentenceTimer()
+            }
+        }
+        .onChange(of: onboardingDataAccess?.coreDataWelcomeHoroscope) { _, newValue in
+            // Start or stop mystical sentence timer based on loading state
+            if let horoscope = newValue, !horoscope.isEmpty {
+                stopMysticalSentenceTimer()
+            } else {
+                startMysticalSentenceTimer()
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("horoscopeGenerated"))) { _ in
@@ -191,6 +231,21 @@ struct OnboardingHoroscopeView: View {
         print("🔄 OnboardingHoroscopeView: Forcing refresh...")
         onboardingDataAccess?.loadUserData()
         refreshTrigger.toggle()
+    }
+    
+    // MARK: - Mystical Sentence Timer
+    private func startMysticalSentenceTimer() {
+        stopMysticalSentenceTimer()
+        mysticalSentenceTimer = Timer.scheduledTimer(withTimeInterval: 3.5, repeats: true) { _ in
+            withAnimation {
+                currentMysticalSentenceIndex = (currentMysticalSentenceIndex + 1) % mysticalLoadingSentences.count
+            }
+        }
+    }
+    private func stopMysticalSentenceTimer() {
+        mysticalSentenceTimer?.invalidate()
+        mysticalSentenceTimer = nil
+        currentMysticalSentenceIndex = 0
     }
 }
 

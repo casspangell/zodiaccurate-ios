@@ -317,6 +317,102 @@ struct CosmicBadgeEffects: View {
     }
 }
 
+// MARK: - Stardust Indicator
+/// A small circular indicator that displays stardust points on the outer edge of the zodiac badge
+/// Rotates around the badge like a clock based on stardust amount (100 stardust per full rotation)
+struct StardustIndicator: View {
+    let stardustPoints: Int
+    let size: CGFloat = 32
+    
+    // Main badge circle radius is 70px (140px diameter / 2)
+    // Stardust indicator size is 32px, so we need to account for its radius (16px)
+    // Total distance from center to indicator center = 70 + 16 = 86px
+    private let radius: CGFloat = 86
+    
+    /// Calculates the position offset based on stardust points
+    /// 100 stardust = 1 full rotation (360 degrees)
+    /// 12 o'clock (top) = multiples of 100
+    /// 6 o'clock (bottom) = multiples of 50
+    private var offset: CGSize {
+        // Convert stardust to degrees (100 stardust = 360 degrees)
+        let degrees = Double(stardustPoints) * 360.0 / 100.0
+        
+        // Convert degrees to radians
+        let radians = degrees * .pi / 180.0
+        
+        // Calculate position on circumference
+        let x = radius * cos(radians)
+        let y = -radius * sin(radians) // Negative because SwiftUI Y-axis is inverted
+        
+        return CGSize(width: x, height: y)
+    }
+    
+    var body: some View {
+        ZStack {
+            // Background circle with gradient
+            Circle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.accentGold.opacity(0.9),
+                            Color.accentGold.opacity(0.7)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: size, height: size)
+                .shadow(color: Color.accentGold.opacity(0.5), radius: 4, x: 0, y: 2)
+            
+            // Stardust points text
+            Text("\(stardustPoints)")
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+        }
+        .offset(offset)
+        .animation(.easeInOut(duration: 0.5), value: stardustPoints)
+    }
+}
+
+// MARK: - Enhanced Zodiac Profile Badge with Stardust
+/// Enhanced version of ZodiacProfileBadge that includes a stardust indicator
+struct ZodiacProfileBadgeWithStardust: View {
+    var zodiacImage: Image = Image("Capricorn")
+    var stardustPoints: Int = 0
+    
+    var body: some View {
+        ZStack {
+            // Original ZodiacProfileBadge
+            ZodiacProfileBadge(zodiacImage: zodiacImage)
+            
+            // Stardust indicator
+            if stardustPoints > 0 {
+                StardustIndicator(stardustPoints: stardustPoints)
+            }
+        }
+    }
+}
+
+// MARK: - Enhanced White Zodiac Profile Badge with Stardust
+/// Enhanced version of ZodiacProfileBadgeWhite that includes a stardust indicator
+struct ZodiacProfileBadgeWhiteWithStardust: View {
+    var zodiacImage: Image = Image("Capricorn")
+    var stardustPoints: Int = 0
+    
+    var body: some View {
+        ZStack {
+            // Original ZodiacProfileBadgeWhite
+            ZodiacProfileBadgeWhite(zodiacImage: zodiacImage)
+            
+            // Stardust indicator
+            if stardustPoints > 0 {
+                StardustIndicator(stardustPoints: stardustPoints)
+            }
+        }
+    }
+}
+
 // MARK: - Badge Animation Manager
 /// Manages the cosmic badge animation sequence for zodiac sign acquisition
 class BadgeAnimationManager: ObservableObject {
@@ -397,6 +493,34 @@ class BadgeAnimationManager: ObservableObject {
         Text("Full Profile Badge")
             .foregroundColor(.white)
         ZodiacProfileBadge()
+        
+        Text("Profile Badge with Stardust (100 - 12 o'clock)")
+            .foregroundColor(.white)
+        ZodiacProfileBadgeWithStardust(
+            zodiacImage: Image("Aries"),
+            stardustPoints: 100
+        )
+        
+        Text("Profile Badge with Stardust (50 - 6 o'clock)")
+            .foregroundColor(.white)
+        ZodiacProfileBadgeWithStardust(
+            zodiacImage: Image("Taurus"),
+            stardustPoints: 75
+        )
+        
+        Text("Profile Badge with Stardust (25 - 3 o'clock)")
+            .foregroundColor(.white)
+        ZodiacProfileBadgeWithStardust(
+            zodiacImage: Image("Gemini"),
+            stardustPoints: 25
+        )
+        
+        Text("White Profile Badge with Stardust (75 - 9 o'clock)")
+            .foregroundColor(.white)
+        ZodiacProfileBadgeWhiteWithStardust(
+            zodiacImage: Image("Cancer"),
+            stardustPoints: 235
+        )
         
         Text("Partial Profile Widget")
             .foregroundColor(.white)

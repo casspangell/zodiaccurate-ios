@@ -22,7 +22,7 @@ struct OnboardingHoroscopeView: View {
     @State private var mysticalSentenceTimer: Timer? = nil
     @State private var showLoadingOverlay = true
     @State private var showHoroscopeContent = false
-    @State private var showContinueButton = false
+    @State private var tapHintOpacity: Double = 0.0 // For animated label
     
     var body: some View {
         GeometryReader { geo in
@@ -91,33 +91,24 @@ struct OnboardingHoroscopeView: View {
                     
                     Spacer()
                     
-                    // Continue Button
+                    // Tap anywhere to continue label (replaces button)
                     if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                        Button(action: {
-                            navigateToMain()
-                        }) {
-                            HStack {
-                                Text("Continue to App")
-                                Image(systemName: "arrow.right")
-                            }
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.purple.opacity(0.8))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                                    )
-                            )
+                        HStack(spacing: 8) {
+                            Circle()
+                                .stroke(Color.gray.opacity(0.6), lineWidth: 2)
+                                .frame(width: 18, height: 18)
+                                .scaleEffect(tapHintOpacity > 0.5 ? 1.1 : 1.0)
+                            Text("Tap anywhere to continue")
+                                .font(.dmSansMedium13_4)
+                                .foregroundColor(Color.gray.opacity(0.7))
                         }
-                        .padding(.horizontal, 24)
                         .padding(.bottom, 50)
-                        .opacity(showContinueButton ? 1 : 0)
-                        .animation(.easeInOut(duration: 1.0), value: showContinueButton)
+                        .opacity(tapHintOpacity)
+                        .animation(
+                            Animation.easeInOut(duration: 2.0)
+                                .repeatForever(autoreverses: true),
+                            value: tapHintOpacity
+                        )
                     }
                 }
                 
@@ -147,6 +138,13 @@ struct OnboardingHoroscopeView: View {
                 .opacity(showLoadingOverlay ? 1 : 0)
                 .animation(.easeInOut(duration: 2.2), value: showLoadingOverlay)
                 .allowsHitTesting(showLoadingOverlay)
+            }
+            // Make the whole screen tappable to continue (except when loading)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
+                    navigateToMain()
+                }
             }
         }
         .navigationBarHidden(true)
@@ -180,6 +178,12 @@ struct OnboardingHoroscopeView: View {
                 }
                 // Stop mystical sentence timer if running
                 stopMysticalSentenceTimer()
+                // Start tap hint animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        tapHintOpacity = 1.0
+                    }
+                }
             }
         }
         .onChange(of: onboardingDataAccess?.coreDataWelcomeHoroscope) { _, newValue in
@@ -195,10 +199,10 @@ struct OnboardingHoroscopeView: View {
                     withAnimation(.easeInOut(duration: 2.2)) {
                         showHoroscopeContent = true
                     }
-                    // Show continue button after content fade-in
+                    // Show tap hint after content fade-in
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                         withAnimation(.easeInOut(duration: 1.0)) {
-                            showContinueButton = true
+                            tapHintOpacity = 1.0
                         }
                     }
                 }
@@ -206,7 +210,7 @@ struct OnboardingHoroscopeView: View {
                 startMysticalSentenceTimer()
                 showLoadingOverlay = true
                 showHoroscopeContent = false
-                showContinueButton = false
+                tapHintOpacity = 0.0
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("horoscopeGenerated"))) { _ in

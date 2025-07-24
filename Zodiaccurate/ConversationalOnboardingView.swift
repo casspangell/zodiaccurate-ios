@@ -66,11 +66,9 @@ struct ConversationalOnboardingView: View {
                     onConversationComplete: {
                         saveOnboardingData()
                         showOnboardingHoroscope = true
-                        
-                        // Generate horoscope on background thread
-                        // Task {
-                        //     await generateWelcomeHoroscope()
-                        // }
+                        Task {
+                            await generateWelcomeHoroscope()
+                        }
                     },
                     personalizeMessage: { message, name in
                         personalizeMessage(message, with: name)
@@ -147,12 +145,6 @@ struct ConversationalOnboardingView: View {
         }
     }
     
-
-    
-
-    
-
-    
     private func saveOnboardingData() {
         print("💾 Saving onboarding data to Core Data...")
         print("👤 User data: \(userData)")
@@ -183,132 +175,114 @@ struct ConversationalOnboardingView: View {
         print("🆔 Onboarding UUID stored: \(onboardingUUID)")
     }
     
-    // private func generateWelcomeHoroscope() async {
-    //     print("✨ ConversationalOnboardingView: Starting welcome horoscope generation...")
-    //     print("📊 User data for horoscope generation:")
-    //     print("   - First Name: \(userData.firstName)")
-    //     print("   - Birth Date: \(userData.birthDate)")
-    //     print("   - Birth Time: \(userData.birthTime)")
-    //     print("   - Zodiac Sign: \(userData.zodiacSign)")
-    //     print("   - Responses count: \(userData.responses.count)")
-    //     
-    //     let onboardingAI = OnboardingAI()
-    //     await onboardingAI.generateWelcomeHoroscope(
-    //         firstName: userData.firstName,
-    //         birthDate: userData.birthDate,
-    //         birthTime: userData.birthTime,
-    //         zodiacSign: userData.zodiacSign,
-    //         responses: userData.responses
-    //     )
-    //     
-    //     if let horoscope = onboardingAI.generatedHoroscope {
-    //         print("🎉 ConversationalOnboardingView: Welcome Horoscope Generated Successfully!")
-    //         print("📜 Horoscope Content:")
-    //         print(String(repeating: "=", count: 50))
-    //         print(horoscope)
-    //         print(String(repeating: "=", count: 50))
-    //         
-    //         // Save horoscope to Core Data
-    //         await saveHoroscopeToCoreData(horoscope)
-    //         
-    //     } else if let error = onboardingAI.error {
-    //         print("❌ ConversationalOnboardingView: Failed to generate horosc ope: \(error)")
-    //         await MainActor.run {
-    //         zodiacAlertMessage = error
-    //         showZodiacAlert = true
-    //         isTyping = false
-    //         showInputField = true
-    //         showResponseChatBubble = true
-    //         }
-    //     } else {
-    //         print("⚠️ ConversationalOnboardingView: Horoscope generation completed but no result received")
-    //     }
-    // }
+    private func generateWelcomeHoroscope() async {
+        print("✨ ConversationalOnboardingView: Starting welcome horoscope generation...")
+        let onboardingAI = Onboarding()
+        await onboardingAI.generateWelcomeHoroscope(
+            firstName: userData.firstName,
+            birthDate: userData.birthDate,
+            birthTime: userData.birthTime,
+            zodiacSign: userData.zodiacSign,
+            responses: userData.responses
+        )
+        if let horoscope = onboardingAI.generatedHoroscope {
+            print("🎉 ConversationalOnboardingView: Welcome Horoscope Generated Successfully!")
+            print(horoscope)
+            await saveHoroscopeToCoreData(horoscope)
+        } else if let error = onboardingAI.error {
+            print("❌ ConversationalOnboardingView: Failed to generate horoscope: \(error)")
+            await MainActor.run {
+                zodiacAlertMessage = error
+                showZodiacAlert = true
+            }
+        } else {
+            print("⚠️ ConversationalOnboardingView: Horoscope generation completed but no result received")
+        }
+    }
     
-    // private func saveHoroscopeToCoreData(_ horoscope: String) async {
-    //     print("💾 Saving horoscope to Core Data...")
-    //     
-    //     // Ensure we have a UserDataManager
-    //     if userDataManager == nil {
-    //         userDataManager = UserDataManager(modelContext: modelContext)
-    //     }
-    //     
-    //     // Get the onboarding UUID if it exists
-    //     let onboardingUUID = UserDefaults.standard.string(forKey: "onboardingUUID")
-    //     print("🆔 Using onboarding UUID for horoscope save: \(onboardingUUID ?? "nil")")
-    //     
-    //     // Load the existing user data from Core Data
-    //     if let existingUserData = userDataManager?.loadUserData(for: onboardingUUID) {
-    //         print("📝 Updating existing user data with horoscope...")
-    //         print("🔍 Before update - firstName: \(existingUserData.firstName), horoscope: \(existingUserData.welcomeHoroscope?.prefix(30) ?? "nil")")
-    //         existingUserData.welcomeHoroscope = horoscope
-    //         existingUserData.updatedAt = Date()
-    //     
-    //         do {
-    //             try modelContext.save()
-    //             print("✅ Horoscope saved to Core Data successfully!")
-    //             print("🌟 Horoscope length: \(horoscope.count) characters")
-    //             print("🔍 After save - firstName: \(existingUserData.firstName), horoscope: \(existingUserData.welcomeHoroscope?.prefix(30) ?? "nil")")
-    //             
-    //             // Award stardust for horoscope generation
-    //             if let stardustManager = stardustManager {
-    //                 stardustManager.earnHoroscopeGenerationReward()
-    //                 print("🪙 Awarded horoscope generation stardust reward")
-    //             } else {
-    //                 print("⚠️ StardustManager not available for horoscope reward")
-    //             }
-    //             
-    //             // Post notification to update OnboardingHoroscopeView
-    //             await MainActor.run {
-    //                 print("📢 ConversationalOnboardingView: Posting horoscopeGenerated notification...")
-    //                 NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
-    //                 print("✅ ConversationalOnboardingView: horoscopeGenerated notification posted successfully")
-    //             }
-    //         } catch {
-    //             print("❌ Error saving horoscope to Core Data: \(error)")
-    //         }
-    //     } else {
-    //         print("⚠️ No existing user data found in Core Data, creating new entry...")
-    //         
-    //         // Create a new UserDataModel with the horoscope
-    //         let responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
-    //         let userDataModel = UserDataModel(
-    //             firstName: userData.firstName,
-    //             birthDate: userData.birthDate,
-    //             birthTime: userData.birthTime,
-    //             zodiacSign: userData.zodiacSign,
-    //             responses: responses,
-    //             userId: onboardingUUID,
-    //             welcomeHoroscope: horoscope
-    //         )
-    //         
-    //         modelContext.insert(userDataModel)
-    //         
-    //         do {
-    //                 try modelContext.save()
-    //                 print("✅ New user data with horoscope saved to Core Data successfully!")
-    //                 print("🔍 New record - firstName: \(userDataModel.firstName), horoscope: \(userDataModel.welcomeHoroscope?.prefix(30) ?? "nil")")
-    //                  
-    //                 // Award stardust for horoscope generation
-    //                 if let stardustManager = stardustManager {
-    //                     stardustManager.earnHoroscopeGenerationReward()
-    //                     print("🪙 Awarded horoscope generation stardust reward")
-    //                 } else {
-    //                     print("⚠️ StardustManager not available for horoscope reward")
-    //                 }
-    //                 
-    //                 // Post notification to update OnboardingHoroscopeView
-    //                 await MainActor.run {
-    //                     print("📢 ConversationalOnboardingView: Posting horoscopeGenerated notification...")
-    //                     NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
-    //                     print("✅ ConversationalOnboardingView: horoscopeGenerated notification posted successfully")
-    //                 }
-    //             } catch {
-    //                 print("❌ Error saving new user data with horoscope to Core Data: \(error)")
-    //             }
-    //         }
-    //     }
-    // }
+    private func saveHoroscopeToCoreData(_ horoscope: String) async {
+        print("💾 Saving horoscope to Core Data...")
+        
+        // Ensure we have a UserDataManager
+        if userDataManager == nil {
+            userDataManager = UserDataManager(modelContext: modelContext)
+        }
+        
+        // Get the onboarding UUID if it exists
+        let onboardingUUID = UserDefaults.standard.string(forKey: "onboardingUUID")
+        print("🆔 Using onboarding UUID for horoscope save: \(onboardingUUID ?? "nil")")
+        
+        // Load the existing user data from Core Data
+        if let existingUserData = userDataManager?.loadUserData(for: onboardingUUID) {
+            print("📝 Updating existing user data with horoscope...")
+            print("🔍 Before update - firstName: \(existingUserData.firstName), horoscope: \(existingUserData.welcomeHoroscope?.prefix(30) ?? "nil")")
+            existingUserData.welcomeHoroscope = horoscope
+            existingUserData.updatedAt = Date()
+        
+            do {
+                try modelContext.save()
+                print("✅ Horoscope saved to Core Data successfully!")
+                print("🌟 Horoscope length: \(horoscope.count) characters")
+                print("🔍 After save - firstName: \(existingUserData.firstName), horoscope: \(existingUserData.welcomeHoroscope?.prefix(30) ?? "nil")")
+                
+                // Award stardust for horoscope generation
+                if let stardustManager = stardustManager {
+                    stardustManager.earnHoroscopeGenerationReward()
+                    print("🪙 Awarded horoscope generation stardust reward")
+                } else {
+                    print("⚠️ StardustManager not available for horoscope reward")
+                }
+                
+                // Post notification to update OnboardingHoroscopeView
+                await MainActor.run {
+                    print("📢 ConversationalOnboardingView: Posting horoscopeGenerated notification...")
+                    NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
+                    print("✅ ConversationalOnboardingView: horoscopeGenerated notification posted successfully")
+                }
+            } catch {
+                print("❌ Error saving horoscope to Core Data: \(error)")
+            }
+        } else {
+            print("⚠️ No existing user data found in Core Data, creating new entry...")
+            
+            // Create a new UserDataModel with the horoscope
+            let responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
+            let userDataModel = UserDataModel(
+                firstName: userData.firstName,
+                birthDate: userData.birthDate,
+                birthTime: userData.birthTime,
+                zodiacSign: userData.zodiacSign,
+                responses: responses,
+                userId: onboardingUUID,
+                welcomeHoroscope: horoscope
+            )
+            
+            modelContext.insert(userDataModel)
+            
+            do {
+                try modelContext.save()
+                print("✅ New user data with horoscope saved to Core Data successfully!")
+                print("🔍 New record - firstName: \(userDataModel.firstName), horoscope: \(userDataModel.welcomeHoroscope?.prefix(30) ?? "nil")")
+                
+                // Award stardust for horoscope generation
+                if let stardustManager = stardustManager {
+                    stardustManager.earnHoroscopeGenerationReward()
+                    print("🪙 Awarded horoscope generation stardust reward")
+                } else {
+                    print("⚠️ StardustManager not available for horoscope reward")
+                }
+                
+                // Post notification to update OnboardingHoroscopeView
+                await MainActor.run {
+                    print("📢 ConversationalOnboardingView: Posting horoscopeGenerated notification...")
+                    NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
+                    print("✅ ConversationalOnboardingView: horoscopeGenerated notification posted successfully")
+                }
+            } catch {
+                print("❌ Error saving new user data with horoscope to Core Data: \(error)")
+            }
+        }
+    }
     
     // MARK: - Event Handlers
     

@@ -87,14 +87,14 @@ class Onboarding: ObservableObject {
     
     /// Generate a captivating horoscope for a new user based on their onboarding data
     /// DEPRECATED: Use generateWelcomeHoroscope(firstName:birthDate:birthTime:zodiacSign:responses:) instead
-    func generateWelcomeHoroscope() async {
-        print("⚠️ [OnboardingAI] DEPRECATED: generateWelcomeHoroscope() called without parameters")
-        print("⚠️ [OnboardingAI] Use generateWelcomeHoroscope(firstName:birthDate:birthTime:zodiacSign:responses:) instead")
-        
-        isLoading = true
-        error = "This method is deprecated. Please use the parameter-based version."
-        isLoading = false
-    }
+//    func generateWelcomeHoroscope() async {
+//        print("⚠️ [OnboardingAI] DEPRECATED: generateWelcomeHoroscope() called without parameters")
+//        print("⚠️ [OnboardingAI] Use generateWelcomeHoroscope(firstName:birthDate:birthTime:zodiacSign:responses:) instead")
+//        
+//        isLoading = true
+//        error = "This method is deprecated. Please use the parameter-based version."
+//        isLoading = false
+//    }
     
     /// Generate a welcome horoscope with provided user data (for Core Data integration)
     func generateWelcomeHoroscope(firstName: String, birthDate: String, birthTime: String, zodiacSign: String, responses: [(String, String, String)]) async {

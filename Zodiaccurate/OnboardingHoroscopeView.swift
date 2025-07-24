@@ -31,6 +31,7 @@ struct OnboardingHoroscopeView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
+                VerticleAuroraBackgroundView()
                 // Consent Alert Overlay (blocks all interaction until accepted)
                 if showConsentAlert {
                     VisualEffectBlur(blurStyle: .systemMaterialDark)

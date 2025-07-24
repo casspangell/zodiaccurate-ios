@@ -20,6 +20,9 @@ struct OnboardingHoroscopeView: View {
     ]
     @State private var currentMysticalSentenceIndex = 0
     @State private var mysticalSentenceTimer: Timer? = nil
+    @State private var showLoadingOverlay = true
+    @State private var showHoroscopeContent = false
+    @State private var showContinueButton = false
     
     var body: some View {
         GeometryReader { geo in
@@ -80,6 +83,8 @@ struct OnboardingHoroscopeView: View {
                                             .stroke(Color.white.opacity(0.1), lineWidth: 1)
                                     )
                             )
+                            .opacity(showHoroscopeContent ? 1 : 0)
+                            .animation(.easeInOut(duration: 2.2), value: showHoroscopeContent)
                         }
                     }
                     .padding(.horizontal, 20)
@@ -111,37 +116,37 @@ struct OnboardingHoroscopeView: View {
                         }
                         .padding(.horizontal, 24)
                         .padding(.bottom, 50)
+                        .opacity(showContinueButton ? 1 : 0)
+                        .animation(.easeInOut(duration: 1.0), value: showContinueButton)
                     }
                 }
                 
-                // Loading spinner overlay - appears on top of all content
-                if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
-                    ZStack {
-                        // Centered spinner
-                        VStack {
-                            Spacer()
-                            ZodiacLoadingSpinner(size: .large)
-                                .scaleEffect(1.2)
-                            Spacer()
-                        }
-                        // Bottom-anchored mystical sentence
-                        VStack {
-                            Spacer()
-                            Text(mysticalLoadingSentences[currentMysticalSentenceIndex])
-                                .id(currentMysticalSentenceIndex)
-                                .font(.headline)
-                                .foregroundColor(.white.opacity(0.85))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 24)
-                                .padding(.bottom, 48)
-                                .transition(.opacity)
-                                .animation(.easeInOut(duration: 2.2), value: currentMysticalSentenceIndex)
-                        }
+                // Loading spinner overlay - always present, fades out smoothly
+                ZStack {
+                    // Centered spinner
+                    VStack {
+                        Spacer()
+                        ZodiacLoadingSpinner(size: .large)
+                            .scaleEffect(1.2)
+                        Spacer()
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.5))
-                    .allowsHitTesting(false)
+                    // Bottom-anchored mystical sentence
+                    VStack {
+                        Spacer()
+                        Text(mysticalLoadingSentences[currentMysticalSentenceIndex])
+                            .id(currentMysticalSentenceIndex)
+                            .font(.headline)
+                            .foregroundColor(.white.opacity(0.85))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.bottom, 48)
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.5))
+                .opacity(showLoadingOverlay ? 1 : 0)
+                .animation(.easeInOut(duration: 2.2), value: showLoadingOverlay)
+                .allowsHitTesting(showLoadingOverlay)
             }
         }
         .navigationBarHidden(true)
@@ -181,8 +186,27 @@ struct OnboardingHoroscopeView: View {
             // Start or stop mystical sentence timer based on loading state
             if let horoscope = newValue, !horoscope.isEmpty {
                 stopMysticalSentenceTimer()
+                // Fade out loading overlay and fade in horoscope content
+                withAnimation(.easeInOut(duration: 2.2)) {
+                    showLoadingOverlay = false
+                }
+                // Fade in horoscope content after a slight delay for mystical effect
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    withAnimation(.easeInOut(duration: 2.2)) {
+                        showHoroscopeContent = true
+                    }
+                    // Show continue button after content fade-in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        withAnimation(.easeInOut(duration: 1.0)) {
+                            showContinueButton = true
+                        }
+                    }
+                }
             } else {
                 startMysticalSentenceTimer()
+                showLoadingOverlay = true
+                showHoroscopeContent = false
+                showContinueButton = false
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("horoscopeGenerated"))) { _ in

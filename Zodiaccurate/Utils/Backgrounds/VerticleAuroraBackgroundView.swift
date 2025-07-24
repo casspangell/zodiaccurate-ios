@@ -24,7 +24,11 @@ struct VerticleAuroraBackgroundView: View {
 
     var body: some View {
         ZStack {
-            Color.backgroundPrimary.ignoresSafeArea()
+            LinearGradient(
+                gradient: Gradient(colors: [Color.sapphire, Color.backgroundSecondary]),
+                startPoint: .top,
+                endPoint: .bottom
+            ).ignoresSafeArea()
 
             // Undulating magnetic spheres (replicated from SplashScreenView, now with more colors)
             let colorSets: [[Color]] = [

@@ -165,7 +165,7 @@ struct OnboardingHoroscopeView: View {
                                 // Show welcome message for newly generated horoscope
                                 if showWelcomeMessage {
                                     VStack(spacing: 12) {
-                                        Text("Welcome to Zodiaccurate!")
+                                        Text("Welcome to Zodiaccurate, \(onboardingDataAccess?.firstName ?? "")!")
                                             .font(.title2)
                                             .fontWeight(.bold)
                                             .foregroundColor(.white)

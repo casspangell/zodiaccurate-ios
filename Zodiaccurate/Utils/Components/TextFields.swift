@@ -11,7 +11,7 @@ struct InputTextField: View {
     var onTap: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
-    var backgroundColor: Color = Color(.systemGray6)
+    var backgroundColor: Color = Color.bubbleFrost
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 100 // Initial height for 4 lines
@@ -36,9 +36,10 @@ struct InputTextField: View {
                         .frame(minHeight: 100, maxHeight: 100) // Fixed height for 4 lines
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
+                        .foregroundColor(.white)
                         .background(
                             CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
-                                .fill(Color(.systemGray6))
+                                .fill(backgroundColor)
                                 .overlay(
                                     CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
@@ -147,7 +148,7 @@ struct SingleLineTextField: View {
     var onTap: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
-    var backgroundColor: Color = Color(.systemGray6)
+    var backgroundColor: Color = Color.bubbleFrost
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textChangeWorkItem: DispatchWorkItem?
@@ -172,9 +173,10 @@ struct SingleLineTextField: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .frame(height: 44) // Fixed height for single line
+                        .foregroundColor(.white)
                         .background(
                             CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
-                                .fill(Color(.systemGray6))
+                                .fill(backgroundColor)
                                 .overlay(
                                     CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
@@ -265,7 +267,7 @@ struct MultiLineTextField: View {
     var onTap: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
-    var backgroundColor: Color = Color(.systemGray6)
+    var backgroundColor: Color = Color.bubbleFrost
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 100 // Initial height for 4 lines
@@ -290,9 +292,10 @@ struct MultiLineTextField: View {
                         .frame(minHeight: 100, maxHeight: 100) // Fixed height for 4 lines like original
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
+                        .foregroundColor(.white)
                         .background(
                             CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
-                                .fill(Color(.systemGray6))
+                                .fill(backgroundColor)
                                 .overlay(
                                     CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                         .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)

@@ -402,7 +402,6 @@ struct ZodiacChatView: View {
                 }
             }
             .onChange(of: shouldScrollToBottom) { _, shouldScroll in
-                print("++onchange shouldscrolltobottom")
                 if shouldScroll {
                     withAnimation(.easeInOut(duration: 0.8)) {
                         proxy.scrollTo("bottomAnchor", anchor: .bottom)
@@ -721,7 +720,9 @@ struct ZodiacChatView: View {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     self.animatedKeyboardOffset = targetOffset
                 }
-            } else {
+            }
+            
+            if keyboardHeight == 0 {
                 print("kilroy5")
                 // ++ prevents when pressing return everything goes below the screen
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
@@ -898,17 +899,6 @@ struct ChatInputView: View {
                            abs(frame.width - previousFrame.width) > 1 ||
                            abs(frame.height - previousFrame.height) > 1 {
                             
-                            let xDiff = frame.minX - previousFrame.minX
-                            let yDiff = frame.minY - previousFrame.minY
-                            let widthDiff = frame.width - previousFrame.width
-                            let heightDiff = frame.height - previousFrame.height
-                            
-                            print("🔧 [ChatInputView] Frame change detected:")
-                            print("   X: \(previousFrame.minX) → \(frame.minX) (diff: \(xDiff))")
-                            print("   Y: \(previousFrame.minY) → \(frame.minY) (diff: \(yDiff))")
-                            print("   Width: \(previousFrame.width) → \(frame.width) (diff: \(widthDiff))")
-                            print("   Height: \(previousFrame.height) → \(frame.height) (diff: \(heightDiff))")
-                            
                             onFrameChange(frame)
                             previousFrame = frame
                         }
@@ -923,7 +913,7 @@ struct ChatInputView: View {
                         Color.clear
                             .onAppear {
                                 let frame = geometry.frame(in: .global)
-                                onFrameChange(frame)
+//                                onFrameChange(frame)
                                 previousFrame = frame
                                 print("🔧 [ChatInputView] Initial frame: \(frame)")
                             }

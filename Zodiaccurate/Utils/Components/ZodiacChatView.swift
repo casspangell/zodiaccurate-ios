@@ -274,7 +274,7 @@ struct ZodiacChatView: View {
                         currentInput: $currentInput,
                         selectedDate: $selectedDate,
                         selectedTime: $selectedTime,
-                        onSend: { handleSendWithRecordingCheck() },
+                        onSend: { handleSend() },
                         onDateSelected: { date in
                             let formatter = DateFormatter()
                             formatter.dateStyle = .medium
@@ -362,17 +362,19 @@ struct ZodiacChatView: View {
             }
             .onChange(of: isTyping) { _, isTyping in
                 if isTyping {
+                    print("++ is typing")
                     // Delay scroll until typing indicator is visible
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        scrollToBottom(animated: true)
+                        // scrollToBottom(animated: true)
                     }
                 }
             }
             .onChange(of: showResponseChatBubble) { _, showResponse in
                 if showResponse {
+                    print("++ show response")
                     // Longer delay to ensure the input field is fully rendered
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                        scrollToBottom(animated: true)
+                         scrollToBottom(animated: true)
                     }
                     
                     // Recalculate keyboard offset when input field appears
@@ -395,9 +397,10 @@ struct ZodiacChatView: View {
                 }
             }
             .onAppear {
+                print("onappear")
                 // Initial scroll to bottom with longer delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    scrollToBottom(animated: false)
+                    // scrollToBottom(animated: false)
                 }
             }
 
@@ -584,7 +587,7 @@ struct ZodiacChatView: View {
         }
     }
     
-    private func handleSendWithRecordingCheck() {
+    private func handleSend() {
         let trimmed = currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
             highlightInputField = true
@@ -601,7 +604,6 @@ struct ZodiacChatView: View {
         
         // Reset keyboard offset immediately before response bubble appears
         if animatedKeyboardOffset > 0 {
-            print("🔧 [InputDebug] Resetting keyboard offset before response bubble")
             withAnimation(.easeInOut(duration: 0.2)) {
                 animatedKeyboardOffset = 0
             }
@@ -709,21 +711,6 @@ struct ZodiacChatView: View {
     
     // MARK: - Auto-scroll Helper Functions
     private func handleMessageCountChange(oldCount: Int, newCount: Int) {
-//        print("🔍 [AutoScroll] Message count changed from \(oldCount) to \(newCount)")
-        
-        // Cancel any existing debounce timer
-        scrollDebounceTimer?.invalidate()
-        
-        // Only auto-scroll if user is at bottom or if it's a new message (not deletion)
-        if newCount > oldCount && isUserAtBottom {
-            // User is at bottom, debounce auto-scroll to prevent jitter
-            scrollDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { _ in
-                DispatchQueue.main.async {
-                    scrollToBottom(animated: true)
-                }
-            }
-        }
-        
         lastMessageCount = newCount
     }
     
@@ -762,7 +749,7 @@ struct ZodiacChatView: View {
                 lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
             )
 
-            if targetOffset > 0 {
+            if targetOffset > 0 && keyboardHeight > 0 {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     self.animatedKeyboardOffset = targetOffset
                 }
@@ -972,17 +959,6 @@ struct ChatInputView: View {
                                    abs(newFrame.minY - oldFrame.minY) > 1 ||
                                    abs(newFrame.width - oldFrame.width) > 1 ||
                                    abs(newFrame.height - oldFrame.height) > 1 {
-                                    
-                                    let xDiff = newFrame.minX - oldFrame.minX
-                                    let yDiff = newFrame.minY - oldFrame.minY
-                                    let widthDiff = newFrame.width - oldFrame.width
-                                    let heightDiff = newFrame.height - oldFrame.height
-                                    
-                                    print("🔧 [ChatInputView] Frame change detected (GeometryReader):")
-                                    print("   X: \(oldFrame.minX) → \(newFrame.minX) (diff: \(xDiff))")
-                                    print("   Y: \(oldFrame.minY) → \(newFrame.minY) (diff: \(yDiff))")
-                                    print("   Width: \(oldFrame.width) → \(newFrame.width) (diff: \(widthDiff))")
-                                    print("   Height: \(oldFrame.height) → \(newFrame.height) (diff: \(heightDiff))")
                                     
                                     onFrameChange(newFrame)
                                     previousFrame = newFrame

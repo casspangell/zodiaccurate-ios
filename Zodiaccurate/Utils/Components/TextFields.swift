@@ -8,7 +8,6 @@ struct InputTextField: View {
     var placeholder: String
     var isFocused: FocusState<Bool>.Binding
     var onSubmit: () -> Void
-    var onTap: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     var backgroundColor: Color = Color.bubbleFrost
@@ -145,7 +144,6 @@ struct SingleLineTextField: View {
     var placeholder: String
     var isFocused: FocusState<Bool>.Binding
     var onSubmit: () -> Void
-    var onTap: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     var backgroundColor: Color = Color.bubbleFrost
@@ -264,7 +262,6 @@ struct MultiLineTextField: View {
     var placeholder: String
     var isFocused: FocusState<Bool>.Binding
     var onSubmit: () -> Void
-    var onTap: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     var backgroundColor: Color = Color.bubbleFrost

@@ -218,34 +218,18 @@ struct ResponseChatBubble: View {
                         placeholder: currentStep.placeholder,
                         isFocused: $isTextFieldFocused,
                         onSubmit: onSend,
-                        onTap: { isTextFieldFocused = true },
                         highlightInputField: $highlightInputField,
                         onHeightChange: onHeightChange
                     )
                     .onTapGesture {
                         isTextFieldFocused = true
                     }
-                } else if currentStep.inputType == "multiLine" {
+                } else { //if currentStep.inputType == "multiLine"
                     MultiLineTextField(
                         text: $currentInput,
                         placeholder: currentStep.placeholder,
                         isFocused: $isTextFieldFocused,
                         onSubmit: onSend,
-                        onTap: { isTextFieldFocused = true },
-                        highlightInputField: $highlightInputField,
-                        onHeightChange: onHeightChange
-                    )
-                    .onTapGesture {
-                        isTextFieldFocused = true
-                    }
-                } else {
-                    // Legacy "text" type - use original InputTextField
-                    InputTextField(
-                        text: $currentInput,
-                        placeholder: currentStep.placeholder,
-                        isFocused: $isTextFieldFocused,
-                        onSubmit: onSend,
-                        onTap: { isTextFieldFocused = true },
                         highlightInputField: $highlightInputField,
                         onHeightChange: onHeightChange
                     )
@@ -266,7 +250,7 @@ struct ResponseChatBubble: View {
             }
             
             // Send button (only show for text input types)
-            if currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
+            if currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
                 Spacer()
                 Button(action: onSend) {
                     Image(systemName: "paperplane.fill")
@@ -285,11 +269,11 @@ struct ResponseChatBubble: View {
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.horizontal, (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 16 : 0)
-        .padding(.vertical, (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine") ? 12 : 0)
-        .background((currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? finalBackgroundColor : Color.clear)
+        .padding(.horizontal, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 16 : 0)
+        .padding(.vertical, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine") ? 12 : 0)
+        .background((currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? finalBackgroundColor : Color.clear)
         .clipShape(
-            (currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time")
+            (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time")
                 ? AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 : AnyShape(Rectangle())
         )

@@ -26,6 +26,7 @@ struct ZodiacChatView: View {
     @State private var highlightInputField = false
     @State private var scrollViewOffset: CGFloat = 0
     @State private var headerFrame: CGRect = .zero
+    @State private var responseBubbleOpacity: Double = 0.0
     
     // MARK: - Auto-scroll Properties
     @State private var isUserAtBottom = true
@@ -268,6 +269,7 @@ struct ZodiacChatView: View {
                         conversationSteps: conversationSteps,
                         showInputField: showInputField,
                         showResponseChatBubble: showResponseChatBubble,
+                        responseBubbleOpacity: responseBubbleOpacity,
                         showTutorialBubble: $showTutorialBubble,
                         currentInput: $currentInput,
                         selectedDate: $selectedDate,
@@ -370,9 +372,16 @@ struct ZodiacChatView: View {
             .onChange(of: showResponseChatBubble) { _, showResponse in
                 if showResponse {
                     print("++ show response")
-                    // Longer delay to ensure the input field is fully rendered
+                    // First scroll to bottom, then fade in the response bubble
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                          scrollToBottom(animated: true)
+                        
+                        // After scroll completes, fade in the response bubble
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                            withAnimation(.easeInOut(duration: 0.5)) {
+                                responseBubbleOpacity = 1.0
+                            }
+                        }
                     }
                     
                     // Recalculate keyboard offset when input field appears
@@ -551,6 +560,7 @@ struct ZodiacChatView: View {
         showInputField = false
         showResponseChatBubble = false
         showTutorialBubble = false
+        responseBubbleOpacity = 0.0
         
         let initialMessage = conversationSteps[0].message
         let personalizedInitialMessage = personalizeMessage(initialMessage, userName)
@@ -574,6 +584,7 @@ struct ZodiacChatView: View {
                     withAnimation {
                         showResponseChatBubble = true
                         showInputField = true
+                        responseBubbleOpacity = 0.0 // Start with opacity 0
                         // Show tutorial bubble if the current step has a tutorial
                         if currentStep < conversationSteps.count && conversationSteps[currentStep].tutorial != nil {
                             showTutorialBubble = true
@@ -609,6 +620,7 @@ struct ZodiacChatView: View {
         showInputField = false
         showResponseChatBubble = false
         showTutorialBubble = false
+        responseBubbleOpacity = 0.0
         
         let responseMessage = ChatMessage(
             text: input,
@@ -636,6 +648,7 @@ struct ZodiacChatView: View {
         isTyping = true
         showInputField = false
         showResponseChatBubble = false
+        responseBubbleOpacity = 0.0
         
         let typingDelay = calculateTypingDelay(for: text)
         
@@ -654,6 +667,7 @@ struct ZodiacChatView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 withAnimation {
                     showResponseChatBubble = true
+                    responseBubbleOpacity = 0.0 // Start with opacity 0
                     if currentStep < conversationSteps.count {
                         showInputField = true
                         // Show tutorial bubble if the current step has a tutorial
@@ -858,6 +872,7 @@ struct ChatInputView: View {
     let conversationSteps: [ConversationStep]
     let showInputField: Bool
     let showResponseChatBubble: Bool
+    let responseBubbleOpacity: Double
     @Binding var showTutorialBubble: Bool
     let currentInput: Binding<String>
     let selectedDate: Binding<Date>
@@ -931,8 +946,8 @@ struct ChatInputView: View {
                     }
                 )
                 .transition(.opacity)
-                .opacity(isVisible ? 1 : 0)
-                .allowsHitTesting(isVisible)
+                .opacity(responseBubbleOpacity)
+                .allowsHitTesting(responseBubbleOpacity > 0)
 
                 Spacer()
                 

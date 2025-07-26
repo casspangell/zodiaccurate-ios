@@ -24,8 +24,6 @@ struct ZodiacChatView: View {
     @StateObject private var tutorialManager = TutorialManager()
     @FocusState private var isTextFieldFocused: Bool
     @State private var highlightInputField = false
-    @State private var isTransitioning = false
-    @State private var isProcessingUserInput = false
     @State private var scrollViewOffset: CGFloat = 0
     @State private var headerFrame: CGRect = .zero
     
@@ -360,15 +358,15 @@ struct ZodiacChatView: View {
             .onChange(of: messages.count) { oldCount, newCount in
                 handleMessageCountChange(oldCount: oldCount, newCount: newCount)
             }
-            .onChange(of: isTyping) { _, isTyping in
-                if isTyping {
-                    print("++ is typing")
-                    // Delay scroll until typing indicator is visible
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        // scrollToBottom(animated: true)
-                    }
-                }
-            }
+//            .onChange(of: isTyping) { _, isTyping in
+//                if isTyping {
+//                    print("++ is typing")
+//                    // Delay scroll until typing indicator is visible
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+//                         scrollToBottom(animated: true)
+//                    }
+//                }
+//            }
             .onChange(of: showResponseChatBubble) { _, showResponse in
                 if showResponse {
                     print("++ show response")
@@ -397,14 +395,14 @@ struct ZodiacChatView: View {
                 }
             }
             .onAppear {
-                print("onappear")
+                print("++ onappear")
                 // Initial scroll to bottom with longer delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    // scrollToBottom(animated: false)
+                     scrollToBottom(animated: false)
                 }
             }
-
             .onChange(of: shouldScrollToBottom) { _, shouldScroll in
+                print("++onchange shouldscrolltobottom")
                 if shouldScroll {
                     withAnimation(.easeInOut(duration: 0.8)) {
                         proxy.scrollTo("bottomAnchor", anchor: .bottom)
@@ -608,9 +606,6 @@ struct ZodiacChatView: View {
                 animatedKeyboardOffset = 0
             }
         }
-
-        isTransitioning = true
-        isProcessingUserInput = true
         
         showInputField = false
         showResponseChatBubble = false
@@ -631,21 +626,9 @@ struct ZodiacChatView: View {
         currentStep += 1
         onStepComplete(currentStep)
         
-        // Reset transition state after the response bubble is displayed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-//            print("🔍 [TransitionDebug] Setting isTransitioning = false (after user input)")
-            isTransitioning = false
-        }
-        
         // Trigger next question after a delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             triggerNextQuestion()
-        }
-        
-        // Reset processing flag after the next question appears
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-//            print("🔍 [TransitionDebug] Setting isProcessingUserInput = false (after full cycle)")
-            isProcessingUserInput = false
         }
     }
     
@@ -680,18 +663,6 @@ struct ZodiacChatView: View {
                         }
                     }
                 }
-                
-                // Reset processing flag once the input field is shown
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//                    print("🔍 [TransitionDebug] Setting isProcessingUserInput = false (input field shown)")
-                    isProcessingUserInput = false
-                }
-            }
-            
-            // Reset transition state after the AI message is displayed
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-//                print("🔍 [TransitionDebug] Setting isTransitioning = false (after AI message)")
-                isTransitioning = false
             }
         }
     }
@@ -700,11 +671,8 @@ struct ZodiacChatView: View {
         if currentStep < conversationSteps.count {
             let nextMessage = conversationSteps[currentStep].message
             let personalizedMessage = personalizeMessage(nextMessage, userName)
-            
-            print("🔍 [ScrollDebug] Displaying next question")
             displayQuestionMessage(personalizedMessage)
         } else {
-            print("🔍 [ScrollDebug] No more conversation steps to trigger")
             onConversationComplete()
         }
     }
@@ -715,16 +683,16 @@ struct ZodiacChatView: View {
     }
     
     private func scrollToBottom(animated: Bool) {
-//        print("🔍 [AutoScroll] Scrolling to bottom, animated: \(animated)")
-        
-        // Prevent rapid successive scroll calls
+
+        print("Actual function scrollToBottom called")
+
         guard !shouldScrollToBottom else { return }
         
         // Trigger scroll by updating state
         shouldScrollToBottom = true
         
         // Reset the flag after a longer delay to prevent rapid toggling
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             shouldScrollToBottom = false
         }
     }
@@ -742,7 +710,6 @@ struct ZodiacChatView: View {
         // Add longer delay for first input field to ensure it's rendered
         let delay = showInputField && showResponseChatBubble ? 0.3 : 0.1
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            print("kilroy3")
             let targetOffset = calculateKeyboardOffset(
                 keyboardHeight: self.keyboardHeight,
                 inputFieldFrame: self.inputFieldFrame,
@@ -750,8 +717,15 @@ struct ZodiacChatView: View {
             )
 
             if targetOffset > 0 && keyboardHeight > 0 {
+                print("kilroy4")
                 withAnimation(.easeInOut(duration: 0.3)) {
                     self.animatedKeyboardOffset = targetOffset
+                }
+            } else {
+                print("kilroy5")
+                // ++ prevents when pressing return everything goes below the screen
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                     scrollToBottom(animated: true)
                 }
             }
         }

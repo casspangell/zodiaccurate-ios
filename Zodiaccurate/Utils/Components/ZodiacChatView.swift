@@ -27,6 +27,7 @@ struct ZodiacChatView: View {
     @State private var scrollViewOffset: CGFloat = 0
     @State private var headerFrame: CGRect = .zero
     @State private var responseBubbleOpacity: Double = 0.0
+    @State private var tutorialBubbleOpacity: Double = 0.0
     
     // MARK: - Auto-scroll Properties
     @State private var isUserAtBottom = true
@@ -270,6 +271,7 @@ struct ZodiacChatView: View {
                         showInputField: showInputField,
                         showResponseChatBubble: showResponseChatBubble,
                         responseBubbleOpacity: responseBubbleOpacity,
+                        tutorialBubbleOpacity: tutorialBubbleOpacity,
                         showTutorialBubble: $showTutorialBubble,
                         currentInput: $currentInput,
                         selectedDate: $selectedDate,
@@ -376,10 +378,11 @@ struct ZodiacChatView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                          scrollToBottom(animated: true)
                         
-                        // After scroll completes, fade in the response bubble
+                        // After scroll completes, fade in the response bubble and tutorial
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                             withAnimation(.easeInOut(duration: 0.5)) {
                                 responseBubbleOpacity = 1.0
+                                tutorialBubbleOpacity = 1.0
                             }
                         }
                     }
@@ -561,6 +564,7 @@ struct ZodiacChatView: View {
         showResponseChatBubble = false
         showTutorialBubble = false
         responseBubbleOpacity = 0.0
+        tutorialBubbleOpacity = 0.0
         
         let initialMessage = conversationSteps[0].message
         let personalizedInitialMessage = personalizeMessage(initialMessage, userName)
@@ -621,6 +625,7 @@ struct ZodiacChatView: View {
         showResponseChatBubble = false
         showTutorialBubble = false
         responseBubbleOpacity = 0.0
+        tutorialBubbleOpacity = 0.0
         
         let responseMessage = ChatMessage(
             text: input,
@@ -649,6 +654,7 @@ struct ZodiacChatView: View {
         showInputField = false
         showResponseChatBubble = false
         responseBubbleOpacity = 0.0
+        tutorialBubbleOpacity = 0.0
         
         let typingDelay = calculateTypingDelay(for: text)
         
@@ -860,7 +866,18 @@ struct MessageBubbleView: View {
                 return hasBeenAnswered ? .submitted : .active
             }()
             
-            QuestionChatBubble(message: message, backgroundColor: backgroundColor, bubbleColor: bubbleColorForQuestion)
+            // Determine logo opacity based on whether the question has been answered
+            let logoOpacity: Double = {
+                let hasBeenAnswered = index + 1 < messages.count && messages[index + 1].isUser
+                return hasBeenAnswered ? 0.5 : 1.0 // Fade logo when in history
+            }()
+            
+            QuestionChatBubble(
+                message: message, 
+                backgroundColor: backgroundColor, 
+                bubbleColor: bubbleColorForQuestion,
+                logoOpacity: logoOpacity
+            )
         }
     }
 }
@@ -873,6 +890,7 @@ struct ChatInputView: View {
     let showInputField: Bool
     let showResponseChatBubble: Bool
     let responseBubbleOpacity: Double
+    let tutorialBubbleOpacity: Double
     @Binding var showTutorialBubble: Bool
     let currentInput: Binding<String>
     let selectedDate: Binding<Date>
@@ -970,6 +988,7 @@ struct ChatInputView: View {
                     )
                     .padding(.bottom, 16)
                     .transition(.opacity)
+                    .opacity(tutorialBubbleOpacity)
                 }
             }
         } else {

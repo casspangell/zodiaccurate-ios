@@ -82,14 +82,18 @@ struct QuestionChatBubble: View {
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
     var textColor: Color?
+    var bubbleOpacity: Double = 1
+    var logoOpacity: Double = 1
     
-    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil, textColor: Color? = nil) {
+    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil, textColor: Color? = nil, bubbleOpacity: Double = 1, logoOpacity: Double = 1) {
         self.message = message
         self.onSizeChange = onSizeChange
         self.onFrameChange = onFrameChange
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
         self.textColor = textColor
+        self.bubbleOpacity = bubbleOpacity
+        self.logoOpacity = logoOpacity
     }
     
     private var finalBackgroundColor: Color {
@@ -127,6 +131,7 @@ struct QuestionChatBubble: View {
                         .resizable()
                         .frame(width: 20, height: 20)
                         .foregroundColor(.purple)
+                        .opacity(logoOpacity)
                     
                     Text(message.text)
                         .padding()
@@ -161,6 +166,7 @@ struct QuestionChatBubble: View {
                     }
             }
         )
+        .opacity(bubbleOpacity)
     }
 }
 
@@ -287,14 +293,16 @@ struct AnsweredChatBubble: View {
     let onFrameChange: ((CGRect) -> Void)?
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
+    var bubbleOpacity: Double = 1
     @StateObject private var heightTracker = ChatBubbleHeightTracker.shared
     
-    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
+    init(message: ChatMessage, onSizeChange: ((CGSize) -> Void)? = nil, onFrameChange: ((CGRect) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil, bubbleOpacity: Double = 1) {
         self.message = message
         self.onSizeChange = onSizeChange
         self.onFrameChange = onFrameChange
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
+        self.bubbleOpacity = bubbleOpacity
     }
     
     private var finalBackgroundColor: Color {
@@ -343,6 +351,7 @@ struct AnsweredChatBubble: View {
                     }
             }
         )
+        .opacity(bubbleOpacity)
     }
 }
 

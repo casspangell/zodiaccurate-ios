@@ -18,6 +18,9 @@ struct TaglineView: View {
     @State private var verticalLineScale: CGFloat = 0
     @State private var hasAnimatedIn = false
     
+    var onReverseAnimation: (() -> Void)?
+    @Binding var shouldReverse: Bool
+    
     var body: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
@@ -49,13 +52,13 @@ struct TaglineView: View {
         }
         .padding(.trailing, 40)
         .frame(maxWidth: .infinity, alignment: .trailing)
-        .onTapGesture {
-            if hasAnimatedIn {
-                reverseAnimation()
-            }
-        }
         .onAppear {
             animateIn()
+        }
+        .onChange(of: shouldReverse) { _, shouldReverse in
+            if shouldReverse && hasAnimatedIn {
+                reverseAnimation()
+            }
         }
     }
     
@@ -93,6 +96,8 @@ struct TaglineView: View {
     }
     
     private func reverseAnimation() {
+        guard hasAnimatedIn else { return }
+        
         // First, animate text lines out to the left
         withAnimation(.easeIn(duration: 0.4)) {
             line3Offset = -50
@@ -120,6 +125,7 @@ struct TaglineView: View {
                 verticalLineScale = 0
             }
             hasAnimatedIn = false
+            onReverseAnimation?()
         }
     }
 }
@@ -127,6 +133,6 @@ struct TaglineView: View {
 #Preview {
     ZStack {
         Color.black
-        TaglineView()
+        TaglineView(shouldReverse: .constant(false))
     }
 }

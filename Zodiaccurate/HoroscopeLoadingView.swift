@@ -24,6 +24,7 @@ struct HoroscopeLoadingView: View {
     @State private var showHoroscopeContent = false
 
     @State private var showConsentAlert = true
+    @State private var shouldReverseTagline = false
     
     var body: some View {
         ZStack {
@@ -51,15 +52,21 @@ struct HoroscopeLoadingView: View {
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
 
-                TaglineView()
-                    .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
+                TaglineView(onReverseAnimation: {
+                    // Navigate to main after tagline animation completes
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        navigateToMain()
+                    }
+                }, shouldReverse: $shouldReverseTagline)
+                .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
             }
         }
         // Make the whole screen tappable to continue (except when loading)
         .contentShape(Rectangle())
         .onTapGesture {
             if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
-                navigateToMain()
+                // Trigger tagline reverse animation
+                shouldReverseTagline = true
             }
         }
         .navigationBarHidden(true)

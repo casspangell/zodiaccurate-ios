@@ -173,7 +173,7 @@ struct RootView: View {
             }
             
             if authManager.shouldShowOnboardingHoroscope {
-                OnboardingHoroscopeView()
+                HoroscopeLoadingView()
                     .transition(.opacity)
             } else if authManager.isAuthenticated {
                 MainZodiacView()

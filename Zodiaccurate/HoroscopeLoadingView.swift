@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-struct OnboardingHoroscopeView: View {
+struct HoroscopeLoadingView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var authManager: AuthenticationManager
     @State private var onboardingDataAccess: OnboardingDataAccess?
@@ -397,7 +397,7 @@ struct OnboardingHoroscopeView: View {
     
     container.mainContext.insert(mockUserData)
     
-    return OnboardingHoroscopeView()
+    return HoroscopeLoadingView()
         .environmentObject(AuthenticationManager())
         .modelContainer(container)
 } 

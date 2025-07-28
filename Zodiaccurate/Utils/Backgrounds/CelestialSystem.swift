@@ -70,7 +70,7 @@ struct CelestialSystem: View {
                 stardust2Angle: stardust2Angle,
                 cosmosOffset: cosmosOffset,
                 magneticPulse: magneticPulse,
-                animationCenterY: 0.5
+                animationCenterY: 0.3
             )
         }
         .environment(\._celestialOrbits, [orbitRadius1, orbitRadius2, orbitRadius3, orbitRadius4, orbitRadius5, orbitRadius6])

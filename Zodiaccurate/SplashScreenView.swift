@@ -90,7 +90,7 @@ struct SplashScreenView: View {
                     stardust2Angle: stardust2Angle,
                     cosmosOffset: cosmosOffset,
                     magneticPulse: magneticPulse,
-                    animationCenterY: 0.5
+                    animationCenterY: 0.3
                 )
 
                 // Starfield (twinkling stars around the logo)

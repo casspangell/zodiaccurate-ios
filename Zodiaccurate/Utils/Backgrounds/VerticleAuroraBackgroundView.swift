@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct VerticleAuroraBackgroundView: View {
-    let animationCenterY: CGFloat
+    @State var animationCenterY: CGFloat
     
-    init(animationCenterY: CGFloat = 0.5) {
-        self.animationCenterY = animationCenterY
+    init(animationCenterY: CGFloat = 0.3) {
+        self._animationCenterY = State(initialValue: animationCenterY)
     }
     
     @State private var celestialBody1Angle: Double = 0
@@ -136,5 +136,5 @@ private struct CelestialOrbitsKey: EnvironmentKey { static let defaultValue: [CG
 private struct CelestialColorShiftKey: EnvironmentKey { static let defaultValue: Double = 0 }
 
 #Preview {
-    VerticleAuroraBackgroundView(animationCenterY: 0.3)
+    VerticleAuroraBackgroundView()
 }

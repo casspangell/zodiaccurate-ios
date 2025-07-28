@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-struct MainView: View {
+struct MainZodiacView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @Environment(\.modelContext) private var modelContext
     @StateObject private var onboardingDataAccess: OnboardingDataAccess
@@ -23,9 +23,9 @@ struct MainView: View {
             ZStack {
                 NavigationView {
                     ZStack(alignment: .topLeading) {
-                        MainCelestialBackground()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .ignoresSafeArea(.all, edges: .all)
+//                        MainCelestialBackground()
+//                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                            .ignoresSafeArea(.all, edges: .all)
 
                         // Main header HStack: badge and date
                         HStack(alignment: .top, spacing: 0) {
@@ -274,6 +274,6 @@ struct BackgroundView: View {
 }
 
 #Preview {
-    MainView()
+    MainZodiacView()
         .environmentObject(AuthenticationManager())
 } 

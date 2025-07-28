@@ -117,6 +117,7 @@ struct ConversationalOnboardingView: View {
         }
         .animation(Animation.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
     }
+        
 
     private func storeUserData(input: String, step: ConversationStep) {
         switch step.dataKey {

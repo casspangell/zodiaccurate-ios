@@ -34,121 +34,121 @@ struct OnboardingHoroscopeView: View {
                 VerticleAuroraBackgroundView()
                 // Consent Alert Overlay (blocks all interaction until accepted)
                 if showConsentAlert {
-                    VisualEffectBlur(blurStyle: .systemMaterialDark)
-                        .ignoresSafeArea()
-                        .opacity(0.98)
-                        .zIndex(100)
-                        .transition(.opacity)
-                        .animation(.easeInOut(duration: 0.4), value: showConsentAlert)
-                        .allowsHitTesting(true)
-                        .overlay(
-                            VStack(spacing: 0) {
-                                Spacer()
-                                VStack(spacing: 18) {
-                                    // Title
-                                    Text("Consent Policies")
-                                        .font(.dmSansSemibold(size: 24))
-                                        .foregroundColor(.white)
-                                        .multilineTextAlignment(.center)
-
-                                    // Subtitle
-                                    Text("Your information is secure and encrypted. Please:")
-                                        .font(.dmSansMedium(size: 16))
-                                        .foregroundColor(.white.opacity(0.8))
-                                        .multilineTextAlignment(.center)
-
-                                    // Consent Row
-                                    HStack(alignment: .center, spacing: 10) {
-                                        Button(action: {
-                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                                                consentChecked.toggle()
-                                                showConsentError = false
-                                            }
-                                        }) {
-                                            Image(systemName: consentChecked ? "checkmark.square.fill" : "square")
-                                                .resizable()
-                                                .frame(width: 24, height: 24)
-                                                .foregroundColor(consentChecked ? Color.accentGreen : (showConsentError ? Color.red : Color.white.opacity(0.7)))
-                                                .scaleEffect(consentJiggle ? 1.15 : 1.0)
-                                                .animation(.default, value: consentJiggle)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                        .accessibilityLabel("Agree to GDPR Privacy Policy")
-
-                                        // Wrap the text in a VStack for word wrapping
-                                        VStack(alignment: .leading, spacing: 0) {
-                                            HStack(alignment: .firstTextBaseline, spacing: 0) {
-                                                Text("I agree to the Zodiaccurate ")
-                                                    .foregroundColor(.white.opacity(0.85))
-                                                    .font(.dmSansMedium(size: 15))
-                                                    .fixedSize(horizontal: false, vertical: true)
-                                                Text("GDPR Privacy Policy")
-                                                    .foregroundColor(Color.accentGreen)
-                                                    .underline()
-                                                    .font(.dmSansMedium(size: 15))
-                                                    .fixedSize(horizontal: false, vertical: true)
-                                                    .onTapGesture {
-                                                        if let url = URL(string: "https://zodiaccurate.com/privacy-policy") {
-                                                            UIApplication.shared.open(url)
-                                                        }
-                                                    }
-                                            }
-                                            .multilineTextAlignment(.leading)
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                    .padding(.top, 8)
-                                    .padding(.bottom, 2)
-                                    .offset(x: consentJiggle ? -12 : 0)
-                                    .animation(consentJiggle ? .default : .none, value: consentJiggle)
-
-                                    if showConsentError {
-                                        Text("You must agree to the GDPR Privacy Policy to continue.")
-                                            .foregroundColor(.red)
-                                            .font(.dmSansMedium(size: 14))
-                                            .frame(maxWidth: .infinity)
-                                            .multilineTextAlignment(.center)
-                                            .padding(.top, 2)
-                                            .transition(.opacity)
-                                    }
-
-                                    // Ok Button
-                                    PrimaryGradientButton(title: "Ok") {
-                                        if consentChecked {
-                                            withAnimation(.easeInOut(duration: 0.3)) {
-                                                showConsentAlert = false
-                                            }
-                                        } else {
-                                            // Jiggle and highlight error
-                                            showConsentError = true
-                                            consentJiggle = true
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
-                                                consentJiggle = false
-                                            }
-                                        }
-                                    }
-                                    .padding(.top, 10)
-                                }
-                                .padding(.horizontal, 28)
-                                .padding(.vertical, 32)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .fill(Color.indigo.opacity(0.92))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                                .stroke(Color.accentGold.opacity(0.3), lineWidth: 1)
-                                        )
-                                )
-                                .shadow(color: Color.black.opacity(0.3), radius: 24, x: 0, y: 12)
-                                .padding(.horizontal, 40)
-                                .offset(x: consentJiggle ? -12 : 0)
-                                .animation(consentJiggle ? .default : .none, value: consentJiggle)
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .zIndex(101)
-                        )
-                }
+//                    VisualEffectBlur(blurStyle: .systemMaterialDark)
+//                        .ignoresSafeArea()
+//                        .opacity(0.98)
+//                        .zIndex(100)
+//                        .transition(.opacity)
+//                        .animation(.easeInOut(duration: 0.4), value: showConsentAlert)
+//                        .allowsHitTesting(true)
+//                        .overlay(
+//                            VStack(spacing: 0) {
+//                                Spacer()
+//                                VStack(spacing: 18) {
+//                                    // Title
+//                                    Text("Consent Policies")
+//                                        .font(.dmSansSemibold(size: 24))
+//                                        .foregroundColor(.white)
+//                                        .multilineTextAlignment(.center)
+//
+//                                    // Subtitle
+//                                    Text("Your information is secure and encrypted. Please:")
+//                                        .font(.dmSansMedium(size: 16))
+//                                        .foregroundColor(.white.opacity(0.8))
+//                                        .multilineTextAlignment(.center)
+//
+//                                    // Consent Row
+//                                    HStack(alignment: .center, spacing: 10) {
+//                                        Button(action: {
+//                                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+//                                                consentChecked.toggle()
+//                                                showConsentError = false
+//                                            }
+//                                        }) {
+//                                            Image(systemName: consentChecked ? "checkmark.square.fill" : "square")
+//                                                .resizable()
+//                                                .frame(width: 24, height: 24)
+//                                                .foregroundColor(consentChecked ? Color.accentGreen : (showConsentError ? Color.red : Color.white.opacity(0.7)))
+//                                                .scaleEffect(consentJiggle ? 1.15 : 1.0)
+//                                                .animation(.default, value: consentJiggle)
+//                                        }
+//                                        .buttonStyle(PlainButtonStyle())
+//                                        .accessibilityLabel("Agree to GDPR Privacy Policy")
+//
+//                                        // Wrap the text in a VStack for word wrapping
+//                                        VStack(alignment: .leading, spacing: 0) {
+//                                            HStack(alignment: .firstTextBaseline, spacing: 0) {
+//                                                Text("I agree to the Zodiaccurate ")
+//                                                    .foregroundColor(.white.opacity(0.85))
+//                                                    .font(.dmSansMedium(size: 15))
+//                                                    .fixedSize(horizontal: false, vertical: true)
+//                                                Text("GDPR Privacy Policy")
+//                                                    .foregroundColor(Color.accentGreen)
+//                                                    .underline()
+//                                                    .font(.dmSansMedium(size: 15))
+//                                                    .fixedSize(horizontal: false, vertical: true)
+//                                                    .onTapGesture {
+//                                                        if let url = URL(string: "https://zodiaccurate.com/privacy-policy") {
+//                                                            UIApplication.shared.open(url)
+//                                                        }
+//                                                    }
+//                                            }
+//                                            .multilineTextAlignment(.leading)
+//                                        }
+//                                        .frame(maxWidth: .infinity, alignment: .leading)
+//                                    }
+//                                    .padding(.top, 8)
+//                                    .padding(.bottom, 2)
+//                                    .offset(x: consentJiggle ? -12 : 0)
+//                                    .animation(consentJiggle ? .default : .none, value: consentJiggle)
+//
+//                                    if showConsentError {
+//                                        Text("You must agree to the GDPR Privacy Policy to continue.")
+//                                            .foregroundColor(.red)
+//                                            .font(.dmSansMedium(size: 14))
+//                                            .frame(maxWidth: .infinity)
+//                                            .multilineTextAlignment(.center)
+//                                            .padding(.top, 2)
+//                                            .transition(.opacity)
+//                                    }
+//
+//                                    // Ok Button
+//                                    PrimaryGradientButton(title: "Ok") {
+//                                        if consentChecked {
+//                                            withAnimation(.easeInOut(duration: 0.3)) {
+//                                                showConsentAlert = false
+//                                            }
+//                                        } else {
+//                                            // Jiggle and highlight error
+//                                            showConsentError = true
+//                                            consentJiggle = true
+//                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
+//                                                consentJiggle = false
+//                                            }
+//                                        }
+//                                    }
+//                                    .padding(.top, 10)
+//                                }
+//                                .padding(.horizontal, 28)
+//                                .padding(.vertical, 32)
+//                                .background(
+//                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+//                                        .fill(Color.indigo.opacity(0.92))
+//                                        .overlay(
+//                                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+//                                                .stroke(Color.accentGold.opacity(0.3), lineWidth: 1)
+//                                        )
+//                                )
+//                                .shadow(color: Color.black.opacity(0.3), radius: 24, x: 0, y: 12)
+//                                .padding(.horizontal, 40)
+//                                .offset(x: consentJiggle ? -12 : 0)
+//                                .animation(consentJiggle ? .default : .none, value: consentJiggle)
+//                                Spacer()
+//                            }
+//                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+//                            .zIndex(101)
+//                        )
+                } //concent alert
 
                 VStack(spacing: 0) {
                     // Top padding for safe area
@@ -157,60 +157,60 @@ struct OnboardingHoroscopeView: View {
                     
                     // Horoscope Content
                     VStack(spacing: 20) {
-                        if onboardingDataAccess?.isGeneratingHoroscope == true {
-                            // Content is hidden when loading - overlay shows instead
-                            Color.clear
-                                .frame(maxHeight: geo.size.height * 0.7)
-                                .frame(maxWidth: .infinity)
-                        } else if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                            VStack(spacing: 0) {
-                                // Show welcome message for newly generated horoscope
-                                if showWelcomeMessage {
-                                    VStack(spacing: 12) {
-                                        Text("Welcome to Zodiaccurate, \(onboardingDataAccess?.firstName ?? "")!")
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.white)
-                                            .multilineTextAlignment(.center)
-                                        
-                                        Text("We've just barely tasted the waters...")
-                                            .font(.subheadline)
-                                            .foregroundColor(.white.opacity(0.8))
-                                            .multilineTextAlignment(.center)
-                                    }
-                                    .padding(.bottom, 16)
-                                }
-                                
-                                // Horoscope text with full screen utilization
-                                ScrollView {
-                                    Text(horoscope)
-                                        .font(.body)
-                                        .foregroundColor(.white.opacity(0.95))
-                                        .lineSpacing(8)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 8)
-                                        .padding(.bottom, 20)
-                                }
-                                .frame(maxHeight: geo.size.height * 0.65)
-                            }
-                            .padding(.vertical, 20)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.black.opacity(0.4))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                    )
-                            )
-                            .opacity(showHoroscopeContent ? 1 : 0)
-                            .animation(.easeInOut(duration: 2.2), value: showHoroscopeContent)
-                            .frame(maxWidth: .infinity)
-                        }
+//                        if onboardingDataAccess?.isGeneratingHoroscope == true {
+//                            // Content is hidden when loading - overlay shows instead
+//                            Color.clear
+//                                .frame(maxHeight: geo.size.height * 0.7)
+//                                .frame(maxWidth: .infinity)
+//                        } else if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
+//                            VStack(spacing: 0) {
+//                                // Show welcome message for newly generated horoscope
+//                                if showWelcomeMessage {
+//                                    VStack(spacing: 12) {
+//                                        Text("Welcome to Zodiaccurate, \(onboardingDataAccess?.firstName ?? "")!")
+//                                            .font(.title2)
+//                                            .fontWeight(.bold)
+//                                            .foregroundColor(.white)
+//                                            .multilineTextAlignment(.center)
+//                                        
+//                                        Text("We've just barely tasted the waters...")
+//                                            .font(.subheadline)
+//                                            .foregroundColor(.white.opacity(0.8))
+//                                            .multilineTextAlignment(.center)
+//                                    }
+//                                    .padding(.bottom, 16)
+//                                }
+//                                
+//                                // Horoscope text with full screen utilization
+//                                ScrollView {
+//                                    Text(horoscope)
+//                                        .font(.body)
+//                                        .foregroundColor(.white.opacity(0.95))
+//                                        .lineSpacing(8)
+//                                        .multilineTextAlignment(.center)
+//                                        .padding(.horizontal, 8)
+//                                        .padding(.bottom, 20)
+//                                }
+//                                .frame(maxHeight: geo.size.height * 0.65)
+//                            }
+//                            .padding(.vertical, 20)
+//                            .background(
+//                                RoundedRectangle(cornerRadius: 16)
+//                                    .fill(Color.black.opacity(0.4))
+//                                    .overlay(
+//                                        RoundedRectangle(cornerRadius: 16)
+//                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+//                                    )
+//                            )
+//                            .opacity(showHoroscopeContent ? 1 : 0)
+//                            .animation(.easeInOut(duration: 2.2), value: showHoroscopeContent)
+//                            .frame(maxWidth: .infinity)
+//                        }
                     }
-                    .padding(.horizontal, 24)
-                    .frame(maxWidth: .infinity)
+//                    .padding(.horizontal, 24)
+//                    .frame(maxWidth: .infinity)
                     
-                    Spacer()
+//                    Spacer()
                     
                     // Tap anywhere to continue label (replaces button)
                     if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
@@ -223,7 +223,7 @@ struct OnboardingHoroscopeView: View {
                                 .font(.dmSansMedium13_4)
                                 .foregroundColor(Color.gray.opacity(0.7))
                         }
-                        .padding(.bottom, 50)
+//                        .padding(.bottom, 50) kilroy
                         .opacity(tapHintOpacity)
                         .animation(
                             Animation.easeInOut(duration: 2.0)

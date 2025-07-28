@@ -53,7 +53,7 @@ struct HoroscopeLoadingView: View {
                         TaglineView(onReverseAnimation: {
                             // Navigate to main after tagline animation completes
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                navigateToMain()
+                                showMain()
                             }
                         }, shouldReverse: $shouldReverseTagline)
                         .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
@@ -61,14 +61,12 @@ struct HoroscopeLoadingView: View {
                         
                         Spacer()
                         
-                        // ZodiacLoadingSpinner 50px above tap anywhere
                         if showLoadingSpinner {
                             ZodiacLoadingSpinner(size: .large)
                                 .padding(.bottom, 80)
                                 .transition(.opacity)
                         }
                         
-                        // Tap anywhere at the bottom
                         if showTapAnywhere {
                             tapToContinueLabel
                                 .transition(.opacity)
@@ -83,7 +81,6 @@ struct HoroscopeLoadingView: View {
         .contentShape(Rectangle())
         .onTapGesture {
 //            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
-                // Dismiss tap anywhere label
                 withAnimation(.easeOut(duration: 0.3)) {
                     showTapAnywhere = false
                 }
@@ -187,10 +184,10 @@ struct HoroscopeLoadingView: View {
         }
     }
     
-    private func navigateToMain() {
-        print("Navigating to MainView...")
-        authManager.completeSignUp()
-    }
+//    private func navigateToMain() {
+//        print("Navigating to MainView...")
+//        authManager.completeSignUp()
+//    }
     
     private func forceRefresh() {
         print("🔄 OnboardingHoroscopeView: Forcing refresh...")
@@ -211,6 +208,11 @@ struct HoroscopeLoadingView: View {
         mysticalSentenceTimer?.invalidate()
         mysticalSentenceTimer = nil
         currentMysticalSentenceIndex = 0
+    }
+    
+    private func showMain() {
+        print("Navigating to MainView...")
+        authManager.completeSignUp()
     }
 }
 @ViewBuilder

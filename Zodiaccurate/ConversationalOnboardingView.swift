@@ -45,7 +45,7 @@ struct ConversationalOnboardingView: View {
     var body: some View {
         ZStack {
             if showOnboardingHoroscope {
-                HoroscopeLoadingView()
+                MainZodiacView()
                     .transition(.opacity)
             } else {
                 ZodiacChatView(

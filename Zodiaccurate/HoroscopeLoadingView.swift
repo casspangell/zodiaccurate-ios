@@ -7,19 +7,7 @@ struct HoroscopeLoadingView: View {
     @State private var onboardingDataAccess: OnboardingDataAccess?
     @State private var showWelcomeMessage = true
     @State private var refreshTrigger = false
-    // Mystical loading sentences
-    private let mysticalLoadingSentences = [
-        "Consulting the stars...",
-        "Aligning your cosmic energies...",
-        "Reading your astral chart...",
-        "Whispering to the cosmos...",
-        "Gathering celestial insights...",
-        "Translating zodiac wisdom...",
-        "Peering into the future...",
-        "Summoning your horoscope..."
-    ]
-    @State private var currentMysticalSentenceIndex = 0
-    @State private var mysticalSentenceTimer: Timer? = nil
+
     @State private var showLoadingOverlay = true
     @State private var showHoroscopeContent = false
 
@@ -30,7 +18,6 @@ struct HoroscopeLoadingView: View {
     
     var body: some View {
         ZStack {
-            VerticleAuroraBackgroundView()
             // Consent Alert Overlay (blocks all interaction until accepted)
             if showConsentAlert {
                 VisualEffectBlur(blurStyle: .systemMaterialDark)
@@ -62,9 +49,11 @@ struct HoroscopeLoadingView: View {
                         Spacer()
                         
                         if showLoadingSpinner {
-                            ZodiacLoadingSpinner(size: .large)
-                                .padding(.bottom, 80)
-                                .transition(.opacity)
+                            VStack(spacing: 20) {
+                                ZodiacLoadingSpinner(size: .large)
+                            }
+                            .padding(.bottom, 80)
+                            .transition(.opacity)
                         }
                         
                         if showTapAnywhere {
@@ -101,10 +90,6 @@ struct HoroscopeLoadingView: View {
         }
         .onAppear {
             print("OnboardingHoroscopeView appeared, setting up data access...")
-            // Start mystical sentence timer if loading
-            if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
-                startMysticalSentenceTimer()
-            }
             // Initialize OnboardingDataAccess with the correct ModelContext
             if onboardingDataAccess == nil {
                 onboardingDataAccess = OnboardingDataAccess(modelContext: modelContext)
@@ -121,15 +106,13 @@ struct HoroscopeLoadingView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                     showWelcomeMessage = false
                 }
-                // Stop mystical sentence timer if running
-                stopMysticalSentenceTimer()
+
 
             }
         }
         .onChange(of: onboardingDataAccess?.coreDataWelcomeHoroscope) { _, newValue in
-            // Start or stop mystical sentence timer based on loading state
+            // Handle loading state changes
             if let horoscope = newValue, !horoscope.isEmpty {
-                stopMysticalSentenceTimer()
                 // Fade out loading overlay and fade in horoscope content
                 withAnimation(.easeInOut(duration: 2.2)) {
                     showLoadingOverlay = false
@@ -142,7 +125,6 @@ struct HoroscopeLoadingView: View {
 
                 }
             } else {
-                startMysticalSentenceTimer()
                 showLoadingOverlay = true
                 showHoroscopeContent = false
             }
@@ -195,20 +177,7 @@ struct HoroscopeLoadingView: View {
         refreshTrigger.toggle()
     }
     
-    // MARK: - Mystical Sentence Timer
-    private func startMysticalSentenceTimer() {
-        stopMysticalSentenceTimer()
-        mysticalSentenceTimer = Timer.scheduledTimer(withTimeInterval: 3.5, repeats: true) { _ in
-            withAnimation {
-                currentMysticalSentenceIndex = (currentMysticalSentenceIndex + 1) % mysticalLoadingSentences.count
-            }
-        }
-    }
-    private func stopMysticalSentenceTimer() {
-        mysticalSentenceTimer?.invalidate()
-        mysticalSentenceTimer = nil
-        currentMysticalSentenceIndex = 0
-    }
+
     
     private func showMain() {
         print("Navigating to MainView...")

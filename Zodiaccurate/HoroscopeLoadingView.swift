@@ -41,6 +41,19 @@ struct HoroscopeLoadingView: View {
                         ConsentAlertView(showConsentAlert: $showConsentAlert)
                     )
             }
+            
+            // Show tap to continue label only after consent is dismissed
+            if !showConsentAlert {
+                VStack {
+                    Spacer()
+                    tapToContinueLabel
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
+
+                TaglineView()
+                    .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
+            }
         }
         // Make the whole screen tappable to continue (except when loading)
         .contentShape(Rectangle())
@@ -166,6 +179,16 @@ struct HoroscopeLoadingView: View {
         mysticalSentenceTimer = nil
         currentMysticalSentenceIndex = 0
     }
+}
+@ViewBuilder
+private var tapToContinueLabel: some View {
+    HStack {
+        Spacer()
+        TapAnywhere()
+            .frame(maxWidth: .infinity)
+        Spacer()
+    }
+    .padding(.bottom, 50)
 }
 
 #Preview {

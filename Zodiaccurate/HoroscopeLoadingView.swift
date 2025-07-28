@@ -2,15 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct HoroscopeLoadingView: View {
-    @Environment(\.modelContext) private var modelContext
-    @EnvironmentObject var authManager: AuthenticationManager
-    @State private var onboardingDataAccess: OnboardingDataAccess?
     @State private var showWelcomeMessage = true
     @State private var refreshTrigger = false
-
-    @State private var showLoadingOverlay = true
-    @State private var showHoroscopeContent = false
-
     @State private var showConsentAlert = true
     @State private var shouldReverseTagline = false
     @State private var showTapAnywhere = true
@@ -76,7 +69,7 @@ struct HoroscopeLoadingView: View {
             
                 shouldReverseTagline = true
             
-                withAnimation(.easeOut(duration: 0.3).delay(0.9)) {
+            withAnimation(.easeOut(duration: 0.3).delay(1.3)) {
                     showLoadingSpinner = false
                 }
 //            }
@@ -85,103 +78,12 @@ struct HoroscopeLoadingView: View {
         .onChange(of: refreshTrigger) { _, _ in
             // This will trigger a view refresh when refreshTrigger changes
         }
-        .onChange(of: onboardingDataAccess?.dataRefreshTrigger) { _, _ in
-            // This will trigger a view refresh when data is refreshed
-        }
-        .onAppear {
-            print("OnboardingHoroscopeView appeared, setting up data access...")
-            // Initialize OnboardingDataAccess with the correct ModelContext
-            if onboardingDataAccess == nil {
-                onboardingDataAccess = OnboardingDataAccess(modelContext: modelContext)
-            } else {
-                onboardingDataAccess?.updateModelContext(modelContext)
-            }
-            // Load user data and trigger refresh
-            onboardingDataAccess?.loadUserData()
-            // Check if horoscope is already generated
-            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                print("Horoscope already exists, showing welcome message")
-                showWelcomeMessage = true
-                // Hide welcome message after 5 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                    showWelcomeMessage = false
-                }
 
-
-            }
-        }
-        .onChange(of: onboardingDataAccess?.coreDataWelcomeHoroscope) { _, newValue in
-            // Handle loading state changes
-            if let horoscope = newValue, !horoscope.isEmpty {
-                // Fade out loading overlay and fade in horoscope content
-                withAnimation(.easeInOut(duration: 2.2)) {
-                    showLoadingOverlay = false
-                }
-                // Fade in horoscope content after a slight delay for mystical effect
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                    withAnimation(.easeInOut(duration: 2.2)) {
-                        showHoroscopeContent = true
-                    }
-
-                }
-            } else {
-                showLoadingOverlay = true
-                showHoroscopeContent = false
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("horoscopeGenerated"))) { _ in
-            // Only refresh if the horoscope is not already present
-            if onboardingDataAccess?.coreDataWelcomeHoroscope?.isEmpty ?? true {
-                print("🎉 OnboardingHoroscopeView: Horoscope generated notification received, reloading data...")
-                onboardingDataAccess?.refreshAndLoadUserData()
-                showWelcomeMessage = true
-
-                // Check if horoscope is now available with multiple retries
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                        print("✅ OnboardingHoroscopeView: Horoscope loaded successfully, length: \(horoscope.count) characters")
-                        refreshTrigger.toggle() // Trigger view refresh
-                    } else {
-                        print("⚠️ OnboardingHoroscopeView: Horoscope not available after first reload, trying again...")
-                        // Try again after a longer delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            onboardingDataAccess?.loadUserData()
-                            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                                print("✅ OnboardingHoroscopeView: Horoscope loaded successfully on second attempt, length: \(horoscope.count) characters")
-                                refreshTrigger.toggle() // Trigger view refresh
-                            } else {
-                                print("⚠️ OnboardingHoroscopeView: Horoscope still not available after second reload")
-                            }
-                        }
-                    }
-                }
-
-                // Hide welcome message after 5 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                    showWelcomeMessage = false
-                }
-            } else {
-                print("🎉 OnboardingHoroscopeView: Horoscope already present, skipping refresh.")
-            }
-        }
     }
-    
-//    private func navigateToMain() {
-//        print("Navigating to MainView...")
-//        authManager.completeSignUp()
-//    }
-    
-    private func forceRefresh() {
-        print("🔄 OnboardingHoroscopeView: Forcing refresh...")
-        onboardingDataAccess?.loadUserData()
-        refreshTrigger.toggle()
-    }
-    
 
-    
     private func showMain() {
         print("Navigating to MainView...")
-        authManager.completeSignUp()
+        // This will be handled by the parent view
     }
 }
 @ViewBuilder
@@ -205,6 +107,5 @@ private var tapToContinueLabel: some View {
     container.mainContext.insert(mockUserData)
     
     return HoroscopeLoadingView()
-        .environmentObject(AuthenticationManager())
         .modelContainer(container)
 } 

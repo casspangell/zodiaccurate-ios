@@ -22,7 +22,7 @@ struct OnboardingHoroscopeView: View {
     @State private var mysticalSentenceTimer: Timer? = nil
     @State private var showLoadingOverlay = true
     @State private var showHoroscopeContent = false
-    @State private var tapHintOpacity: Double = 0.0
+
     @State private var showConsentAlert = true
     @State private var consentChecked = false
     @State private var showConsentError = false
@@ -157,6 +157,7 @@ struct OnboardingHoroscopeView: View {
                     
                     // Horoscope Content
                     VStack(spacing: 20) {
+                        MainZodiacView()
 //                        if onboardingDataAccess?.isGeneratingHoroscope == true {
 //                            // Content is hidden when loading - overlay shows instead
 //                            Color.clear
@@ -214,22 +215,7 @@ struct OnboardingHoroscopeView: View {
                     
                     // Tap anywhere to continue label (replaces button)
                     if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                        HStack(spacing: 8) {
-                            Circle()
-                                .stroke(Color.gray.opacity(0.6), lineWidth: 2)
-                                .frame(width: 18, height: 18)
-                                .scaleEffect(tapHintOpacity > 0.5 ? 1.1 : 1.0)
-                            Text("Tap anywhere to continue")
-                                .font(.dmSansMedium13_4)
-                                .foregroundColor(Color.gray.opacity(0.7))
-                        }
-//                        .padding(.bottom, 50) kilroy
-                        .opacity(tapHintOpacity)
-                        .animation(
-                            Animation.easeInOut(duration: 2.0)
-                                .repeatForever(autoreverses: true),
-                            value: tapHintOpacity
-                        )
+                        TapAnywhere()
                     }
                 }
                 
@@ -299,12 +285,7 @@ struct OnboardingHoroscopeView: View {
                 }
                 // Stop mystical sentence timer if running
                 stopMysticalSentenceTimer()
-                // Start tap hint animation
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        tapHintOpacity = 1.0
-                    }
-                }
+
             }
         }
         .onChange(of: onboardingDataAccess?.coreDataWelcomeHoroscope) { _, newValue in
@@ -320,18 +301,12 @@ struct OnboardingHoroscopeView: View {
                     withAnimation(.easeInOut(duration: 2.2)) {
                         showHoroscopeContent = true
                     }
-                    // Show tap hint after content fade-in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                        withAnimation(.easeInOut(duration: 1.0)) {
-                            tapHintOpacity = 1.0
-                        }
-                    }
+
                 }
             } else {
                 startMysticalSentenceTimer()
                 showLoadingOverlay = true
                 showHoroscopeContent = false
-                tapHintOpacity = 0.0
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("horoscopeGenerated"))) { _ in

@@ -101,9 +101,6 @@ struct ZodiacChatView: View {
         return (isFinalStep && hasMessages && lastMessageIsAI) || isConversationComplete
     }
     
-    @State private var tapHintOpacity: Double = 0.0
-
-    
     // MARK: - Helper Views
     @ViewBuilder
     private var backgroundView: some View {
@@ -135,33 +132,11 @@ struct ZodiacChatView: View {
         if shouldShowCompleteButton {
             HStack {
                 Spacer()
-                HStack(spacing: 8) {
-                    Circle()
-                        .stroke(Color.gray.opacity(0.6), lineWidth: 2)
-                        .frame(width: 18, height: 18)
-                        .scaleEffect(tapHintOpacity > 0.5 ? 1.1 : 1.0)
-                    Text("Tap anywhere to continue")
-                        .font(.dmSansMedium13_4)
-                        .foregroundColor(Color.gray.opacity(0.7))
-                }
-                .frame(maxWidth: .infinity)
+                TapAnywhere()
+                    .frame(maxWidth: .infinity)
                 Spacer()
             }
             .padding(.bottom, 50)
-            .opacity(tapHintOpacity)
-            .animation(
-                Animation.easeInOut(duration: 2.0)
-                    .repeatForever(autoreverses: true),
-                value: tapHintOpacity
-            )
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1.0)) {
-                    tapHintOpacity = 1.0
-                }
-            }
-            .onDisappear {
-                tapHintOpacity = 0.0
-            }
         }
     }
     

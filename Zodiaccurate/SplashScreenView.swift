@@ -8,7 +8,7 @@ struct SplashScreenView: View {
     @State private var logoRotation: Double = 0
     @State private var titleOffset: CGFloat = -50
     @State private var taglineOffset: CGFloat = 50
-    @State private var tapHintOpacity: Double = 0.0
+
     @State private var magneticPulse: CGFloat = 1.0
     @State private var taglineFadeOpacity: Double = 0.0
     var onFinish: (Bool) -> Void = { _ in }
@@ -411,22 +411,8 @@ struct SplashScreenView: View {
                     .shadow(color: Color(hex: "D4AF37").opacity(0.4), radius: 8, x: 0, y: 0)
                     
                     // Tap to continue
-                    HStack(spacing: 8) {
-                        Circle()
-                            .stroke(Color.gray.opacity(0.6), lineWidth: 2)
-                            .frame(width: 18, height: 18)
-                            .scaleEffect(tapHintOpacity > 0.5 ? 1.1 : 1.0)
-                        Text("Tap anywhere to continue")
-                            .font(.dmSansMedium13_4)
-                            .foregroundColor(Color.gray.opacity(0.7))
-                    }
-                    .padding(.bottom, 60)
-                    .opacity(tapHintOpacity)
-                    .animation(
-                        Animation.easeInOut(duration: 2.0)
-                            .repeatForever(autoreverses: true),
-                        value: tapHintOpacity
-                    )
+                    TapAnywhere()
+                        .padding(.bottom, 60)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 // Overlay the title 1/4 down the screen
@@ -527,12 +513,7 @@ struct SplashScreenView: View {
             stardust2Angle = -Double.random(in: 60...120)
         }
         
-        // Tap hint
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            withAnimation(.easeInOut(duration: 0.5)) {
-                tapHintOpacity = 1.0
-            }
-        }
+
     }
     
     private func startMotionUpdates() {

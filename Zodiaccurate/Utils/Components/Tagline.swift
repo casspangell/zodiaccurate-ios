@@ -16,6 +16,7 @@ struct TaglineView: View {
     @State private var line3Opacity: Double = 0
     @State private var verticalLineOpacity: Double = 0
     @State private var verticalLineScale: CGFloat = 0
+    @State private var hasAnimatedIn = false
     
     var body: some View {
         HStack(spacing: 10) {
@@ -48,36 +49,77 @@ struct TaglineView: View {
         }
         .padding(.trailing, 40)
         .frame(maxWidth: .infinity, alignment: .trailing)
+        .onTapGesture {
+            if hasAnimatedIn {
+                reverseAnimation()
+            }
+        }
         .onAppear {
-            // Start with vertical line
+            animateIn()
+        }
+    }
+    
+    private func animateIn() {
+        // Start with vertical line
+        withAnimation(.easeOut(duration: 0.5)) {
+            verticalLineOpacity = 1
+            verticalLineScale = 1
+        }
+        
+        // Animate first line after vertical line
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             withAnimation(.easeOut(duration: 0.5)) {
-                verticalLineOpacity = 1
-                verticalLineScale = 1
+                line1Offset = 0
+                line1Opacity = 1
             }
-            
-            // Animate first line after vertical line
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                withAnimation(.easeOut(duration: 0.5)) {
-                    line1Offset = 0
-                    line1Opacity = 1
-                }
+        }
+        
+        // Animate second line
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation(.easeOut(duration: 0.5)) {
+                line2Offset = 0
+                line2Opacity = 1
             }
-            
-            // Animate second line
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                withAnimation(.easeOut(duration: 0.5)) {
-                    line2Offset = 0
-                    line2Opacity = 1
-                }
+        }
+        
+        // Animate third line
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation(.easeOut(duration: 0.5)) {
+                line3Offset = 0
+                line3Opacity = 1
             }
-            
-            // Animate third line
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                withAnimation(.easeOut(duration: 0.5)) {
-                    line3Offset = 0
-                    line3Opacity = 1
-                }
+            hasAnimatedIn = true
+        }
+    }
+    
+    private func reverseAnimation() {
+        // First, animate text lines out to the left
+        withAnimation(.easeIn(duration: 0.4)) {
+            line3Offset = -50
+            line3Opacity = 0
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeIn(duration: 0.4)) {
+                line2Offset = -50
+                line2Opacity = 0
             }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(.easeIn(duration: 0.4)) {
+                line1Offset = -50
+                line1Opacity = 0
+            }
+        }
+        
+        // Finally, animate vertical line out
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            withAnimation(.easeIn(duration: 0.4)) {
+                verticalLineOpacity = 0
+                verticalLineScale = 0
+            }
+            hasAnimatedIn = false
         }
     }
 }

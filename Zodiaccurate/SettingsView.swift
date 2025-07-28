@@ -31,7 +31,7 @@ struct SettingsView: View {
         NavigationView {
             ZStack {
                 // Background
-                MainCelestialBackground()
+                VerticleAuroraBackgroundView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.all, edges: .all)
                 
@@ -42,10 +42,6 @@ struct SettingsView: View {
                             Text("Settings")
                                 .font(.system(size: 32, weight: .bold))
                                 .foregroundColor(.white)
-                            
-                            Text("Customize your cosmic experience")
-                                .font(.system(size: 16, weight: .regular))
-                                .foregroundColor(.white.opacity(0.7))
                         }
                         .padding(.top, 20)
                         

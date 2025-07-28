@@ -15,7 +15,7 @@ struct MainZodiacView: View {
             VStack(spacing: 0) {
                 if splashViewDismissed {
                     ZodiacHeaderFull(
-                        profileImage: "logo",
+                        profileImage: "Leo",
                         badgeScale: 1.0,
                         badgeRotation: 0,
                         cosmicGlowOpacity: 0.5,

@@ -31,12 +31,35 @@ struct HoroscopeDateText: View {
     }
 }
 
+struct UpdateCardText: View {
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Hey there!")
+                .dmSansSemiboldGradient(size: 38)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            
+            Text("How is everything?")
+                .font(Font.dmSansMedium(size: 32))
+                .foregroundColor(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+            
+            Text("What's the latest?")
+                .font(Font.dmSansMedium(size: 24))
+                .foregroundColor(.white)
+                .minimumScaleFactor(0.5)
+        }
+    }
+}
+
 #Preview {
     ZStack {
         Color.black.ignoresSafeArea()
         
         HoroscopeDateText(date: "Monday\nJanuary 5, 2025")
-            .padding()
+            .padding(.bottom, 300)
+        UpdateCardText()
     }
 }
 

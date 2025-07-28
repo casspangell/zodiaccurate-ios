@@ -61,6 +61,9 @@ struct MainZodiacView: View {
                     onboardingDataAccess?.loadUserData()
                 }
             }
+            if splashViewDismissed {
+                UpdateCard()
+            }
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()

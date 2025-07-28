@@ -30,21 +30,9 @@ struct UpdateCard: View {
                             .padding(.bottom, 8)
                         
                         // Card content
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Hey there!")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.blue)
-                            
-                            Text("How is everything?")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                            
-                            Text("What's the latest?")
-                                .font(.body)
-                                .foregroundColor(.white)
-                        }
+                        UpdateCardText()
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 20)
 //                        .padding(.horizontal, 20)
 //                        .padding(.bottom, 20)
                         

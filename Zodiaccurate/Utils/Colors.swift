@@ -11,8 +11,8 @@ extension Color {
         self.init(red: r, green: g, blue: b)
     }
     
-    static let fontDateGradientStart = Color(hex: "E5D7FF")
-    static let fontDateGradientEnd = Color(hex: "8BBAFF")
+    static let fontDateGradientStart = Color(hex: "8BBAFF")
+    static let fontDateGradientEnd = Color(hex: "E5D7FF")
     
     static let backgroundPrimary = Color(hex: "15141B")
     static let backgroundSecondary = Color(hex: "18131C")

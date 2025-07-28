@@ -43,8 +43,8 @@ extension View {
             .lineSpacing(lineHeight - size)
     }
     
-    func dmSansMediumGradient(size: CGFloat) -> some View {
-        self.font(.dmSansMedium(size: size))
+    func dmSansSemiboldGradient(size: CGFloat) -> some View {
+        self.font(.dmSansSemibold(size: size))
             .foregroundStyle(
                 LinearGradient(
                     gradient: Gradient(colors: [Color.fontDateGradientStart, Color.fontDateGradientEnd]),

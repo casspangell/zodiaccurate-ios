@@ -21,6 +21,7 @@ struct ZodiacHeaderFull: View {
     let stardustPoints: Int
     let badgeSize: CGFloat?
     let horoscopeDate: String
+    let onSettingsTap: (() -> Void)?
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
@@ -40,7 +41,8 @@ struct ZodiacHeaderFull: View {
         sparkleOpacity: Double = 0,
         stardustPoints: Int = 0,
         badgeSize: CGFloat? = nil,
-        horoscopeDate: String = "Monday\nJanuary 5, 2025"
+        horoscopeDate: String = "Monday\nJanuary 5, 2025",
+        onSettingsTap: (() -> Void)? = nil
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -53,6 +55,7 @@ struct ZodiacHeaderFull: View {
         self.stardustPoints = stardustPoints
         self.badgeSize = badgeSize
         self.horoscopeDate = horoscopeDate
+        self.onSettingsTap = onSettingsTap
     }
     
     // MARK: - Body
@@ -88,7 +91,7 @@ struct ZodiacHeaderFull: View {
                     Spacer()
                     
                     // Vertical stack of buttons
-                    VStack(spacing: 16) {
+                    VStack(alignment: .trailing, spacing: 16) {
                         CircleIconButton(
                             systemName: "bell",
                             accessibilityLabel: "Notifications"
@@ -100,17 +103,14 @@ struct ZodiacHeaderFull: View {
                             systemName: "gearshape",
                             accessibilityLabel: "Settings"
                         ) {
-                            // Settings button action
+                            onSettingsTap?()
                         }
                         
                         // Date display
-                        Text(horoscopeDate)
-                            .dmSansMediumGradient(size: 14)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(2)
+                        HoroscopeDateText(date: horoscopeDate)
                     }
+                    .frame(maxWidth: .infinity, alignment: .trailing)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.trailing, 20)
                 Spacer()
             }
@@ -142,8 +142,64 @@ struct ZodiacHeaderFull: View {
             cosmicParticlesOpacity: 0.6,
             sparkleOpacity: 0.8,
             badgeSize: nil,
-            horoscopeDate: "Monday\nJanuary 5, 2025"
+            horoscopeDate: "Monday\nJanuary 5, 2025",
+            onSettingsTap: {
+                // This would be implemented in the actual view that uses ZodiacHeaderFull
+                // Example: showingSettings = true
+                print("Settings button tapped")
+            }
         )
     }
+}
+
+// MARK: - Example Usage View
+/// Example view showing how to use ZodiacHeaderFull with settings functionality
+struct ExampleZodiacHeaderView: View {
+    @State private var showingSettings = false
+    
+    var body: some View {
+        ZStack {
+            // Background
+            Color.black.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Header with settings functionality
+                ZodiacHeaderFull(
+                    profileImage: "Leo",
+                    badgeScale: 1.0,
+                    badgeRotation: 0,
+                    cosmicGlowOpacity: 0.5,
+                    nebulaOpacity: 0.3,
+                    starFieldOpacity: 0.4,
+                    cosmicParticlesOpacity: 0.6,
+                    sparkleOpacity: 0.8,
+                    badgeSize: nil,
+                    horoscopeDate: "Monday\nJanuary 5, 2025",
+                    onSettingsTap: {
+                        showingSettings = true
+                    }
+                )
+                
+                // Main content area
+                VStack {
+                    Text("Your Horoscope Content")
+                        .font(.title)
+                        .foregroundColor(.white)
+                        .padding()
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
+    }
+}
+
+#Preview("Example Usage") {
+    ExampleZodiacHeaderView()
+        .environmentObject(AuthenticationManager())
 }
 

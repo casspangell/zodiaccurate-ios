@@ -73,4 +73,24 @@ final class UserDataModel {
         responseArray = arr
         updatedAt = Date()
     }
+    
+    // MARK: - Mock Data
+    static func createMockUserData() -> UserDataModel {
+        return UserDataModel(
+            firstName: "Erika",
+            birthDate: "July 25, 1970",
+            birthTime: "10:31 PM",
+            zodiacSign: "Leo",
+            responses: ["What's your name?|name|Erika", "When were you born?|birthDate|July 25, 1970"],
+            welcomeHoroscope: """
+            Dearest Erika, born under the fiery heart of Leo with the night's twilight as your celestial cloak, the cosmos has whispered your name. Born at 10:31 PM on July 25, 2025, your birth was graced with the shimmering secrets of the evening, and it's those same secrets that have come to symbolize your deep-seated passion and regal spirit, typical of a true Leo.
+            
+            Your intuitive greeting, filled with multiple hellos, speaks to your innate ability to connect energetically with those around you, a vibrant 'hi' that echoes through the universe. Remember, dear Erika, your dreams may be silent now, but in that silence, there is a boundless potential, a universe of possibilities waiting for you. Embrace this journey, for it's in the quiet moments that your true strength emerges.
+            
+            The stars have aligned to reveal that your path is one of leadership and creativity. Your natural charisma draws others to you like moths to a flame, and your generous spirit makes you a beacon of warmth in the lives of those around you. Trust in your intuition, for it is sharper than you know.
+            
+            As you navigate through this cosmic journey, remember that every challenge is an opportunity for growth. Your Leo heart beats with the rhythm of the universe, and your courage will guide you through any storm. The future holds great promise for you, dear Erika.
+            """
+        )
+    }
 } 

@@ -26,125 +26,27 @@ struct HoroscopeLoadingView: View {
     @State private var showConsentAlert = true
     
     var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                VerticleAuroraBackgroundView()
-                // Consent Alert Overlay (blocks all interaction until accepted)
-                if showConsentAlert {
-                    VisualEffectBlur(blurStyle: .systemMaterialDark)
-                        .ignoresSafeArea()
-                        .opacity(0.98)
-                        .zIndex(100)
-                        .transition(.opacity)
-                        .animation(.easeInOut(duration: 0.4), value: showConsentAlert)
-                        .allowsHitTesting(true)
-                        .overlay(
-                            ConsentAlertView(showConsentAlert: $showConsentAlert)
-                        )
-                }
-
-                VStack(spacing: 0) {
-                    // Top padding for safe area
-                    Spacer()
-                        .frame(height: 60)
-                    
-                    // Horoscope Content
-                    VStack(spacing: 20) {
-//                        MainZodiacView()
-//                        if onboardingDataAccess?.isGeneratingHoroscope == true {
-//                            // Content is hidden when loading - overlay shows instead
-//                            Color.clear
-//                                .frame(maxHeight: geo.size.height * 0.7)
-//                                .frame(maxWidth: .infinity)
-//                        } else if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-//                            VStack(spacing: 0) {
-//                                // Show welcome message for newly generated horoscope
-//                                if showWelcomeMessage {
-//                                    VStack(spacing: 12) {
-//                                        Text("Welcome to Zodiaccurate, \(onboardingDataAccess?.firstName ?? "")!")
-//                                            .font(.title2)
-//                                            .fontWeight(.bold)
-//                                            .foregroundColor(.white)
-//                                            .multilineTextAlignment(.center)
-//                                        
-//                                        Text("We've just barely tasted the waters...")
-//                                            .font(.subheadline)
-//                                            .foregroundColor(.white.opacity(0.8))
-//                                            .multilineTextAlignment(.center)
-//                                    }
-//                                    .padding(.bottom, 16)
-//                                }
-//                                
-//                                // Horoscope text with full screen utilization
-//                                ScrollView {
-//                                    Text(horoscope)
-//                                        .font(.body)
-//                                        .foregroundColor(.white.opacity(0.95))
-//                                        .lineSpacing(8)
-//                                        .multilineTextAlignment(.center)
-//                                        .padding(.horizontal, 8)
-//                                        .padding(.bottom, 20)
-//                                }
-//                                .frame(maxHeight: geo.size.height * 0.65)
-//                            }
-//                            .padding(.vertical, 20)
-//                            .background(
-//                                RoundedRectangle(cornerRadius: 16)
-//                                    .fill(Color.black.opacity(0.4))
-//                                    .overlay(
-//                                        RoundedRectangle(cornerRadius: 16)
-//                                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
-//                                    )
-//                            )
-//                            .opacity(showHoroscopeContent ? 1 : 0)
-//                            .animation(.easeInOut(duration: 2.2), value: showHoroscopeContent)
-//                            .frame(maxWidth: .infinity)
-//                        }
-                    }
-//                    .padding(.horizontal, 24)
-//                    .frame(maxWidth: .infinity)
-                    
-//                    Spacer()
-                    
-                    // Tap anywhere to continue label (replaces button)
-                    if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                        TapAnywhere()
-                    }
-                }
-                
-                // Loading spinner overlay - always present, fades out smoothly
-                ZStack {
-                    // Centered spinner
-                    VStack {
-                        Spacer()
-                        ZodiacLoadingSpinner(size: .large)
-                            .scaleEffect(1.2)
-                        Spacer()
-                    }
-                    // Bottom-anchored mystical sentence
-                    VStack {
-                        Spacer()
-                        Text(mysticalLoadingSentences[currentMysticalSentenceIndex])
-                            .id(currentMysticalSentenceIndex)
-                            .font(.headline)
-                            .foregroundColor(.white.opacity(0.85))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 24)
-                            .padding(.bottom, 48)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.black.opacity(0.5))
-                .opacity(showLoadingOverlay ? 1 : 0)
-                .animation(.easeInOut(duration: 2.2), value: showLoadingOverlay)
-                .allowsHitTesting(showLoadingOverlay)
+        ZStack {
+            VerticleAuroraBackgroundView()
+            // Consent Alert Overlay (blocks all interaction until accepted)
+            if showConsentAlert {
+                VisualEffectBlur(blurStyle: .systemMaterialDark)
+                    .ignoresSafeArea()
+                    .opacity(0.98)
+                    .zIndex(100)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.4), value: showConsentAlert)
+                    .allowsHitTesting(true)
+                    .overlay(
+                        ConsentAlertView(showConsentAlert: $showConsentAlert)
+                    )
             }
-            // Make the whole screen tappable to continue (except when loading)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
-                    navigateToMain()
-                }
+        }
+        // Make the whole screen tappable to continue (except when loading)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
+                navigateToMain()
             }
         }
         .navigationBarHidden(true)
@@ -271,22 +173,7 @@ struct HoroscopeLoadingView: View {
     let container = try! ModelContainer(for: UserDataModel.self, configurations: config)
     
     // Create mock user data
-    let mockUserData = UserDataModel(
-        firstName: "Erika",
-        birthDate: "July 25, 1970",
-        birthTime: "10:31 PM",
-        zodiacSign: "Leo",
-        responses: ["What's your name?|name|Erika", "When were you born?|birthDate|July 25, 1970"],
-        welcomeHoroscope: """
-        Dearest Erika, born under the fiery heart of Leo with the night's twilight as your celestial cloak, the cosmos has whispered your name. Born at 10:31 PM on July 25, 2025, your birth was graced with the shimmering secrets of the evening, and it's those same secrets that have come to symbolize your deep-seated passion and regal spirit, typical of a true Leo.
-        
-        Your intuitive greeting, filled with multiple hellos, speaks to your innate ability to connect energetically with those around you, a vibrant 'hi' that echoes through the universe. Remember, dear Erika, your dreams may be silent now, but in that silence, there is a boundless potential, a universe of possibilities waiting for you. Embrace this journey, for it's in the quiet moments that your true strength emerges.
-        
-        The stars have aligned to reveal that your path is one of leadership and creativity. Your natural charisma draws others to you like moths to a flame, and your generous spirit makes you a beacon of warmth in the lives of those around you. Trust in your intuition, for it is sharper than you know.
-        
-        As you navigate through this cosmic journey, remember that every challenge is an opportunity for growth. Your Leo heart beats with the rhythm of the universe, and your courage will guide you through any storm. The future holds great promise for you, dear Erika.
-        """
-    )
+    let mockUserData = UserDataModel.createMockUserData()
     
     container.mainContext.insert(mockUserData)
     

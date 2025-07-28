@@ -24,7 +24,7 @@ struct ConsentAlertView: View {
                     .multilineTextAlignment(.center)
 
                 // Subtitle
-                Text("Your information is secure and encrypted. Please:")
+                Text("Your information is secure and encrypted.")
                     .font(.dmSansMedium(size: 16))
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)

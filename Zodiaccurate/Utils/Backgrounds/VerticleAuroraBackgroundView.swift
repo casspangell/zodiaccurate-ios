@@ -21,6 +21,9 @@ struct VerticleAuroraBackgroundView: View {
     @State private var colorShift: Double = 0
     @State private var cosmosOffset: CGSize = .zero
     @State private var lineHeights: [CGFloat] = Array(repeating: 0, count: 50)
+    
+    // Variable to control the y center position of animations
+    var animationCenterY: CGFloat = 0.5 // 0.5 = center, 0.0 = top, 1.0 = bottom
 
     var body: some View {
         ZStack {
@@ -59,7 +62,7 @@ struct VerticleAuroraBackgroundView: View {
                             )
                         )
                         .frame(width: 4, height: lineHeight)
-                        .position(x: xPosition, y: geometry.size.height / 2)
+                        .position(x: xPosition, y: geometry.size.height * animationCenterY)
                         .opacity(0.7 - Double(index) * 0.025)
                         .scaleEffect(x: scale, y: 0.9, anchor: .bottomTrailing)
                         .blur(radius: 12)

@@ -25,6 +25,7 @@ struct HoroscopeLoadingView: View {
 
     @State private var showConsentAlert = true
     @State private var shouldReverseTagline = false
+    @State private var showTapAnywhere = true
     
     var body: some View {
         ZStack {
@@ -47,7 +48,10 @@ struct HoroscopeLoadingView: View {
             if !showConsentAlert {
                 VStack {
                     Spacer()
-                    tapToContinueLabel
+                    if showTapAnywhere {
+                        tapToContinueLabel
+                            .transition(.opacity)
+                    }
                 }
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
@@ -65,6 +69,11 @@ struct HoroscopeLoadingView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
+                // Dismiss tap anywhere label
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showTapAnywhere = false
+                }
+                
                 // Trigger tagline reverse animation
                 shouldReverseTagline = true
             }

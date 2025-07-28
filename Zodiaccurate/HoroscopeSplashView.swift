@@ -1,13 +1,21 @@
 import SwiftUI
 import SwiftData
 
-struct HoroscopeLoadingView: View {
+struct HoroscopeSplashView: View {
     @State private var showWelcomeMessage = true
     @State private var refreshTrigger = false
     @State private var showConsentAlert = true
     @State private var shouldReverseTagline = false
     @State private var showTapAnywhere = true
     @State private var showLoadingSpinner = true
+    
+    let onDismiss: (() -> Void)?
+    let onConsentDismissed: (() -> Void)?
+    
+    init(onDismiss: (() -> Void)? = nil, onConsentDismissed: (() -> Void)? = nil) {
+        self.onDismiss = onDismiss
+        self.onConsentDismissed = onConsentDismissed
+    }
     
     var body: some View {
         ZStack {
@@ -78,12 +86,22 @@ struct HoroscopeLoadingView: View {
         .onChange(of: refreshTrigger) { _, _ in
             // This will trigger a view refresh when refreshTrigger changes
         }
+        .onChange(of: showConsentAlert) { _, newValue in
+            // When consent alert is dismissed (changes from true to false)
+            print("HoroscopeSplashView: showConsentAlert changed to \(newValue)")
+            if !newValue {
+                print("done")
+                print("HoroscopeSplashView: Calling onConsentDismissed callback")
+                onConsentDismissed?()
+            }
+        }
 
     }
 
     private func showMain() {
         print("Navigating to MainView...")
-        // This will be handled by the parent view
+        // Call the dismiss callback
+        onDismiss?()
     }
 }
 @ViewBuilder
@@ -106,6 +124,6 @@ private var tapToContinueLabel: some View {
     
     container.mainContext.insert(mockUserData)
     
-    return HoroscopeLoadingView()
+    return HoroscopeSplashView()
         .modelContainer(container)
 } 

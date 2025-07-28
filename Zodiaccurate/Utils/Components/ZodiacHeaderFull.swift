@@ -63,7 +63,7 @@ struct ZodiacHeaderFull: View {
         ZStack {
             VStack(spacing: 0) {
                 Rectangle()
-                    .fill(Color.deepBlue.opacity(1.0))
+                    .fill(Color.clear)
                     .frame(height: UIScreen.main.bounds.height * 0.3)
                 
                 Spacer()

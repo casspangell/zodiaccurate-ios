@@ -22,7 +22,7 @@ struct OnboardingHoroscopeView: View {
     @State private var mysticalSentenceTimer: Timer? = nil
     @State private var showLoadingOverlay = true
     @State private var showHoroscopeContent = false
-    @State private var tapHintOpacity: Double = 0.0 // For animated label
+    @State private var tapHintOpacity: Double = 0.0
     @State private var showConsentAlert = true
     @State private var consentChecked = false
     @State private var showConsentError = false
@@ -43,6 +43,7 @@ struct OnboardingHoroscopeView: View {
                         .allowsHitTesting(true)
                         .overlay(
                             VStack(spacing: 0) {
+                                Spacer()
                                 VStack(spacing: 18) {
                                     // Title
                                     Text("Consent Policies")
@@ -98,7 +99,7 @@ struct OnboardingHoroscopeView: View {
                                     }
                                     .padding(.top, 8)
                                     .padding(.bottom, 2)
-                                    .offset(x: consentJiggle ? -8 : 0)
+                                    .offset(x: consentJiggle ? -12 : 0)
                                     .animation(consentJiggle ? .default : .none, value: consentJiggle)
 
                                     if showConsentError {
@@ -139,11 +140,12 @@ struct OnboardingHoroscopeView: View {
                                         )
                                 )
                                 .shadow(color: Color.black.opacity(0.3), radius: 24, x: 0, y: 12)
-                                .padding(.horizontal, 32)
-                                .offset(x: consentJiggle ? -8 : 0)
+                                .padding(.horizontal, 40)
+                                .offset(x: consentJiggle ? -12 : 0)
                                 .animation(consentJiggle ? .default : .none, value: consentJiggle)
+                                Spacer()
                             }
-                            .frame(maxWidth: 420)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .zIndex(101)
                         )
                 }
@@ -154,14 +156,14 @@ struct OnboardingHoroscopeView: View {
                         .frame(height: 60)
                     
                     // Horoscope Content
-                    VStack(spacing: 0) {
+                    VStack(spacing: 20) {
                         if onboardingDataAccess?.isGeneratingHoroscope == true {
                             // Content is hidden when loading - overlay shows instead
                             Color.clear
                                 .frame(maxHeight: geo.size.height * 0.7)
                                 .frame(maxWidth: .infinity)
                         } else if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty {
-                            VStack(spacing: 20) {
+                            VStack(spacing: 0) {
                                 // Show welcome message for newly generated horoscope
                                 if showWelcomeMessage {
                                     VStack(spacing: 12) {
@@ -185,13 +187,12 @@ struct OnboardingHoroscopeView: View {
                                         .font(.body)
                                         .foregroundColor(.white.opacity(0.95))
                                         .lineSpacing(8)
-                                        .multilineTextAlignment(.leading)
+                                        .multilineTextAlignment(.center)
                                         .padding(.horizontal, 8)
                                         .padding(.bottom, 20)
                                 }
                                 .frame(maxHeight: geo.size.height * 0.65)
                             }
-                            .padding(.horizontal, 24)
                             .padding(.vertical, 20)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
@@ -203,9 +204,11 @@ struct OnboardingHoroscopeView: View {
                             )
                             .opacity(showHoroscopeContent ? 1 : 0)
                             .animation(.easeInOut(duration: 2.2), value: showHoroscopeContent)
+                            .frame(maxWidth: .infinity)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 24)
+                    .frame(maxWidth: .infinity)
                     
                     Spacer()
                     
@@ -396,6 +399,30 @@ struct OnboardingHoroscopeView: View {
 }
 
 #Preview {
-    OnboardingHoroscopeView()
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: UserDataModel.self, configurations: config)
+    
+    // Create mock user data
+    let mockUserData = UserDataModel(
+        firstName: "Erika",
+        birthDate: "July 25, 1970",
+        birthTime: "10:31 PM",
+        zodiacSign: "Leo",
+        responses: ["What's your name?|name|Erika", "When were you born?|birthDate|July 25, 1970"],
+        welcomeHoroscope: """
+        Dearest Erika, born under the fiery heart of Leo with the night's twilight as your celestial cloak, the cosmos has whispered your name. Born at 10:31 PM on July 25, 2025, your birth was graced with the shimmering secrets of the evening, and it's those same secrets that have come to symbolize your deep-seated passion and regal spirit, typical of a true Leo.
+        
+        Your intuitive greeting, filled with multiple hellos, speaks to your innate ability to connect energetically with those around you, a vibrant 'hi' that echoes through the universe. Remember, dear Erika, your dreams may be silent now, but in that silence, there is a boundless potential, a universe of possibilities waiting for you. Embrace this journey, for it's in the quiet moments that your true strength emerges.
+        
+        The stars have aligned to reveal that your path is one of leadership and creativity. Your natural charisma draws others to you like moths to a flame, and your generous spirit makes you a beacon of warmth in the lives of those around you. Trust in your intuition, for it is sharper than you know.
+        
+        As you navigate through this cosmic journey, remember that every challenge is an opportunity for growth. Your Leo heart beats with the rhythm of the universe, and your courage will guide you through any storm. The future holds great promise for you, dear Erika.
+        """
+    )
+    
+    container.mainContext.insert(mockUserData)
+    
+    return OnboardingHoroscopeView()
         .environmentObject(AuthenticationManager())
+        .modelContainer(container)
 } 

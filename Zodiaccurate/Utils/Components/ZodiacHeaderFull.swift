@@ -20,6 +20,7 @@ struct ZodiacHeaderFull: View {
     let sparkleOpacity: Double
     let stardustPoints: Int
     let badgeSize: CGFloat?
+    let horoscopeDate: String
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
@@ -38,7 +39,8 @@ struct ZodiacHeaderFull: View {
         cosmicParticlesOpacity: Double = 0,
         sparkleOpacity: Double = 0,
         stardustPoints: Int = 0,
-        badgeSize: CGFloat? = nil
+        badgeSize: CGFloat? = nil,
+        horoscopeDate: String = "Monday\nJanuary 5, 2025"
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -50,6 +52,7 @@ struct ZodiacHeaderFull: View {
         self.sparkleOpacity = sparkleOpacity
         self.stardustPoints = stardustPoints
         self.badgeSize = badgeSize
+        self.horoscopeDate = horoscopeDate
     }
     
     // MARK: - Body
@@ -79,7 +82,6 @@ struct ZodiacHeaderFull: View {
                         .rotationEffect(.degrees(badgeRotation))
                         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
                         .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
-                        .background(Color.red)
                     }
                     .frame(width: ZodiacHeaderFull.profileBadgeHeight(), height: ZodiacHeaderFull.profileBadgeHeight() - 50) //don't know needed a buffer
                     
@@ -100,9 +102,16 @@ struct ZodiacHeaderFull: View {
                         ) {
                             // Settings button action
                         }
+                        
+                        // Date display
+                        Text(horoscopeDate)
+                            .dmSansMediumGradient(size: 14)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.trailing, 20)
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .top)
@@ -132,7 +141,8 @@ struct ZodiacHeaderFull: View {
             starFieldOpacity: 0.4,
             cosmicParticlesOpacity: 0.6,
             sparkleOpacity: 0.8,
-            badgeSize: nil
+            badgeSize: nil,
+            horoscopeDate: "Monday\nJanuary 5, 2025"
         )
     }
 }

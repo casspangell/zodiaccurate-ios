@@ -42,4 +42,15 @@ extension View {
             .kerning(letterSpacing)
             .lineSpacing(lineHeight - size)
     }
+    
+    func dmSansMediumGradient(size: CGFloat) -> some View {
+        self.font(.dmSansMedium(size: size))
+            .foregroundStyle(
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.fontDateGradientStart, Color.fontDateGradientEnd]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+    }
 }

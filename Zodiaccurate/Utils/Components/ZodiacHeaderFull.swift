@@ -68,19 +68,40 @@ struct ZodiacHeaderFull: View {
             
             // Fixed Header Content
             VStack(spacing: 0) {
-                ZStack {
-                    ZodiacProfileBadgeWithStardust(
-                        zodiacImage: Image(profileImage),
-                        stardustPoints: stardustPoints,
-                        frameSize: ZodiacHeaderFull.profileBadgeHeight()
-                    )
-                    .scaleEffect(badgeScale)
-                    .rotationEffect(.degrees(badgeRotation))
-                    .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                    .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
-                    .background(Color.red)
+                HStack {
+                    ZStack {
+                        ZodiacProfileBadgeWithStardust(
+                            zodiacImage: Image(profileImage),
+                            stardustPoints: stardustPoints,
+                            frameSize: ZodiacHeaderFull.profileBadgeHeight()
+                        )
+                        .scaleEffect(badgeScale)
+                        .rotationEffect(.degrees(badgeRotation))
+                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                        .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
+                        .background(Color.red)
+                    }
+                    .frame(width: ZodiacHeaderFull.profileBadgeHeight(), height: ZodiacHeaderFull.profileBadgeHeight() - 50) //don't know needed a buffer
+                    
+                    Spacer()
+                    
+                    // Vertical stack of buttons
+                    VStack(spacing: 16) {
+                        CircleIconButton(
+                            systemName: "bell",
+                            accessibilityLabel: "Notifications"
+                        ) {
+                            // Bell button action
+                        }
+                        
+                        CircleIconButton(
+                            systemName: "gearshape",
+                            accessibilityLabel: "Settings"
+                        ) {
+                            // Settings button action
+                        }
+                    }
                 }
-                .frame(width: ZodiacHeaderFull.profileBadgeHeight(), height: ZodiacHeaderFull.profileBadgeHeight())
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Spacer()
             }
@@ -103,7 +124,7 @@ struct ZodiacHeaderFull: View {
         Color.black.ignoresSafeArea()
         
         ZodiacHeaderFull(
-            profileImage: "logo",
+            profileImage: "Leo",
             badgeScale: 1.0,
             badgeRotation: 0,
             cosmicGlowOpacity: 0.5,

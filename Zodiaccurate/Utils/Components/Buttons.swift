@@ -104,9 +104,86 @@ struct CircleAssetButton: View {
 // Preview
 struct PrimaryGradientButton_Previews: PreviewProvider {
     static var previews: some View {
-        PrimaryGradientButton(title: "Sign In", action: {})
-            .padding()
-            .background(Color.black)
-            .previewLayout(.sizeThatFits)
+        VStack(spacing: 20) {
+            Text("Button Components Preview")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            VStack(spacing: 16) {
+                Text("Primary Gradient Button")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                PrimaryGradientButton(title: "Sign In", action: {})
+                PrimaryGradientButton(title: "Continue", action: {})
+            }
+            
+            VStack(spacing: 16) {
+                Text("Secondary Button Style")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                Button("Secondary Action") {}
+                    .buttonStyle(SecondaryButtonStyle())
+                    .padding(.horizontal)
+            }
+            
+            VStack(spacing: 16) {
+                Text("Circle Icon Buttons")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                HStack(spacing: 20) {
+                    CircleIconButton(
+                        systemName: "bell",
+                        accessibilityLabel: "Notifications"
+                    ) {}
+                    
+                    CircleIconButton(
+                        systemName: "settings",
+                        accessibilityLabel: "Settings"
+                    ) {}
+                    
+                    CircleIconButton(
+                        systemName: "heart",
+                        accessibilityLabel: "Favorites"
+                    ) {}
+                }
+            }
+            
+            VStack(spacing: 16) {
+                Text("Circle Asset Buttons")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                HStack(spacing: 20) {
+                    CircleAssetButton(
+                        assetName: "Aries",
+                        accessibilityLabel: "Aries Sign"
+                    ) {}
+                    
+                    CircleAssetButton(
+                        assetName: "Taurus",
+                        accessibilityLabel: "Taurus Sign"
+                    ) {}
+                    
+                    CircleAssetButton(
+                        assetName: "Gemini",
+                        accessibilityLabel: "Gemini Sign"
+                    ) {}
+                }
+            }
+        }
+        .padding(30)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.black, Color(hex: "1a1a1a")]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .previewLayout(.sizeThatFits)
     }
-} 
+}
+

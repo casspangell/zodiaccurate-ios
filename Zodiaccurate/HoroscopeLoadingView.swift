@@ -46,22 +46,32 @@ struct HoroscopeLoadingView: View {
             
             // Show tap to continue label only after consent is dismissed
             if !showConsentAlert {
-                VStack {
-                    Spacer()
-                    if showTapAnywhere {
-                        tapToContinueLabel
-                            .transition(.opacity)
+                GeometryReader { geometry in
+                    VStack(spacing: 0) {
+                        // Tagline at 30% from top
+                        TaglineView(onReverseAnimation: {
+                            // Navigate to main after tagline animation completes
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                navigateToMain()
+                            }
+                        }, shouldReverse: $shouldReverseTagline)
+                        .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height * 0.3)
+                        
+                        Spacer()
+                        
+                        // ZodiacLoadingSpinner 50px above tap anywhere
+                        ZodiacLoadingSpinner(size: .large)
+                            .padding(.bottom, 80)
+                        
+                        // Tap anywhere at the bottom
+                        if showTapAnywhere {
+                            tapToContinueLabel
+                                .transition(.opacity)
+                        }
                     }
                 }
                 .transition(.opacity)
-                .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
-
-                TaglineView(onReverseAnimation: {
-                    // Navigate to main after tagline animation completes
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        navigateToMain()
-                    }
-                }, shouldReverse: $shouldReverseTagline)
                 .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
             }
         }

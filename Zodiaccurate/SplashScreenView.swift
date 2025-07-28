@@ -89,7 +89,8 @@ struct SplashScreenView: View {
                     stardust1Angle: stardust1Angle,
                     stardust2Angle: stardust2Angle,
                     cosmosOffset: cosmosOffset,
-                    magneticPulse: magneticPulse
+                    magneticPulse: magneticPulse,
+                    animationCenterY: 0.5
                 )
 
                 // Starfield (twinkling stars around the logo)
@@ -428,11 +429,6 @@ struct SplashScreenView: View {
                             .opacity(opacity)
                     }
                 )
-//                GeometryReader { geo in
-//                    CelestialSystemBackground()
-//                        .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-//                        .position(x: geo.size.width / 5, y: geo.size.height / 2)
-//                }
             }
             .onAppear {
                 startAnimations()
@@ -540,165 +536,7 @@ struct SplashScreenView: View {
     }
 }
 
-// Celestial Bodies System
-struct CelestialSystemView: View {
-    let body1Angle: Double
-    let body2Angle: Double
-    let body3Angle: Double
-    let body4Angle: Double
-    let body5Angle: Double
-    let body6Angle: Double
-    let stardust1Angle: Double
-    let stardust2Angle: Double
-    let cosmosOffset: CGSize
-    let magneticPulse: CGFloat
-    
-    var body: some View {
-        ZStack {
-            // First group of celestial bodies
-            CelestialGroup1(
-                body1Angle: body1Angle,
-                body2Angle: body2Angle,
-                body3Angle: body3Angle,
-                cosmosOffset: cosmosOffset
-            )
-            
-            // Second group of celestial bodies
-            CelestialGroup2(
-                body4Angle: body4Angle,
-                body5Angle: body5Angle,
-                body6Angle: body6Angle,
-                cosmosOffset: cosmosOffset
-            )
-        }
-    }
-}
 
-// First group of celestial bodies
-struct CelestialGroup1: View {
-    let body1Angle: Double
-    let body2Angle: Double
-    let body3Angle: Double
-    let cosmosOffset: CGSize
-    @Environment(\._celestialOrbits) private var orbits: [CGFloat]
-
-    var body: some View {
-        Group {
-            // Large Purple Nebula
-            CelestialBody(
-                color: Color(hex: "8A2BE2"),
-                size: 120,
-                orbitRadius: orbits.indices.contains(0) ? orbits[0] : 180,
-                angle: body1Angle,
-                blur: 120,
-                opacity: 0.6,
-                cosmosOffset: cosmosOffset
-            )
-            
-            // Golden Comet
-            CelestialBody(
-                color: Color(hex: "D4AF37"),
-                size: 80,
-                orbitRadius: orbits.indices.contains(1) ? orbits[1] : 240,
-                angle: body2Angle,
-                blur: 80,
-                opacity: 0.8,
-                cosmosOffset: cosmosOffset
-            )
-            
-            // Magenta Star Cluster
-            CelestialBody(
-                color: Color(hex: "FF1493"),
-                size: 100,
-                orbitRadius: orbits.indices.contains(2) ? orbits[2] : 300,
-                angle: body3Angle,
-                blur: 100,
-                opacity: 0.7,
-                cosmosOffset: cosmosOffset
-            )
-        }
-    }
-}
-
-// Second group of celestial bodies
-struct CelestialGroup2: View {
-    let body4Angle: Double
-    let body5Angle: Double
-    let body6Angle: Double
-    let cosmosOffset: CGSize
-    @Environment(\._celestialOrbits) private var orbits: [CGFloat]
-
-    var body: some View {
-        Group {
-            // Deep Purple Gas Giant
-            CelestialBody(
-                color: Color(hex: "4B0082"),
-                size: 140,
-                orbitRadius: orbits.indices.contains(3) ? orbits[3] : 360,
-                angle: body4Angle,
-                blur: 140,
-                opacity: 0.5,
-                cosmosOffset: cosmosOffset
-            )
-            
-            // Rose Gold Asteroid Belt
-            CelestialBody(
-                color: Color(hex: "E6B8A2"),
-                size: 60,
-                orbitRadius: orbits.indices.contains(4) ? orbits[4] : 420,
-                angle: body5Angle,
-                blur: 60,
-                opacity: 0.9,
-                cosmosOffset: cosmosOffset
-            )
-            
-            // Violet Spiral Galaxy
-            CelestialBody(
-                color: Color(hex: "9370DB"),
-                size: 110,
-                orbitRadius: orbits.indices.contains(5) ? orbits[5] : 480,
-                angle: body6Angle,
-                blur: 110,
-                opacity: 0.6,
-                cosmosOffset: cosmosOffset
-            )
-        }
-    }
-}
-
-// Individual Celestial Body
-struct CelestialBody: View {
-    let color: Color
-    let size: CGFloat
-    let orbitRadius: CGFloat
-    let angle: Double
-    let blur: CGFloat
-    let opacity: Double
-    let cosmosOffset: CGSize
-
-    var body: some View {
-        Circle()
-            .fill(
-                RadialGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: color.opacity(opacity), location: 0.0),
-                        .init(color: color.opacity(opacity * 0.7), location: 0.4),
-                        .init(color: color.opacity(opacity * 0.3), location: 0.8),
-                        .init(color: Color.clear, location: 1.0)
-                    ]),
-                    center: .center,
-                    startRadius: 0,
-                    endRadius: size
-                )
-            )
-            .frame(width: size * 3, height: size * 3)
-            .blur(radius: blur)
-            .offset(
-                x: cos(angle * .pi / 180) * orbitRadius + cosmosOffset.width * 0.3,
-                y: sin(angle * .pi / 180) * orbitRadius + cosmosOffset.height * 0.3
-            )
-    }
-}
 
 // Starfield (twinkling stars around the logo)
 struct StarfieldView: View {

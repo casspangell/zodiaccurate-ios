@@ -68,15 +68,14 @@ struct HoroscopeLoadingView: View {
         // Make the whole screen tappable to continue (except when loading)
         .contentShape(Rectangle())
         .onTapGesture {
-            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
+//            if let horoscope = onboardingDataAccess?.coreDataWelcomeHoroscope, !horoscope.isEmpty, showHoroscopeContent {
                 // Dismiss tap anywhere label
                 withAnimation(.easeOut(duration: 0.3)) {
                     showTapAnywhere = false
                 }
-                
-                // Trigger tagline reverse animation
+            
                 shouldReverseTagline = true
-            }
+//            }
         }
         .navigationBarHidden(true)
         .onChange(of: refreshTrigger) { _, _ in

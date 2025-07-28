@@ -116,7 +116,7 @@ struct LoginView: View {
 
                 // Celestial bodies animation
                 GeometryReader { geo in
-                    CelestialSystemBackground()
+                    CelestialSystem()
                         .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                         .position(x: geo.size.width / 5, y: geo.size.height / 2)
                 }

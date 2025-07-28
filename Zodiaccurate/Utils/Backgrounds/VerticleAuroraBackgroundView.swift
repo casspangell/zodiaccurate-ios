@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct VerticleAuroraBackgroundView: View {
+    let animationCenterY: CGFloat
+    
+    init(animationCenterY: CGFloat = 0.5) {
+        self.animationCenterY = animationCenterY
+    }
+    
     @State private var celestialBody1Angle: Double = 0
     @State private var celestialBody2Angle: Double = 0
     @State private var celestialBody3Angle: Double = 0
@@ -21,9 +27,6 @@ struct VerticleAuroraBackgroundView: View {
     @State private var colorShift: Double = 0
     @State private var cosmosOffset: CGSize = .zero
     @State private var lineHeights: [CGFloat] = Array(repeating: 0, count: 50)
-    
-    // Variable to control the y center position of animations
-    var animationCenterY: CGFloat = 0.5 // 0.5 = center, 0.0 = top, 1.0 = bottom
 
     var body: some View {
         ZStack {
@@ -90,7 +93,8 @@ struct VerticleAuroraBackgroundView: View {
                 stardust1Angle: stardust1Angle,
                 stardust2Angle: stardust2Angle,
                 cosmosOffset: cosmosOffset,
-                magneticPulse: magneticPulse
+                magneticPulse: magneticPulse,
+                animationCenterY: animationCenterY
             )
         }
         .environment(\._celestialOrbits, [orbitRadius1, orbitRadius2, orbitRadius3, orbitRadius4, orbitRadius5, orbitRadius6])
@@ -132,5 +136,5 @@ private struct CelestialOrbitsKey: EnvironmentKey { static let defaultValue: [CG
 private struct CelestialColorShiftKey: EnvironmentKey { static let defaultValue: Double = 0 }
 
 #Preview {
-    VerticleAuroraBackgroundView()
+    VerticleAuroraBackgroundView(animationCenterY: 0.3)
 }

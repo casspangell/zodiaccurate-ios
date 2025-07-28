@@ -45,6 +45,60 @@ struct ZodiacProfileBadge: View {
     }
 }
 
+// MARK: - Customizable Zodiac Profile Badge
+struct CustomZodiacProfileBadge: View {
+    var zodiacImage: Image = Image("Capricorn")
+    var frameSize: CGFloat = 180
+    
+    private var gradientCircleSize: CGFloat { frameSize }
+    private var mainCircleSize: CGFloat { frameSize * 0.778 } // 140/180 ratio
+    private var zodiacImageSize: CGFloat { frameSize * 0.667 } // 120/180 ratio
+    private var blurRadius: CGFloat { frameSize * 0.111 } // 20/180 ratio
+    private var topPadding: CGFloat { frameSize * 0.133 } // 24/180 ratio
+    
+    var body: some View {
+        ZStack {
+            // Large gradient circle behind
+            Circle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.orange.opacity(0.6),
+                            Color.pink.opacity(0.6),
+                            Color.purple.opacity(0.6)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: gradientCircleSize, height: gradientCircleSize)
+                .blur(radius: blurRadius)
+            
+            // Main black circle
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color.black.opacity(0.8)
+                        ]),
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: mainCircleSize * 0.857 // 120/140 ratio
+                    )
+                )
+                .frame(width: mainCircleSize, height: mainCircleSize)
+            
+            zodiacImage
+                .resizable()
+                .scaledToFit()
+                .frame(width: zodiacImageSize, height: zodiacImageSize)
+                .clipShape(Circle())
+        }
+        .frame(width: frameSize, height: frameSize)
+        .padding(.top, topPadding)
+    }
+}
+
 struct ZodiacProfileBadgeWhite: View {
     var zodiacImage: Image = Image("Capricorn") // Change as needed
     var body: some View {
@@ -87,6 +141,60 @@ struct ZodiacProfileBadgeWhite: View {
         }
         .frame(width: 180, height: 180)
         .padding(.top, 24)
+    }
+}
+
+// MARK: - Customizable White Zodiac Profile Badge
+struct CustomZodiacProfileBadgeWhite: View {
+    var zodiacImage: Image = Image("Capricorn")
+    var frameSize: CGFloat = 180
+    
+    private var gradientCircleSize: CGFloat { frameSize }
+    private var mainCircleSize: CGFloat { frameSize * 0.778 } // 140/180 ratio
+    private var zodiacImageSize: CGFloat { frameSize * 0.667 } // 120/180 ratio
+    private var blurRadius: CGFloat { frameSize * 0.111 } // 20/180 ratio
+    private var topPadding: CGFloat { frameSize * 0.133 } // 24/180 ratio
+    
+    var body: some View {
+        ZStack {
+            // Large gradient circle behind
+            Circle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.orange.opacity(0.6),
+                            Color.pink.opacity(0.6),
+                            Color.purple.opacity(0.6)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: gradientCircleSize, height: gradientCircleSize)
+                .blur(radius: blurRadius)
+            
+            // Main white circle
+            Circle()
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0.8)
+                        ]),
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: mainCircleSize * 0.857 // 120/140 ratio
+                    )
+                )
+                .frame(width: mainCircleSize, height: mainCircleSize)
+            
+            zodiacImage
+                .resizable()
+                .scaledToFit()
+                .frame(width: zodiacImageSize, height: zodiacImageSize)
+                .clipShape(Circle())
+        }
+        .frame(width: frameSize, height: frameSize)
+        .padding(.top, topPadding)
     }
 }
 
@@ -320,12 +428,12 @@ struct CosmicBadgeEffects: View {
 /// Rotates around the badge like a clock based on stardust amount (100 stardust per full rotation)
 struct StardustIndicator: View {
     let stardustPoints: Int
+    let frameSize: CGFloat = 180 // Default to match original badge size
     let size: CGFloat = 32
     
-    // Main badge circle radius is 70px (140px diameter / 2)
-    // Stardust indicator size is 32px, so we need to account for its radius (16px)
-    // Total distance from center to indicator center = 70 + 16 = 86px
-    private let radius: CGFloat = 86
+    // Calculate the main circle radius dynamically based on frame size
+    // Uses the same scaling as CustomZodiacProfileBadge: frameSize * 0.778 / 2 = frameSize * 0.389
+    private var mainCircleRadius: CGFloat { frameSize * 0.389 }
     
     /// Calculates the position offset based on stardust points
     /// 100 stardust = 1 full rotation (360 degrees)
@@ -338,9 +446,9 @@ struct StardustIndicator: View {
         // Convert degrees to radians
         let radians = degrees * .pi / 180.0
         
-        // Calculate position on circumference
-        let x = radius * cos(radians)
-        let y = -radius * sin(radians) // Negative because SwiftUI Y-axis is inverted
+        // Calculate position on circumference of the main circle
+        let x = mainCircleRadius * cos(radians)
+        let y = -mainCircleRadius * sin(radians) // Negative because SwiftUI Y-axis is inverted
         
         return CGSize(width: x, height: y)
     }
@@ -365,6 +473,70 @@ struct StardustIndicator: View {
             // Stardust points text
             Text("\(stardustPoints)")
                 .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+        }
+        .offset(offset)
+        .animation(.easeInOut(duration: 0.5), value: stardustPoints)
+    }
+}
+
+// MARK: - Customizable Stardust Indicator
+/// A customizable version of StardustIndicator that scales with the badge frame size
+struct CustomStardustIndicator: View {
+    let stardustPoints: Int
+    let frameSize: CGFloat
+    
+    // Scale the indicator size based on frame size (32/180 ratio)
+    private var indicatorSize: CGFloat { frameSize * 0.178 }
+    
+    // Scale the main circle radius based on frame size (70/180 ratio)
+    private var mainCircleRadius: CGFloat { frameSize * 0.389 }
+    
+    // Scale the font size based on frame size (12/180 ratio)
+    private var fontSize: CGFloat { frameSize * 0.067 }
+    
+    // Scale the shadow radius based on frame size (4/180 ratio)
+    private var shadowRadius: CGFloat { frameSize * 0.022 }
+    
+    /// Calculates the position offset based on stardust points
+    /// 100 stardust = 1 full rotation (360 degrees)
+    /// 12 o'clock (top) = multiples of 100
+    /// 6 o'clock (bottom) = multiples of 50
+    private var offset: CGSize {
+        // Convert stardust to degrees (100 stardust = 360 degrees)
+        let degrees = Double(stardustPoints) * 360.0 / 100.0
+        
+        // Convert degrees to radians
+        let radians = degrees * .pi / 180.0
+        
+        // Calculate position on circumference of the main circle
+        let x = mainCircleRadius * cos(radians)
+        let y = -mainCircleRadius * sin(radians) // Negative because SwiftUI Y-axis is inverted
+        
+        return CGSize(width: x, height: y)
+    }
+    
+    var body: some View {
+        ZStack {
+            // Background circle with gradient
+            Circle()
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.accentGold.opacity(0.9),
+                            Color.yellow.opacity(0.7)
+                        ]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: indicatorSize, height: indicatorSize)
+                .shadow(color: Color.accentGold.opacity(0.5), radius: shadowRadius, x: 0, y: 2)
+            
+            // Stardust points text
+            Text("\(stardustPoints)")
+                .font(.system(size: fontSize, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
         }
@@ -492,22 +664,22 @@ struct LocalizedStardustAnimation: View {
 }
 
 // MARK: - Enhanced Zodiac Profile Badge with Stardust
-/// Enhanced version of ZodiacProfileBadge that includes a stardust indicator and localized earning animation
 struct ZodiacProfileBadgeWithStardust: View {
     var zodiacImage: Image = Image("Capricorn")
     var stardustPoints: Int = 0
+    var frameSize: CGFloat = 180 // Default size, can be customized
     @State private var showEarningAnimation = false
     @State private var earningAmount = 0
     @State private var earningType: StardustTransactionType = .achievement
     
     var body: some View {
         ZStack {
-            // Original ZodiacProfileBadge
-            ZodiacProfileBadge(zodiacImage: zodiacImage)
+            // Customizable ZodiacProfileBadge with frame size
+            CustomZodiacProfileBadge(zodiacImage: zodiacImage, frameSize: frameSize)
             
-            // Stardust indicator
+            // Stardust indicator (scaled to frame size)
             if stardustPoints > 0 {
-                StardustIndicator(stardustPoints: stardustPoints)
+                CustomStardustIndicator(stardustPoints: stardustPoints, frameSize: frameSize)
             }
             
             // Localized earning animation
@@ -519,6 +691,7 @@ struct ZodiacProfileBadgeWithStardust: View {
                 )
             }
         }
+        .frame(width: frameSize, height: frameSize)
         .onReceive(NotificationCenter.default.publisher(for: .stardustEarned)) { notification in
             if let userInfo = notification.userInfo,
                let amount = userInfo["amount"] as? Int,
@@ -540,18 +713,19 @@ struct ZodiacProfileBadgeWithStardust: View {
 struct ZodiacProfileBadgeWhiteWithStardust: View {
     var zodiacImage: Image = Image("Capricorn")
     var stardustPoints: Int = 0
+    var frameSize: CGFloat = 180 // Default size, can be customized
     @State private var showEarningAnimation = false
     @State private var earningAmount = 0
     @State private var earningType: StardustTransactionType = .achievement
     
     var body: some View {
         ZStack {
-            // Original ZodiacProfileBadgeWhite
-            ZodiacProfileBadgeWhite(zodiacImage: zodiacImage)
+            // Customizable ZodiacProfileBadgeWhite with frame size
+            CustomZodiacProfileBadgeWhite(zodiacImage: zodiacImage, frameSize: frameSize)
             
-            // Stardust indicator
+            // Stardust indicator (scaled to frame size)
             if stardustPoints > 0 {
-                StardustIndicator(stardustPoints: stardustPoints)
+                CustomStardustIndicator(stardustPoints: stardustPoints, frameSize: frameSize)
             }
             
             // Localized earning animation
@@ -563,6 +737,7 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
                 )
             }
         }
+        .frame(width: frameSize, height: frameSize)
         .onReceive(NotificationCenter.default.publisher(for: .stardustEarned)) { notification in
             if let userInfo = notification.userInfo,
                let amount = userInfo["amount"] as? Int,
@@ -692,6 +867,28 @@ extension Notification.Name {
             zodiacImage: Image("Cancer"),
             stardustPoints: 235
         )
+        
+        Text("Custom Frame Sizes")
+            .foregroundColor(.white)
+        HStack(spacing: 20) {
+            ZodiacProfileBadgeWithStardust(
+                zodiacImage: Image("Leo"),
+                stardustPoints: 50,
+                frameSize: 120
+            )
+            
+            ZodiacProfileBadgeWithStardust(
+                zodiacImage: Image("Virgo"),
+                stardustPoints: 150,
+                frameSize: 240
+            )
+            
+            ZodiacProfileBadgeWhiteWithStardust(
+                zodiacImage: Image("Libra"),
+                stardustPoints: 200,
+                frameSize: 90
+            )
+        }
         
         Text("Partial Profile Widget")
             .foregroundColor(.white)

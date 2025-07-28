@@ -50,7 +50,7 @@ struct HoroscopeLoadingView: View {
                     
                     // Horoscope Content
                     VStack(spacing: 20) {
-                        MainZodiacView()
+//                        MainZodiacView()
 //                        if onboardingDataAccess?.isGeneratingHoroscope == true {
 //                            // Content is hidden when loading - overlay shows instead
 //                            Color.clear

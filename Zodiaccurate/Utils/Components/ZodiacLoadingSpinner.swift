@@ -51,10 +51,10 @@ struct ZodiacLoadingSpinner: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    Color.purple.opacity(0.95),
-                                    Color.purple.opacity(0.8),
-                                    Color.blue.opacity(0.6),
-                                    Color.purple.opacity(0.4)
+                                    Color.purple.opacity(0.4),
+                                    Color.purple.opacity(0.3),
+                                    Color.blue.opacity(0.2),
+                                    Color.purple.opacity(0.1)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -64,7 +64,8 @@ struct ZodiacLoadingSpinner: View {
                         .frame(width: size.orbitRadius * (0.8 + Double(index) * 0.3), 
                                height: size.orbitRadius * (0.8 + Double(index) * 0.3))
                         .scaleEffect(1.0 + 0.3 * sin(animationPhase * 1.5 + Double(index) * 0.5))
-                        .opacity(0.95 - Double(index) * 0.2)
+                        .opacity(0.1 - Double(index) * 0.15)
+//                        .blur(radius: 8)
                 }
                 
                 // Central glow effect
@@ -72,10 +73,10 @@ struct ZodiacLoadingSpinner: View {
                     .fill(
                         RadialGradient(
                             colors: [
-                                Color.purple.opacity(0.95),
-                                Color.purple.opacity(0.8),
-                                Color.blue.opacity(0.6),
+                                Color.purple.opacity(0.4),
                                 Color.purple.opacity(0.3),
+                                Color.blue.opacity(0.2),
+                                Color.white.opacity(0.1),
                                 Color.clear
                             ],
                             center: .center,
@@ -85,12 +86,14 @@ struct ZodiacLoadingSpinner: View {
                     )
                     .frame(width: size.orbitRadius * 1.2, height: size.orbitRadius * 1.2)
                     .scaleEffect(1.0 + 0.4 * sin(animationPhase * 2))
+//                    .blur(radius: 10)
                 
                 // Inner core
                 Circle()
-                    .fill(Color.purple.opacity(0.9))
+                    .fill(Color.purple.opacity(0.3))
                     .frame(width: size.orbitRadius * 0.6, height: size.orbitRadius * 0.6)
                     .scaleEffect(1.0 + 0.2 * sin(animationPhase * 3))
+//                    .blur(radius: 6)
             }
             
             // First orbiting ring (largest - fastest)
@@ -151,7 +154,7 @@ struct ZodiacLoadingSpinner: View {
         }
         .onReceive(Timer.publish(every: 0.016, on: .main, in: .common).autoconnect()) { _ in
             // Update animation phase continuously
-            animationPhase += 0.04 // Adjust speed here
+            animationPhase += 0.03 // Adjust speed here
         }
     }
 }
@@ -185,7 +188,6 @@ struct CelestialOrb: View {
                 x: orbitRadius * cos(phase * speed),
                 y: orbitRadius * sin(phase * speed)
             )
-            .opacity(0.8 + 0.2 * sin(phase * speed * 2))
     }
 }
 
@@ -198,15 +200,15 @@ struct CelestialRing: View {
     
     var body: some View {
         Circle()
-            .stroke(Color.white.opacity(0.8), lineWidth: 1.5)
+            .stroke(Color.white.opacity(0.4), lineWidth: 1.5)
             .frame(width: size * 2, height: size * 2)
-            .shadow(color: Color.white.opacity(0.4), radius: size * 0.3, x: 0, y: 0)
-            .scaleEffect(scale * (1.0 + 0.15 * sin(phase * speed * 2)))
+            .shadow(color: Color.white.opacity(0.2), radius: size * 0.3, x: 0, y: 0)
+            .scaleEffect(scale * (1.0 + 0.25 * sin(phase * speed * 2)))
             .offset(
                 x: orbitRadius * cos(phase * speed),
                 y: orbitRadius * sin(phase * speed)
             )
-            .opacity(0.6 + 0.3 * sin(phase * speed * 1.5))
+            .opacity(0.3 + 0.2 * sin(phase * speed * 1.5))
     }
 }
 
@@ -222,24 +224,24 @@ struct CelestialStar: View {
             // Star shape using multiple rotated rectangles
             ForEach(0..<4, id: \.self) { index in
                 Rectangle()
-                    .fill(Color.white.opacity(0.9))
+                    .fill(Color.white.opacity(0.4))
                     .frame(width: size * 0.3, height: size)
                     .rotationEffect(.degrees(Double(index) * 45))
             }
             
             // Central dot
             Circle()
-                .fill(Color.white.opacity(0.9))
+                .fill(Color.white.opacity(0.4))
                 .frame(width: size * 0.4, height: size * 0.4)
         }
         .frame(width: size * 2, height: size * 2)
-        .shadow(color: Color.white.opacity(0.6), radius: size * 0.4, x: 0, y: 0)
+        .shadow(color: Color.white.opacity(0.3), radius: size * 0.4, x: 0, y: 0)
         .scaleEffect(scale * (1.0 + 0.2 * sin(phase * speed * 2.5)))
         .offset(
             x: orbitRadius * cos(phase * speed),
             y: orbitRadius * sin(phase * speed)
         )
-        .opacity(0.7 + 0.3 * sin(phase * speed * 1.8))
+        .opacity(0.4 + 0.2 * sin(phase * speed * 1.8))
         .rotationEffect(.degrees(phase * speed * 30))
     }
 }

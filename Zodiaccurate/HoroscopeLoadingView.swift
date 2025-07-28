@@ -26,6 +26,7 @@ struct HoroscopeLoadingView: View {
     @State private var showConsentAlert = true
     @State private var shouldReverseTagline = false
     @State private var showTapAnywhere = true
+    @State private var showLoadingSpinner = true
     
     var body: some View {
         ZStack {
@@ -61,8 +62,11 @@ struct HoroscopeLoadingView: View {
                         Spacer()
                         
                         // ZodiacLoadingSpinner 50px above tap anywhere
-                        ZodiacLoadingSpinner(size: .large)
-                            .padding(.bottom, 80)
+                        if showLoadingSpinner {
+                            ZodiacLoadingSpinner(size: .large)
+                                .padding(.bottom, 80)
+                                .transition(.opacity)
+                        }
                         
                         // Tap anywhere at the bottom
                         if showTapAnywhere {
@@ -85,6 +89,10 @@ struct HoroscopeLoadingView: View {
                 }
             
                 shouldReverseTagline = true
+            
+                withAnimation(.easeOut(duration: 0.3).delay(0.9)) {
+                    showLoadingSpinner = false
+                }
 //            }
         }
         .navigationBarHidden(true)

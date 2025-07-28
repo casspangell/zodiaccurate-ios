@@ -353,7 +353,7 @@ struct StardustIndicator: View {
                     LinearGradient(
                         gradient: Gradient(colors: [
                             Color.accentGold.opacity(0.9),
-                            Color.accentGold.opacity(0.7)
+                            Color.yellow.opacity(0.7)
                         ]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

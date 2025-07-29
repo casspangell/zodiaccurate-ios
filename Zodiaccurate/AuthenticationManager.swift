@@ -275,6 +275,14 @@ class AuthenticationManager: ObservableObject {
         print("✅ AuthenticationManager: Sign-up completed, navigating to main app")
     }
     
+    /// Set trial mode for users who have completed onboarding
+    func setTrialMode() {
+        isAuthenticated = true
+        horoscopeSavedToCoreData = false
+        shouldShowOnboardingHoroscope = false
+        print("🎫 AuthenticationManager: Trial mode activated, bypassing authentication")
+    }
+    
     /// Generate welcome horoscope after successful registration
     private func generateWelcomeHoroscope(modelContext: ModelContext) async {
         print("✨ AuthenticationManager: Checking if horoscope generation is needed...")

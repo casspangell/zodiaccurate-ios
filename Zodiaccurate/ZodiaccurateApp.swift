@@ -136,6 +136,7 @@ struct ZodiaccurateApp: App {
 struct RootView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("isTrialActive") private var isTrialActive = false
     @State private var showSplash = true
     @State private var showOnboarding = false
     @State private var showLogin = false
@@ -147,8 +148,28 @@ struct RootView: View {
                 SplashScreenView { _ in
                     withAnimation(.easeInOut(duration: 0.7)) {
                         showSplash = false
-                        // Always show onboarding flow when coming from splash
-                        showOnboarding = true
+                        // Check if user has completed onboarding and trial status
+                        if hasCompletedOnboarding {
+                            print("✅ User has completed onboarding, checking trial status...")
+                            if isTrialActive {
+                                print("🎫 Trial user detected, bypassing login and going directly to main view")
+                                // Trial users bypass login and go directly to main view
+                                showOnboarding = false
+                                showLogin = false
+                                // Set authenticated state for trial users
+                                authManager.setTrialMode()
+                            } else {
+                                print("✅ User has completed onboarding but trial is inactive, going to signup")
+                                // Non-trial users go to signup flow
+                                showOnboarding = false
+                                showLogin = true
+                                shouldStartWithRegistration = true // Force registration for non-trial users
+                            }
+                        } else {
+                            print("🆕 New user detected, showing onboarding flow")
+                            // Show onboarding flow for new users
+                            showOnboarding = true
+                        }
                     }
                 }
                 .transition(.opacity)
@@ -172,12 +193,25 @@ struct RootView: View {
                     .transition(.opacity)
             }
             
-            if authManager.shouldShowOnboardingHoroscope {
-                HoroscopeSplashView()
+            // If user is already authenticated and has completed onboarding, show main view
+            if authManager.isAuthenticated && hasCompletedOnboarding {
+                MainZodiacView(completedOnboarding: true)
                     .transition(.opacity)
+                    .onAppear {
+                        print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
+                    }
+            } else if authManager.shouldShowOnboardingHoroscope && !hasCompletedOnboarding {
+                HoroscopeSplashView(completedOnboarding: false)
+                    .transition(.opacity)
+                    .onAppear {
+                        print("✨ Showing onboarding horoscope splash")
+                    }
             } else if authManager.isAuthenticated {
-                MainZodiacView()
+                MainZodiacView(completedOnboarding: hasCompletedOnboarding)
                     .transition(.opacity)
+                    .onAppear {
+                        print("🔐 Authenticated user, showing MainZodiacView")
+                    }
             }
         }
         .animation(.easeInOut(duration: 0.7), value: showSplash)

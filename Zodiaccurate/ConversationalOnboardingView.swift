@@ -163,6 +163,9 @@ struct ConversationalOnboardingView: View {
         // Save completion flag to UserDefaults
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         
+        // Set trial flag to true when user completes onboarding
+        UserDefaults.standard.set(true, forKey: "isTrialActive")
+        
         // Award stardust for completing onboarding
         if let stardustManager = stardustManager {
             stardustManager.earnOnboardingReward()
@@ -173,6 +176,7 @@ struct ConversationalOnboardingView: View {
         
         print("✅ Onboarding data saved successfully to Core Data!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
+        print("🎫 Trial flag set to: \(UserDefaults.standard.bool(forKey: "isTrialActive"))")
         print("🆔 Onboarding UUID stored: \(onboardingUUID)")
     }
     

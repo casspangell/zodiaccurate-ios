@@ -4,17 +4,20 @@ import SwiftData
 struct HoroscopeSplashView: View {
     @State private var showWelcomeMessage = true
     @State private var refreshTrigger = false
-    @State private var showConsentAlert = true
+    @State private var showConsentAlert = false
     @State private var shouldReverseTagline = false
     @State private var showTapAnywhere = true
     @State private var showLoadingSpinner = true
+    @State private var showContentAfterConsent = false
     
     let onDismiss: (() -> Void)?
     let onConsentDismissed: (() -> Void)?
+    let completedOnboarding: Bool
     
-    init(onDismiss: (() -> Void)? = nil, onConsentDismissed: (() -> Void)? = nil) {
+    init(onDismiss: (() -> Void)? = nil, onConsentDismissed: (() -> Void)? = nil, completedOnboarding: Bool = false) {
         self.onDismiss = onDismiss
         self.onConsentDismissed = onConsentDismissed
+        self.completedOnboarding = completedOnboarding
     }
     
     var body: some View {
@@ -37,29 +40,30 @@ struct HoroscopeSplashView: View {
             if !showConsentAlert {
                 GeometryReader { geometry in
                     VStack(spacing: 0) {
-                        // Tagline at 30% from top
-                        TaglineView(onReverseAnimation: {
-                            // Navigate to main after tagline animation completes
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                showMain()
-                            }
-                        }, shouldReverse: $shouldReverseTagline)
-                        .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
-                        .position(x: geometry.size.width / 2, y: geometry.size.height * 0.3)
-                        
-                        Spacer()
-                        
-                        if showLoadingSpinner {
-                            VStack(spacing: 20) {
-                                ZodiacLoadingSpinner(size: .large)
-                            }
-                            .padding(.bottom, 80)
-                            .transition(.opacity)
-                        }
-                        
-                        if showTapAnywhere {
-                            tapToContinueLabel
+                        if !completedOnboarding {
+                            // Tagline at 30% from top
+                            TaglineView(onReverseAnimation: {
+                                // Navigate to main after tagline animation completes
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    showMain()
+                                }
+                            }, shouldReverse: $shouldReverseTagline)
+                            .animation(.easeInOut(duration: 0.5), value: showConsentAlert)
+                            .position(x: geometry.size.width / 2, y: geometry.size.height * 0.3)
+                            Spacer()
+                            
+                            if showLoadingSpinner {
+                                VStack(spacing: 20) {
+                                    ZodiacLoadingSpinner(size: .large)
+                                }
+                                .padding(.bottom, 80)
                                 .transition(.opacity)
+                            }
+                            
+                            if showTapAnywhere {
+                                tapToContinueLabel
+                                    .transition(.opacity)
+                            }
                         }
                     }
                 }
@@ -83,6 +87,16 @@ struct HoroscopeSplashView: View {
 //            }
         }
         .navigationBarHidden(true)
+        .onAppear {
+            // Check if user has already accepted consent policies
+            let hasAcceptedConsent = UserDefaults.standard.bool(forKey: "hasAcceptedConsentPolicies")
+            if !hasAcceptedConsent {
+                print("📋 User has not accepted consent policies, showing consent alert")
+                showConsentAlert = true
+            } else {
+                print("✅ User has already accepted consent policies, skipping consent alert")
+            }
+        }
         .onChange(of: refreshTrigger) { _, _ in
             // This will trigger a view refresh when refreshTrigger changes
         }
@@ -100,8 +114,9 @@ struct HoroscopeSplashView: View {
 
     private func showMain() {
         print("Navigating to MainView...")
-        // Call the dismiss callback
-        onDismiss?()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            onDismiss?()
+        }
     }
 }
 @ViewBuilder

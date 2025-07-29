@@ -87,6 +87,10 @@ struct ConsentAlertView: View {
                 // Ok Button
                 PrimaryGradientButton(title: "Ok") {
                     if consentChecked {
+                        // Save consent flag to UserDefaults
+                        UserDefaults.standard.set(true, forKey: "hasAcceptedConsentPolicies")
+                        print("✅ User accepted consent policies, flag saved")
+                        
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showConsentAlert = false
                         }

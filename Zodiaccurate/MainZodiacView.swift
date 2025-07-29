@@ -8,12 +8,18 @@ struct MainZodiacView: View {
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
     
+    let completedOnboarding: Bool
+    
+    init(completedOnboarding: Bool = false) {
+        self.completedOnboarding = completedOnboarding
+    }
+    
     var body: some View {
         ZStack {
             VerticleAuroraBackgroundView()
             
             VStack(spacing: 0) {
-                if splashViewDismissed {
+                if splashViewDismissed || completedOnboarding {
                     ZodiacHeaderFull(
                         profileImage: "Leo",
                         badgeScale: 1.0,
@@ -35,7 +41,6 @@ struct MainZodiacView: View {
                 }
                 
                 // Main content area
-                let _ = print("MainZodiacView: Creating HoroscopeSplashView with onConsentDismissed callback")
                 HoroscopeSplashView(
                     onDismiss: {
                         print("horoscope splash view dismissed")
@@ -46,7 +51,8 @@ struct MainZodiacView: View {
                     onConsentDismissed: {
                         print("=== CONSENT DISMISSED CALLBACK EXECUTED ===")
                         print("Consent alert dismissed in MainZodiacView")
-                    }
+                    },
+                    completedOnboarding: completedOnboarding
                 )
                 .environmentObject(authManager)
                 .onAppear {
@@ -81,7 +87,7 @@ struct MainZodiacView: View {
     container.mainContext.insert(mockUserData)
     
     // Create a preview-specific view that ensures data is loaded
-    return MainZodiacView()
+    return MainZodiacView(completedOnboarding: true)
         .modelContainer(container)
         .environmentObject(AuthenticationManager())
 }

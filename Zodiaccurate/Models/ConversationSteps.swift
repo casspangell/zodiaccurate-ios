@@ -58,13 +58,13 @@ let onboardingConversationSteps: [ConversationStep] = [
     ConversationStep(
         message: "I'm getting strong intuitive energy from you, {name}... Tell me, do you often get \"gut feelings\" about people or situations that turn out to be right?",
         inputType: "multiLine",
-        placeholder: "Share your thoughts...",
+        placeholder: "",
         dataKey: "intuition"
     ),
     ConversationStep(
         message: "Fascinating... {name}, I need to ask you something personal. When you walk into a room, do you tend to absorb the energy around you, or do people seem drawn to your energy?",
         inputType: "multiLine",
-        placeholder: "How do you experience energy?",
+        placeholder: "",
         dataKey: "energy"
     ),
     ConversationStep(

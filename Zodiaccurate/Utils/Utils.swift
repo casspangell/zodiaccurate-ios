@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUICore
 import SwiftUI
+import UIKit
 
 func getDayOfWeek(date: Date = Date()) -> String {
     let formatter = DateFormatter()
@@ -19,6 +20,17 @@ func getFormattedDate(date: Date = Date()) -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = "MMMM d, yyyy"
     return formatter.string(from: date)
+}
+
+// MARK: - Safe Area Utilities
+/// Gets the safe area top inset using the modern UIWindowScene approach
+/// - Returns: The safe area top inset as CGFloat, or 0 if unable to determine
+func getSafeAreaTop() -> CGFloat {
+    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+          let window = windowScene.windows.first else {
+        return 0
+    }
+    return window.safeAreaInsets.top
 }
 
 // MARK: - Zodiac Sign Utilities

@@ -18,23 +18,16 @@ struct MainZodiacView: View {
     var body: some View {
         ZStack {
             VerticleAuroraBackgroundView()
-            
             // Clear rectangle at top for users coming from HoroscopeSplashView to ensure background visibility
             if cameFromHoroscopeSplash {
                 VStack {
                     Rectangle()
                         .fill(Color.clear)
-                        .frame(height: UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0)
+                        .frame(height: getSafeAreaTop())
                         .frame(maxWidth: .infinity, alignment: .top)
                         .ignoresSafeArea(.all, edges: .top)
                         .zIndex(999) // Add high z-index to ensure it's visible
                         .onAppear {
-                            let safeAreaTop = UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0
-                            print("🔍 Clear Rectangle Debug:")
-                            print("   📊 cameFromHoroscopeSplash: \(cameFromHoroscopeSplash)")
-                            print("   📊 Safe area top: \(safeAreaTop)")
-                            print("   📊 Screen bounds: \(UIScreen.main.bounds)")
-                            print("   📊 Window safe area: \(UIApplication.shared.windows.first?.safeAreaInsets ?? .zero)")
                         }
                     Spacer()
                 }
@@ -61,26 +54,16 @@ struct MainZodiacView: View {
                     )
 //                    .transition(.opacity.combined(with: .move(edge: .top)))
                     .animation(.easeInOut(duration: 0.5), value: splashViewDismissed)
-                    .padding(.top, cameFromHoroscopeSplash ? (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) : 0) // Align with purple rectangle bottom
-                    .onAppear {
-                        print("🎯 MainZodiacView: Header is being shown")
-                        print("   📊 splashViewDismissed: \(splashViewDismissed)")
-                        print("   📊 completedOnboarding: \(completedOnboarding)")
-                        print("   🎭 Context: \(splashViewDismissed ? "After splash dismissed" : "Completed onboarding")")
-                    }
+                    .padding(.top, cameFromHoroscopeSplash ? getSafeAreaTop() : 0) // Align with purple rectangle bottom
                 }
                 
                 // Main content area
                 HoroscopeSplashView(
                     onDismiss: {
-                        print("🎯 MainZodiacView: HoroscopeSplashView dismissed")
-                        print("   📊 Before - splashViewDismissed: \(splashViewDismissed)")
                         withAnimation(.easeInOut(duration: 0.5)) {
                             splashViewDismissed = true
                             cameFromHoroscopeSplash = true
                         }
-                        print("   📊 After - splashViewDismissed: \(splashViewDismissed)")
-                        print("   🎭 This should trigger header to appear")
                     },
                     onConsentDismissed: {
                         print("=== CONSENT DISMISSED CALLBACK EXECUTED ===")
@@ -90,7 +73,6 @@ struct MainZodiacView: View {
                 )
                 .environmentObject(authManager)
                 .onAppear {
-                    print("MainZodiacView: Setting up onConsentDismissed callback")
                     // Initialize OnboardingDataAccess with the correct ModelContext
                     if onboardingDataAccess == nil {
                         onboardingDataAccess = OnboardingDataAccess(modelContext: modelContext)
@@ -99,13 +81,6 @@ struct MainZodiacView: View {
                     }
                     // Load user data
                     onboardingDataAccess?.loadUserData()
-                }
-            }
-            .onChange(of: splashViewDismissed) { _, newValue in
-                if !newValue && !completedOnboarding {
-                    print("🚫 MainZodiacView: Header is NOT being shown")
-                    print("   📊 splashViewDismissed: \(newValue)")
-                    print("   📊 completedOnboarding: \(completedOnboarding)")
                 }
             }
             if splashViewDismissed || completedOnboarding {

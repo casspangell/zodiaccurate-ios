@@ -19,6 +19,8 @@ final class UserDataModel {
     var createdAt: Date
     var updatedAt: Date
     var welcomeHoroscope: String?
+    var hasCompletedOnboarding: Bool
+    var hasAcceptedConsentPolicies: Bool
     
     init(firstName: String = "", 
          birthDate: String = "", 
@@ -26,7 +28,9 @@ final class UserDataModel {
          zodiacSign: String = "", 
          responses: [String] = [], 
          userId: String? = nil,
-         welcomeHoroscope: String? = nil) {
+         welcomeHoroscope: String? = nil,
+         hasCompletedOnboarding: Bool = false,
+         hasAcceptedConsentPolicies: Bool = false) {
         self.firstName = firstName
         self.birthDate = birthDate
         self.birthTime = birthTime
@@ -37,6 +41,8 @@ final class UserDataModel {
         self.createdAt = Date()
         self.updatedAt = Date()
         self.welcomeHoroscope = welcomeHoroscope
+        self.hasCompletedOnboarding = hasCompletedOnboarding
+        self.hasAcceptedConsentPolicies = hasAcceptedConsentPolicies
     }
     
     // Computed property for array access
@@ -90,7 +96,9 @@ final class UserDataModel {
             The stars have aligned to reveal that your path is one of leadership and creativity. Your natural charisma draws others to you like moths to a flame, and your generous spirit makes you a beacon of warmth in the lives of those around you. Trust in your intuition, for it is sharper than you know.
             
             As you navigate through this cosmic journey, remember that every challenge is an opportunity for growth. Your Leo heart beats with the rhythm of the universe, and your courage will guide you through any storm. The future holds great promise for you, dear Erika.
-            """
+            """,
+            hasCompletedOnboarding: false,
+            hasAcceptedConsentPolicies: false
         )
     }
 } 

@@ -61,16 +61,15 @@ struct ZodiacHeaderFull: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(Color.clear)
-                    .frame(height: UIScreen.main.bounds.height * 0.3)
-                
-                Spacer()
-            }
-            .frame(maxWidth: .infinity, alignment: .top)
-            .allowsHitTesting(false)
-            .ignoresSafeArea(.all, edges: .top)
+//            VStack(spacing: 0) {
+//                Rectangle()
+//                    .fill(Color.blue)
+//                    .frame(height: UIScreen.main.bounds.height * 0.3)
+//                
+//                Spacer()
+//            }
+//            .frame(maxWidth: .infinity, alignment: .top)
+//            .allowsHitTesting(false)
             
             // Fixed Header Content
             VStack(spacing: 0) {
@@ -88,7 +87,7 @@ struct ZodiacHeaderFull: View {
                     }
                     .frame(width: ZodiacHeaderFull.profileBadgeHeight(), height: ZodiacHeaderFull.profileBadgeHeight() - 50) //don't know needed a buffer
                     
-                    Spacer()
+//                    Spacer()
                     
                     // Vertical stack of buttons
                     VStack(alignment: .trailing, spacing: 16) {
@@ -114,16 +113,16 @@ struct ZodiacHeaderFull: View {
                 .padding(.trailing, 20)
                 Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .top)
-            .frame(maxWidth: .infinity)
-            .background(
-                GeometryReader { headerGeometry in
-                    Color.clear
-                        .preference(key: HeaderHeightPreferenceKey.self, value: headerGeometry.size.height)
-                }
-            )
+            .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height/5, alignment: .top)
+            .padding(.top, 10)
+            .padding(.bottom, 10)
         }
         .zIndex(2)
+        .onAppear {
+            print("🎯 ZodiacHeaderFull: Header appeared")
+            print("   🎭 Profile image: \(profileImage)")
+            print("   📅 Horoscope date: \(horoscopeDate)")
+        }
     }
 }
 
@@ -150,56 +149,5 @@ struct ZodiacHeaderFull: View {
             }
         )
     }
-}
-
-// MARK: - Example Usage View
-/// Example view showing how to use ZodiacHeaderFull with settings functionality
-struct ExampleZodiacHeaderView: View {
-    @State private var showingSettings = false
-    
-    var body: some View {
-        ZStack {
-            // Background
-            Color.black.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                // Header with settings functionality
-                ZodiacHeaderFull(
-                    profileImage: "Leo",
-                    badgeScale: 1.0,
-                    badgeRotation: 0,
-                    cosmicGlowOpacity: 0.5,
-                    nebulaOpacity: 0.3,
-                    starFieldOpacity: 0.4,
-                    cosmicParticlesOpacity: 0.6,
-                    sparkleOpacity: 0.8,
-                    badgeSize: nil,
-                    horoscopeDate: "Monday\nJanuary 5, 2025",
-                    onSettingsTap: {
-                        showingSettings = true
-                    }
-                )
-                
-                // Main content area
-                VStack {
-                    Text("Your Horoscope Content")
-                        .font(.title)
-                        .foregroundColor(.white)
-                        .padding()
-                    
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
-    }
-}
-
-#Preview("Example Usage") {
-    ExampleZodiacHeaderView()
-        .environmentObject(AuthenticationManager())
 }
 

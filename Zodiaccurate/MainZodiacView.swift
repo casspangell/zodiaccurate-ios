@@ -7,6 +7,7 @@ struct MainZodiacView: View {
     @State private var onboardingDataAccess: OnboardingDataAccess?
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
+    @State private var cameFromHoroscopeSplash = false
     
     let completedOnboarding: Bool
     
@@ -17,6 +18,28 @@ struct MainZodiacView: View {
     var body: some View {
         ZStack {
             VerticleAuroraBackgroundView()
+            
+            // Clear rectangle at top for users coming from HoroscopeSplashView to ensure background visibility
+            if cameFromHoroscopeSplash {
+                VStack {
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0)
+                        .frame(maxWidth: .infinity, alignment: .top)
+                        .ignoresSafeArea(.all, edges: .top)
+                        .zIndex(999) // Add high z-index to ensure it's visible
+                        .onAppear {
+                            let safeAreaTop = UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0
+                            print("🔍 Clear Rectangle Debug:")
+                            print("   📊 cameFromHoroscopeSplash: \(cameFromHoroscopeSplash)")
+                            print("   📊 Safe area top: \(safeAreaTop)")
+                            print("   📊 Screen bounds: \(UIScreen.main.bounds)")
+                            print("   📊 Window safe area: \(UIApplication.shared.windows.first?.safeAreaInsets ?? .zero)")
+                        }
+                    Spacer()
+                }
+                .zIndex(999) // Also add z-index to the VStack
+            }
             
             VStack(spacing: 0) {
                 if splashViewDismissed || completedOnboarding {
@@ -36,17 +59,28 @@ struct MainZodiacView: View {
                             showingSettings = true
                         }
                     )
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+//                    .transition(.opacity.combined(with: .move(edge: .top)))
                     .animation(.easeInOut(duration: 0.5), value: splashViewDismissed)
+                    .padding(.top, cameFromHoroscopeSplash ? (UIApplication.shared.windows.first?.safeAreaInsets.top ?? 0) : 0) // Align with purple rectangle bottom
+                    .onAppear {
+                        print("🎯 MainZodiacView: Header is being shown")
+                        print("   📊 splashViewDismissed: \(splashViewDismissed)")
+                        print("   📊 completedOnboarding: \(completedOnboarding)")
+                        print("   🎭 Context: \(splashViewDismissed ? "After splash dismissed" : "Completed onboarding")")
+                    }
                 }
                 
                 // Main content area
                 HoroscopeSplashView(
                     onDismiss: {
-                        print("horoscope splash view dismissed")
+                        print("🎯 MainZodiacView: HoroscopeSplashView dismissed")
+                        print("   📊 Before - splashViewDismissed: \(splashViewDismissed)")
                         withAnimation(.easeInOut(duration: 0.5)) {
                             splashViewDismissed = true
+                            cameFromHoroscopeSplash = true
                         }
+                        print("   📊 After - splashViewDismissed: \(splashViewDismissed)")
+                        print("   🎭 This should trigger header to appear")
                     },
                     onConsentDismissed: {
                         print("=== CONSENT DISMISSED CALLBACK EXECUTED ===")
@@ -67,7 +101,14 @@ struct MainZodiacView: View {
                     onboardingDataAccess?.loadUserData()
                 }
             }
-            if splashViewDismissed {
+            .onChange(of: splashViewDismissed) { _, newValue in
+                if !newValue && !completedOnboarding {
+                    print("🚫 MainZodiacView: Header is NOT being shown")
+                    print("   📊 splashViewDismissed: \(newValue)")
+                    print("   📊 completedOnboarding: \(completedOnboarding)")
+                }
+            }
+            if splashViewDismissed || completedOnboarding {
                 UpdateCard()
             }
         }
@@ -86,8 +127,11 @@ struct MainZodiacView: View {
     
     container.mainContext.insert(mockUserData)
     
+    // Set consent to false for testing
+    UserDefaults.standard.set(true, forKey: "hasAcceptedConsentPolicies")
+    
     // Create a preview-specific view that ensures data is loaded
-    return MainZodiacView(completedOnboarding: true)
+    return MainZodiacView(completedOnboarding: false)
         .modelContainer(container)
         .environmentObject(AuthenticationManager())
 }

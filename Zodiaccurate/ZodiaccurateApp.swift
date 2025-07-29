@@ -182,7 +182,7 @@ struct RootView: View {
                         hasCompletedOnboarding = true
                         showOnboarding = false
                         showLogin = true
-                        shouldStartWithRegistration = true // New user completing onboarding should register
+                        shouldStartWithRegistration = true
                     }
                 }
                 .transition(.opacity)

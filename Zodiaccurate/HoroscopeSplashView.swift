@@ -22,6 +22,10 @@ struct HoroscopeSplashView: View {
     
     var body: some View {
         ZStack {
+            // Transparent background to ensure parent background is visible
+            Color.clear
+                .ignoresSafeArea()
+            
             // Consent Alert Overlay (blocks all interaction until accepted)
             if showConsentAlert {
                 VisualEffectBlur(blurStyle: .systemMaterialDark)

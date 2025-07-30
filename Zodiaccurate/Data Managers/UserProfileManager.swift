@@ -101,6 +101,138 @@ class UserProfileManager: ObservableObject {
         default: return "logo"
         }
     }
+    
+    // MARK: - Profile Update Methods
+    
+    func updateFirstName(_ name: String) {
+        if profile == nil {
+            profile = UserProfile.fromUserDefaults()
+        }
+        profile = UserProfile(
+            firstName: name,
+            birthDate: profile?.birthDate ?? OnboardingDataAccess.birthDate,
+            birthTime: profile?.birthTime ?? OnboardingDataAccess.birthTime,
+            zodiacSign: profile?.zodiacSign ?? OnboardingDataAccess.zodiacSign,
+            responses: profile?.responses ?? OnboardingDataAccess.responses,
+            createdAt: profile?.createdAt ?? Date(),
+            updatedAt: Date()
+        )
+        saveProfile()
+    }
+    
+    func updateBirthDate(_ date: Date) {
+        if profile == nil {
+            profile = UserProfile.fromUserDefaults()
+        }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        let dateString = formatter.string(from: date)
+        
+        profile = UserProfile(
+            firstName: profile?.firstName ?? OnboardingDataAccess.firstName,
+            birthDate: dateString,
+            birthTime: profile?.birthTime ?? OnboardingDataAccess.birthTime,
+            zodiacSign: profile?.zodiacSign ?? OnboardingDataAccess.zodiacSign,
+            responses: profile?.responses ?? OnboardingDataAccess.responses,
+            createdAt: profile?.createdAt ?? Date(),
+            updatedAt: Date()
+        )
+        saveProfile()
+    }
+    
+    func updateBirthTime(_ time: Date) {
+        if profile == nil {
+            profile = UserProfile.fromUserDefaults()
+        }
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        let timeString = formatter.string(from: time)
+        
+        profile = UserProfile(
+            firstName: profile?.firstName ?? OnboardingDataAccess.firstName,
+            birthDate: profile?.birthDate ?? OnboardingDataAccess.birthDate,
+            birthTime: timeString,
+            zodiacSign: profile?.zodiacSign ?? OnboardingDataAccess.zodiacSign,
+            responses: profile?.responses ?? OnboardingDataAccess.responses,
+            createdAt: profile?.createdAt ?? Date(),
+            updatedAt: Date()
+        )
+        saveProfile()
+    }
+    
+    func updateZodiacSign(_ sign: String) {
+        if profile == nil {
+            profile = UserProfile.fromUserDefaults()
+        }
+        profile = UserProfile(
+            firstName: profile?.firstName ?? OnboardingDataAccess.firstName,
+            birthDate: profile?.birthDate ?? OnboardingDataAccess.birthDate,
+            birthTime: profile?.birthTime ?? OnboardingDataAccess.birthTime,
+            zodiacSign: sign,
+            responses: profile?.responses ?? OnboardingDataAccess.responses,
+            createdAt: profile?.createdAt ?? Date(),
+            updatedAt: Date()
+        )
+        saveProfile()
+    }
+    
+    // MARK: - Save Methods
+    
+    func saveChanges() {
+        guard let profile = profile else { return }
+        
+        // Save to UserDefaults for quick access
+        UserDefaults.standard.set(profile.firstName, forKey: "userFirstName")
+        UserDefaults.standard.set(profile.birthDate, forKey: "userBirthDate")
+        UserDefaults.standard.set(profile.birthTime, forKey: "userBirthTime")
+        UserDefaults.standard.set(profile.zodiacSign, forKey: "userZodiacSign")
+        
+        // Save to SwiftData if we have a model context
+        // TODO: Implement SwiftData save when UserDataManager is available
+        print("✅ Profile changes saved to UserDefaults")
+    }
+    
+    // MARK: - Reset Methods
+    
+    func resetToOnboardingData() {
+        profile = UserProfile.fromUserDefaults()
+        saveProfile()
+    }
+    
+    func resetToDefault() {
+        profile = UserProfile.fromUserDefaults()
+        saveProfile()
+    }
+    
+    // MARK: - Helper Methods
+    
+    func formatBirthDate() -> String {
+        return profile?.birthDate ?? OnboardingDataAccess.birthDate
+    }
+    
+    func formatBirthTime() -> String {
+        return profile?.birthTime ?? OnboardingDataAccess.birthTime
+    }
+    
+    // Check if profile has been modified from onboarding data
+    var hasBeenModified: Bool {
+        guard let profile = profile else { return false }
+        
+        return profile.firstName != OnboardingDataAccess.firstName ||
+               profile.birthDate != OnboardingDataAccess.birthDate ||
+               profile.birthTime != OnboardingDataAccess.birthTime ||
+               profile.zodiacSign != OnboardingDataAccess.zodiacSign
+    }
+    
+    private func saveProfile() {
+        // Save to UserDefaults for now
+        if let profile = profile {
+            UserDefaults.standard.set(profile.firstName, forKey: "userFirstName")
+            UserDefaults.standard.set(profile.birthDate, forKey: "userBirthDate")
+            UserDefaults.standard.set(profile.birthTime, forKey: "userBirthTime")
+            UserDefaults.standard.set(profile.zodiacSign, forKey: "userZodiacSign")
+        }
+    }
 }
 
 // Subscription Status View Component

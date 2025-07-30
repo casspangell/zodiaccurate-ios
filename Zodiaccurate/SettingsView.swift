@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var onboardingDataAccess: OnboardingDataAccess
     @StateObject private var notificationManager = NotificationManager()
+    @StateObject private var userProfileManager: UserProfileManager
     
     // Settings state
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
@@ -22,7 +23,9 @@ struct SettingsView: View {
     
     init() {
         // Initialize with a temporary context - will be updated in onAppear
-        self._onboardingDataAccess = StateObject(wrappedValue: OnboardingDataAccess(modelContext: ModelContext(try! ModelContainer(for: UserDataModel.self))))
+        let tempContext = ModelContext(try! ModelContainer(for: UserDataModel.self))
+        self._onboardingDataAccess = StateObject(wrappedValue: OnboardingDataAccess(modelContext: tempContext))
+        self._userProfileManager = StateObject(wrappedValue: UserProfileManager(modelContext: tempContext))
     }
     
     var body: some View {
@@ -44,11 +47,11 @@ struct SettingsView: View {
                                         .frame(width: 80, height: 80)
                                     
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(OnboardingDataAccess.firstName)
+                                        Text(userProfileManager.firstName.isEmpty ? "User" : userProfileManager.firstName)
                                             .font(.system(size: 20, weight: .semibold))
                                             .foregroundColor(.white)
                                         
-                                        Text(OnboardingDataAccess.zodiacSign)
+                                        Text(userProfileManager.zodiacSign.isEmpty ? "Unknown" : userProfileManager.zodiacSign)
                                             .font(.system(size: 14, weight: .medium))
                                             .foregroundColor(.white.opacity(0.7))
                                         
@@ -275,6 +278,7 @@ struct SettingsView: View {
             }
             .onAppear {
                 onboardingDataAccess.updateModelContext(modelContext)
+                userProfileManager.updateModelContext(modelContext)
                 // Sync notification state
                 notificationsEnabled = notificationManager.isNotificationsEnabled
             }
@@ -300,15 +304,19 @@ struct SettingsView: View {
 // MARK: - Edit Profile View
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var firstName = OnboardingDataAccess.firstName
-    @State private var selectedBirthDate = Date()
-    @State private var selectedBirthTime = Date()
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var userProfileManager: UserProfileManager
     
     // Focus states for text fields
     @FocusState private var isFirstNameFocused: Bool
     
     // Highlight states for text fields
     @State private var highlightFirstNameField = false
+    
+    init() {
+        let tempContext = ModelContext(try! ModelContainer(for: UserDataModel.self))
+        self._userProfileManager = StateObject(wrappedValue: UserProfileManager(modelContext: tempContext))
+    }
     
     var body: some View {
         NavigationView {
@@ -331,7 +339,10 @@ struct EditProfileView: View {
                                         .foregroundColor(.white)
                                     
                                     SingleLineTextField(
-                                        text: $firstName,
+                                        text: Binding(
+                                            get: { userProfileManager.firstName },
+                                            set: { userProfileManager.updateFirstName($0) }
+                                        ),
                                         placeholder: "Enter your first name",
                                         isFocused: $isFirstNameFocused,
                                         onSubmit: {},
@@ -348,13 +359,27 @@ struct EditProfileView: View {
                                             placeholder: "Your birth date",
                                             dataKey: "birthDate"
                                         ),
-                                        selectedDate: $selectedBirthDate,
-                                        selectedTime: $selectedBirthTime,
+                                        selectedDate: Binding(
+                                            get: { 
+                                                let formatter = DateFormatter()
+                                                formatter.dateStyle = .medium
+                                                return formatter.date(from: userProfileManager.birthDate) ?? Date()
+                                            },
+                                            set: { userProfileManager.updateBirthDate($0) }
+                                        ),
+                                        selectedTime: Binding(
+                                            get: { 
+                                                let formatter = DateFormatter()
+                                                formatter.timeStyle = .short
+                                                return formatter.date(from: userProfileManager.birthTime) ?? Date()
+                                            },
+                                            set: { userProfileManager.updateBirthTime($0) }
+                                        ),
                                         onDateSelected: { date in
-                                            selectedBirthDate = date
+                                            userProfileManager.updateBirthDate(date)
                                         },
                                         onTimeSelected: { time in
-                                            selectedBirthTime = time
+                                            userProfileManager.updateBirthTime(time)
                                         },
                                         onUnknownTime: {
                                             // Handle unknown time if needed
@@ -371,13 +396,27 @@ struct EditProfileView: View {
                                             placeholder: "Birth time (if known)",
                                             dataKey: "birthTime"
                                         ),
-                                        selectedDate: $selectedBirthDate,
-                                        selectedTime: $selectedBirthTime,
+                                        selectedDate: Binding(
+                                            get: { 
+                                                let formatter = DateFormatter()
+                                                formatter.dateStyle = .medium
+                                                return formatter.date(from: userProfileManager.birthDate) ?? Date()
+                                            },
+                                            set: { userProfileManager.updateBirthDate($0) }
+                                        ),
+                                        selectedTime: Binding(
+                                            get: { 
+                                                let formatter = DateFormatter()
+                                                formatter.timeStyle = .short
+                                                return formatter.date(from: userProfileManager.birthTime) ?? Date()
+                                            },
+                                            set: { userProfileManager.updateBirthTime($0) }
+                                        ),
                                         onDateSelected: { date in
-                                            selectedBirthDate = date
+                                            userProfileManager.updateBirthDate(date)
                                         },
                                         onTimeSelected: { time in
-                                            selectedBirthTime = time
+                                            userProfileManager.updateBirthTime(time)
                                         },
                                         onUnknownTime: {
                                             // Handle unknown time
@@ -392,7 +431,7 @@ struct EditProfileView: View {
                             VStack(spacing: 12) {
                                 // Save Changes Button styled like SettingsRow
                                 Button(action: {
-                                    // TODO: Save profile changes
+                                    userProfileManager.saveChanges()
                                     dismiss()
                                 }) {
                                     HStack(spacing: 16) {
@@ -422,9 +461,7 @@ struct EditProfileView: View {
                                 
                                 // Reset to Default Button styled like SettingsRow
                                 Button(action: {
-                                    firstName = OnboardingDataAccess.firstName
-                                    selectedBirthDate = Date()
-                                    selectedBirthTime = Date()
+                                    userProfileManager.resetToOnboardingData()
                                 }) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "arrow.clockwise")
@@ -469,6 +506,9 @@ struct EditProfileView: View {
                             .foregroundColor(.white)
                     }
                 }
+            }
+            .onAppear {
+                userProfileManager.updateModelContext(modelContext)
             }
         }
     }

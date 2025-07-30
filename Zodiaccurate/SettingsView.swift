@@ -114,14 +114,6 @@ struct SettingsView: View {
                         // Account Section
                         SettingsSection(title: "Account") {
                             VStack(spacing: 12) {
-                                SettingsRow(
-                                    icon: "person.circle",
-                                    title: "Account Information",
-                                    subtitle: "View and manage your account",
-                                    action: {
-                                        // TODO: Navigate to account info
-                                    }
-                                )
                                 
                                 SettingsRow(
                                     icon: "lock",
@@ -446,35 +438,6 @@ struct EditProfileView: View {
                                                 .foregroundColor(.white)
                                             
                                             Text("Update your profile information")
-                                                .font(.system(size: 14, weight: .regular))
-                                                .foregroundColor(.white.opacity(0.7))
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(.white.opacity(0.5))
-                                    }
-                                    .padding(.vertical, 4)
-                                }
-                                
-                                // Reset to Default Button styled like SettingsRow
-                                Button(action: {
-                                    userProfileManager.resetToOnboardingData()
-                                }) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "arrow.clockwise")
-                                            .font(.system(size: 20, weight: .medium))
-                                            .foregroundColor(.orange)
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Reset to Default")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.white)
-                                            
-                                            Text("Restore original profile data")
                                                 .font(.system(size: 14, weight: .regular))
                                                 .foregroundColor(.white.opacity(0.7))
                                         }

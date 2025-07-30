@@ -59,7 +59,14 @@ struct ConversationalOnboardingView: View {
             if !user.birthTime.isEmpty {
                 user.zodiacSign = determineZodiacSign(from: input)
             }
-            print("👤 Updated birthDate: '\(input)'")
+            
+            // Trigger badge animation when birth date is selected
+            let (zodiacSign, assetName) = determineZodiacSignAndAsset(from: input)
+            if zodiacSign != "Unknown" {
+                badgeAnimationManager.triggerBadgeAnimation(andSwapTo: assetName)
+            }
+            
+            print("👤 Updated birthDate: '\(input)' - Zodiac: \(zodiacSign)")
             
         case "birthTime":
             user.birthTime = input
@@ -106,9 +113,9 @@ struct ConversationalOnboardingView: View {
             print("❌ Failed to save user to SwiftData: \(error)")
         }
         
-        // Transition to MainZodiacView
+        // Mark onboarding as complete and transition to MainZodiacView
         withAnimation(.easeInOut(duration: 0.7)) {
-            showOnboardingHoroscope = true
+            isOnboardingComplete = true
         }
         
         // Call the completion handler
@@ -125,7 +132,7 @@ struct ConversationalOnboardingView: View {
     
     var body: some View {
         ZStack {
-            if showOnboardingHoroscope {
+            if isOnboardingComplete {
                 MainZodiacView()
                     .transition(.opacity)
             } else {
@@ -180,7 +187,7 @@ struct ConversationalOnboardingView: View {
             user = User(createdAt: Date(), updatedAt: Date())
             print("👤 New onboarding session started")
         }
-        .animation(Animation.easeInOut(duration: 0.7), value: showOnboardingHoroscope)
+        .animation(Animation.easeInOut(duration: 0.7), value: isOnboardingComplete)
     }
 }
 

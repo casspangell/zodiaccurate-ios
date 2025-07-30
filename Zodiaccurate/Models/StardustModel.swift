@@ -36,12 +36,12 @@ enum StardustTransactionType: String, CaseIterable, Codable {
         switch self {
         case .earned: return "✨"
         case .spent: return "💫"
-        case .bonus: return "🌟"
+        case .bonus: return "🏆"
         case .dailyReward: return "⭐"
         case .horoscopeGeneration: return "🔮"
         case .featureUnlock: return "🔓"
         case .referral: return "👥"
-        case .achievement: return "🏆"
+        case .achievement: return "🌟"
         }
     }
 }

@@ -728,7 +728,7 @@ struct ZodiacProfileBadgeWithStardust: View {
     var frameSize: CGFloat = 180 // Default size, can be customized
     @State private var showEarningAnimation = false
     @State private var earningAmount = 0
-    @State private var earningType: StardustTransactionType = .achievement
+    @State private var earningType: StardustTransactionType = .earned
     @State private var showStardustIndicator = false
     @State private var hasTriggeredEarning = false
     
@@ -738,7 +738,7 @@ struct ZodiacProfileBadgeWithStardust: View {
             CustomZodiacProfileBadge(zodiacImage: zodiacImage, frameSize: frameSize)
             
             // Stardust indicator (scaled to frame size) - appears after earning animation
-            if stardustPoints > 0 && showStardustIndicator {
+            if showStardustIndicator {
                 CustomStardustIndicator(stardustPoints: stardustPoints, frameSize: frameSize)
                     .transition(.scale.combined(with: .opacity))
             }
@@ -762,7 +762,7 @@ struct ZodiacProfileBadgeWithStardust: View {
         }
         .onAppear {
             // Show stardust indicator immediately if no earning animation is expected
-            if stardustPoints > 0 && !hasTriggeredEarning {
+            if !hasTriggeredEarning {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     withAnimation(.easeInOut(duration: 0.5)) {
                         showStardustIndicator = true
@@ -798,7 +798,7 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
     var frameSize: CGFloat = 180 // Default size, can be customized
     @State private var showEarningAnimation = false
     @State private var earningAmount = 0
-    @State private var earningType: StardustTransactionType = .achievement
+    @State private var earningType: StardustTransactionType = .earned
     @State private var showStardustIndicator = false
     @State private var hasTriggeredEarning = false
     
@@ -808,7 +808,7 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
             CustomZodiacProfileBadgeWhite(zodiacImage: zodiacImage, frameSize: frameSize)
             
             // Stardust indicator (scaled to frame size) - appears after earning animation
-            if stardustPoints > 0 && showStardustIndicator {
+            if showStardustIndicator {
                 CustomStardustIndicator(stardustPoints: stardustPoints, frameSize: frameSize)
                     .transition(.scale.combined(with: .opacity))
             }
@@ -831,8 +831,7 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
             }
         }
         .onAppear {
-            // Show stardust indicator immediately if no earning animation is expected
-            if stardustPoints > 0 && !hasTriggeredEarning {
+            if !hasTriggeredEarning {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     withAnimation(.easeInOut(duration: 0.5)) {
                         showStardustIndicator = true

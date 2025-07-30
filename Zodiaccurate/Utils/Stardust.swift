@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 // MARK: - Stardust Manager
 @MainActor
@@ -17,13 +18,67 @@ class StardustManager: ObservableObject {
     @Published var recentTransactions: [StardustTransaction] = []
     @Published var isLoading: Bool = false
     
-    init() {
+    // SwiftData integration
+    private var modelContext: ModelContext?
+    private var stardustInstance: Stardust?
+    
+    init(modelContext: ModelContext? = nil) {
+        self.modelContext = modelContext
         loadBalance()
+    }
+    
+    // MARK: - SwiftData Integration
+    
+    /// Load stardust data from SwiftData Stardust instance
+    func loadFromSwiftData(_ stardust: Stardust) {
+        self.stardustInstance = stardust
+        self.currentBalance = stardust.balance
+        self.totalEarned = stardust.totalEarned
+        self.totalSpent = stardust.totalSpent
+        self.recentTransactions = stardust.transactions
+        
+        print("✅ StardustManager: Loaded from SwiftData - Balance: \(currentBalance), Total Earned: \(totalEarned)")
+    }
+    
+    /// Sync current state back to SwiftData
+    private func syncToSwiftData() {
+        guard let stardust = stardustInstance else {
+            print("⚠️ StardustManager: No SwiftData instance to sync with")
+            return
+        }
+        
+        stardust.balance = currentBalance
+        stardust.totalEarned = totalEarned
+        stardust.totalSpent = totalSpent
+        stardust.lastUpdated = Date()
+        
+        // Save to SwiftData
+        do {
+            try modelContext?.save()
+            print("✅ StardustManager: Synced to SwiftData successfully")
+        } catch {
+            print("❌ StardustManager: Failed to sync to SwiftData: \(error)")
+        }
+    }
+    
+    /// Create a new Stardust instance in SwiftData
+    func createStardustInstance(in context: ModelContext) -> Stardust {
+        let stardust = Stardust(balance: 0)
+        context.insert(stardust)
+        
+        do {
+            try context.save()
+            print("✅ StardustManager: Created new Stardust instance in SwiftData")
+        } catch {
+            print("❌ StardustManager: Failed to create Stardust instance: \(error)")
+        }
+        
+        return stardust
     }
     
     // MARK: - Balance Management
     
-    /// Load the current stardust balance (no longer saving to UserDefaults)
+    /// Load the current stardust balance
     func loadBalance() {
         // Set default values
         self.currentBalance = 0
@@ -35,7 +90,7 @@ class StardustManager: ObservableObject {
         loadRecentTransactions()
     }
     
-    /// Load recent transactions (no longer saving to UserDefaults)
+    /// Load recent transactions
     private func loadRecentTransactions() {
         self.recentTransactions = []
         print("🆕 StardustManager: No transactions found, starting fresh")
@@ -43,7 +98,7 @@ class StardustManager: ObservableObject {
     
     // MARK: - Transaction Methods
     
-    /// Earn stardust
+    /// Earn stardust (with SwiftData sync)
     func earnStardust(amount: Int, type: StardustTransactionType, description: String) {
         guard amount > 0 else {
             print("⚠️ StardustManager: Cannot earn negative or zero stardust")
@@ -73,6 +128,11 @@ class StardustManager: ObservableObject {
             recentTransactions = Array(recentTransactions.prefix(20))
         }
         
+        // Sync to SwiftData if available
+        if stardustInstance != nil {
+            syncToSwiftData()
+        }
+        
         print("✅ StardustManager: Successfully updated stardust data")
         print("📊 StardustManager: Current balance: \(currentBalance), Total earned: \(totalEarned)")
         
@@ -89,7 +149,7 @@ class StardustManager: ObservableObject {
         print("✅ StardustManager: Earned \(amount) stardust. New balance: \(newBalance)")
     }
     
-    /// Spend stardust
+    /// Spend stardust (with SwiftData sync)
     func spendStardust(amount: Int, type: StardustTransactionType, description: String) -> Bool {
         guard amount > 0 else {
             print("⚠️ StardustManager: Cannot spend negative or zero stardust")
@@ -124,6 +184,11 @@ class StardustManager: ObservableObject {
             recentTransactions = Array(recentTransactions.prefix(20))
         }
         
+        // Sync to SwiftData if available
+        if stardustInstance != nil {
+            syncToSwiftData()
+        }
+        
         print("✅ StardustManager: Successfully updated stardust data")
         print("📊 StardustManager: Current balance: \(currentBalance), Total spent: \(totalSpent)")
         
@@ -141,7 +206,7 @@ class StardustManager: ObservableObject {
     /// Earn stardust for completing onboarding
     func earnOnboardingReward() {
         earnStardust(
-            amount: 15,
+            amount: 25,
             type: .achievement,
             description: "Completed onboarding and received your first horoscope"
         )
@@ -216,12 +281,6 @@ class StardustManager: ObservableObject {
     
     // MARK: - Utility Methods
     
-    /// Save data to UserDefaults (no longer needed as data is saved immediately)
-    private func saveContext() {
-        // Data is saved immediately in earnStardust and spendStardust methods
-        print("✅ StardustManager: Data already saved to UserDefaults")
-    }
-    
     /// Get transaction history
     func getTransactionHistory(limit: Int = 50) -> [StardustTransaction] {
         return Array(recentTransactions.prefix(limit))
@@ -238,8 +297,12 @@ class StardustManager: ObservableObject {
         currentBalance = 0
         totalEarned = 0
         totalSpent = 0
-        
         recentTransactions = []
+        
+        // Sync to SwiftData if available
+        if stardustInstance != nil {
+            syncToSwiftData()
+        }
         
         print("✅ StardustManager: Balance reset to 0")
     }

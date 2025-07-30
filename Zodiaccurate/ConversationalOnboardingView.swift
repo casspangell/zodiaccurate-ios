@@ -15,6 +15,7 @@ struct ConversationalOnboardingView: View {
     @State private var stardustManager: StardustManager?
     // Create a new User instance for this onboarding session
     @State private var user = User()
+    @State private var stardust = Stardust()
     @State private var currentProfileImage = "logo"
     @State private var isAcquiringBadge = false
     @State private var badgeScale: CGFloat = 1.0
@@ -104,22 +105,50 @@ struct ConversationalOnboardingView: View {
         print("   Created: \(user.createdAt)")
         print("   Updated: \(user.updatedAt)")
         
-        // Save user to SwiftData
+        // Add 25 stardust for completing onboarding
+        stardust.addStardust(
+            amount: 25,
+            type: .achievement,
+            description: "Completed onboarding and received your first horoscope"
+        )
+        
+        print("🪙 Added 25 stardust for completing onboarding - Balance: \(stardust.balance)")
+        
+        // Save user and stardust to SwiftData
         do {
             modelContext.insert(user)
+            modelContext.insert(stardust)
             try modelContext.save()
-            print("✅ User saved to SwiftData successfully")
+            print("✅ User and Stardust saved to SwiftData successfully")
         } catch {
-            print("❌ Failed to save user to SwiftData: \(error)")
+            print("❌ Failed to save user and stardust to SwiftData: \(error)")
         }
         
-        // Mark onboarding as complete and transition to MainZodiacView
-        withAnimation(.easeInOut(duration: 0.7)) {
-            isOnboardingComplete = true
+        // Initialize StardustManager for animation
+        if stardustManager == nil {
+            stardustManager = StardustManager()
         }
         
-        // Call the completion handler
-        onComplete()
+        // Load stardust data from SwiftData for animation
+        stardustManager?.loadFromSwiftData(stardust)
+        
+        // Trigger stardust animation
+        stardustManager?.earnStardust(
+            amount: 25,
+            type: .achievement,
+            description: "Completed onboarding and received your first horoscope"
+        )
+        
+        // Delay the view switch to allow stardust animation to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            // Mark onboarding as complete and transition to MainZodiacView
+            withAnimation(.easeInOut(duration: 0.7)) {
+                isOnboardingComplete = true
+            }
+            
+            // Call the completion handler
+            onComplete()
+        }
     }
     
     // MARK: - Helper Functions
@@ -185,7 +214,10 @@ struct ConversationalOnboardingView: View {
         .onAppear {
             // Initialize the user with current timestamp
             user = User(createdAt: Date(), updatedAt: Date())
+            // Initialize stardust with 0 balance
+            stardust = Stardust(balance: 0)
             print("👤 New onboarding session started")
+            print("🪙 Stardust initialized with balance: \(stardust.balance)")
         }
         .animation(Animation.easeInOut(duration: 0.7), value: isOnboardingComplete)
     }

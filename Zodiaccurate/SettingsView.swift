@@ -29,20 +29,12 @@ struct SettingsView: View {
         NavigationView {
             ZStack {
                 // Background
-                VerticleAuroraBackgroundView()
+                SubBackground()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea(.all, edges: .all)
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Header
-                        VStack(spacing: 16) {
-                            Text("Settings")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.top, 20)
-                        
                         // Profile Section
                         SettingsSection(title: "Profile") {
                             VStack(spacing: 16) {
@@ -106,40 +98,12 @@ struct SettingsView: View {
                                         notificationManager.cancelAllNotifications()
                                     }
                                 }
-                                
-                                SettingsToggleRow(
-                                    icon: "star",
-                                    title: "Daily Horoscope",
-                                    subtitle: "Get your daily cosmic forecast",
-                                    isOn: $dailyHoroscopeEnabled
-                                )
-                                .onChange(of: dailyHoroscopeEnabled) { oldValue, newValue in
-                                    if newValue && notificationsEnabled {
-                                        notificationManager.scheduleDailyHoroscope()
-                                    } else {
-                                        notificationManager.cancelAllNotifications()
-                                    }
-                                }
-                                
-                                SettingsToggleRow(
-                                    icon: "moon",
-                                    title: "Dark Mode",
-                                    subtitle: "Switch to dark cosmic theme",
-                                    isOn: $darkModeEnabled
-                                )
-                                
+
                                 SettingsToggleRow(
                                     icon: "hand.tap",
                                     title: "Haptic Feedback",
                                     subtitle: "Feel the cosmic vibrations",
                                     isOn: $hapticFeedbackEnabled
-                                )
-                                
-                                SettingsToggleRow(
-                                    icon: "arrow.clockwise",
-                                    title: "Auto Save",
-                                    subtitle: "Automatically save your progress",
-                                    isOn: $autoSaveEnabled
                                 )
                             }
                         }
@@ -356,43 +320,6 @@ struct EditProfileView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Header
-                        VStack(spacing: 16) {
-                            Text("Edit Profile")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.top, 20)
-                        
-                        // Current Profile Preview Section
-                        SettingsSection(title: "Current Profile") {
-                            VStack(spacing: 16) {
-                                // Profile Card
-                                HStack(spacing: 16) {
-                                    ZodiacProfileBadge()
-                                        .frame(width: 60, height: 60)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(OnboardingDataAccess.firstName)
-                                            .font(.system(size: 18, weight: .semibold))
-                                            .foregroundColor(.white)
-                                        
-                                        Text(OnboardingDataAccess.zodiacSign)
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(.white.opacity(0.7))
-                                        
-                                        Text("Member since \(getFormattedDate())")
-                                            .font(.system(size: 12, weight: .regular))
-                                            .foregroundColor(.white.opacity(0.5))
-                                    }
-                                    
-                                    Spacer()
-                                }
-                                .padding()
-                                .background(Color.white.opacity(0.05))
-                                .cornerRadius(12)
-                            }
-                        }
                         
                         // Profile Information Section
                         SettingsSection(title: "Profile Information") {

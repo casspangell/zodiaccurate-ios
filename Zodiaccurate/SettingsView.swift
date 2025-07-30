@@ -17,8 +17,6 @@ struct SettingsView: View {
     
     // UI State
     @State private var showingEditProfile = false
-    @State private var showingPrivacyPolicy = false
-    @State private var showingTermsOfService = false
     @State private var showingHelp = false
     @State private var showingSecretsDebug = false
     
@@ -193,7 +191,9 @@ struct SettingsView: View {
                                     title: "Terms of Service",
                                     subtitle: "Read our terms and conditions",
                                     action: {
-                                        showingTermsOfService = true
+                                        if let url = URL(string: "https://zodiaccurate.com/terms-and-conditions") {
+                                            UIApplication.shared.open(url)
+                                        }
                                     }
                                 )
                                 
@@ -202,7 +202,9 @@ struct SettingsView: View {
                                     title: "Privacy Policy",
                                     subtitle: "Read our privacy policy",
                                     action: {
-                                        showingPrivacyPolicy = true
+                                        if let url = URL(string: "https://zodiaccurate.com/privacy-policy") {
+                                            UIApplication.shared.open(url)
+                                        }
                                     }
                                 )
                             }
@@ -314,12 +316,6 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingEditProfile) {
                 EditProfileView()
-            }
-            .sheet(isPresented: $showingPrivacyPolicy) {
-                PrivacyPolicyView()
-            }
-            .sheet(isPresented: $showingTermsOfService) {
-                TermsOfServiceView()
             }
             .sheet(isPresented: $showingHelp) {
                 HelpSupportView()
@@ -594,43 +590,46 @@ struct PrivacyPolicyView: View {
                 MainCelestialBackground()
                     .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: 24) {
+                    Spacer()
+                    
+                    VStack(spacing: 16) {
+                        Image(systemName: "hand.raised")
+                            .font(.system(size: 60, weight: .light))
+                            .foregroundColor(.white.opacity(0.8))
+                        
                         Text("Privacy Policy")
                             .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.top, 20)
                         
-                        Text("Last updated: June 27, 2025")
-                            .font(.system(size: 14, weight: .regular))
+                        Text("View our complete privacy policy on our website")
+                            .font(.system(size: 16, weight: .regular))
                             .foregroundColor(.white.opacity(0.7))
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information.")
-                                .foregroundColor(.white)
-                            
-                            Text("Information We Collect")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.top, 8)
-                            
-                            Text("• Personal information (name, birth date, birth time)\n• Zodiac sign and astrological data\n• App usage and preferences\n• Device information")
-                                .foregroundColor(.white.opacity(0.9))
-                            
-                            Text("How We Use Your Information")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.top, 8)
-                            
-                            Text("• Provide personalized horoscope readings\n• Improve app functionality\n• Send notifications (with your permission)\n• Analyze app performance")
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(16)
+                            .multilineTextAlignment(.center)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, 40)
+                    
+                    Button(action: {
+                        if let url = URL(string: "https://zodiaccurate.com/privacy-policy") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "safari")
+                                .font(.system(size: 18, weight: .medium))
+                            
+                            Text("Open Privacy Policy")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor)
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 40)
+                    
+                    Spacer()
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -656,51 +655,46 @@ struct TermsOfServiceView: View {
                 MainCelestialBackground()
                     .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: 24) {
+                    Spacer()
+                    
+                    VStack(spacing: 16) {
+                        Image(systemName: "doc.text")
+                            .font(.system(size: 60, weight: .light))
+                            .foregroundColor(.white.opacity(0.8))
+                        
                         Text("Terms of Service")
                             .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.top, 20)
                         
-                        Text("Last updated: June 27, 2025")
-                            .font(.system(size: 14, weight: .regular))
+                        Text("View our complete terms and conditions on our website")
+                            .font(.system(size: 16, weight: .regular))
                             .foregroundColor(.white.opacity(0.7))
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("By using Zodiaccurate, you agree to these terms and conditions.")
-                                .foregroundColor(.white)
-                            
-                            Text("Acceptance of Terms")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.top, 8)
-                            
-                            Text("By accessing and using this app, you accept and agree to be bound by the terms and provision of this agreement.")
-                                .foregroundColor(.white.opacity(0.9))
-                            
-                            Text("Use License")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.top, 8)
-                            
-                            Text("Permission is granted to temporarily download one copy of the app for personal, non-commercial transitory viewing only.")
-                                .foregroundColor(.white.opacity(0.9))
-                            
-                            Text("Disclaimer")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.top, 8)
-                            
-                            Text("The horoscope readings and astrological content are for entertainment purposes only and should not be considered as professional advice.")
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                        .padding()
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(16)
+                            .multilineTextAlignment(.center)
                     }
-                    .padding(.horizontal)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, 40)
+                    
+                    Button(action: {
+                        if let url = URL(string: "https://zodiaccurate.com/terms-and-conditions") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "safari")
+                                .font(.system(size: 18, weight: .medium))
+                            
+                            Text("Open Terms of Service")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor)
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 40)
+                    
+                    Spacer()
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

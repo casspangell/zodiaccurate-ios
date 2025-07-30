@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftData
 import SwiftUI
 
 // MARK: - Stardust Manager
@@ -18,76 +17,28 @@ class StardustManager: ObservableObject {
     @Published var recentTransactions: [StardustTransaction] = []
     @Published var isLoading: Bool = false
     
-    var modelContext: ModelContext
-    private var balanceModel: StardustBalance?
-    
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    init() {
         loadBalance()
     }
     
     // MARK: - Balance Management
     
-    /// Load the current stardust balance from Core Data
+    /// Load the current stardust balance (no longer saving to UserDefaults)
     func loadBalance() {
-        let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
-                    UserDefaults.standard.string(forKey: "onboardingUUID")
-
-        let descriptor = FetchDescriptor<StardustBalance>(
-            predicate: #Predicate<StardustBalance> { balance in
-                balance.userId == userId
-            }
-        )
+        // Set default values
+        self.currentBalance = 0
+        self.totalEarned = 0
+        self.totalSpent = 0
         
-        do {
-            let results = try modelContext.fetch(descriptor)
-            
-            if let balance = results.first {
-                self.balanceModel = balance
-                self.currentBalance = balance.balance
-                self.totalEarned = balance.totalEarned
-                self.totalSpent = balance.totalSpent
-                print("✅ StardustManager: Loaded balance - \(balance.balance) stardust")
-            } else {
-                // Create new balance for user
-                let newBalance = StardustBalance(userId: userId, balance: 0)
-                modelContext.insert(newBalance)
-                self.balanceModel = newBalance
-                self.currentBalance = 0
-                print("🆕 StardustManager: Created new balance for user")
-            }
-            
-            loadRecentTransactions()
-        } catch {
-            print("❌ StardustManager: Error loading balance: \(error)")
-            // Set default values on error
-            self.currentBalance = 0
-            self.totalEarned = 0
-            self.totalSpent = 0
-        }
+        print("✅ StardustManager: Loaded balance - \(currentBalance) stardust")
+        
+        loadRecentTransactions()
     }
     
-    /// Load recent transactions
+    /// Load recent transactions (no longer saving to UserDefaults)
     private func loadRecentTransactions() {
-
-        let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
-                    UserDefaults.standard.string(forKey: "onboardingUUID")
-        
-        var descriptor = FetchDescriptor<StardustTransaction>(
-            predicate: #Predicate<StardustTransaction> { transaction in
-                transaction.userId == userId
-            },
-            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-        )
-        descriptor.fetchLimit = 20 // Load last 20 transactions
-        
-        do {
-            let results = try modelContext.fetch(descriptor)
-            self.recentTransactions = results
-            print("✅ StardustManager: Loaded \(results.count) recent transactions")
-        } catch {
-            print("❌ StardustManager: Error loading transactions: \(error)")
-        }
+        self.recentTransactions = []
+        print("🆕 StardustManager: No transactions found, starting fresh")
     }
     
     // MARK: - Transaction Methods
@@ -101,60 +52,41 @@ class StardustManager: ObservableObject {
         
         print("🪙 StardustManager: Earning \(amount) stardust (\(type.displayName))")
         
-        do {
-            let newBalance = currentBalance + amount
-            currentBalance = newBalance
-            totalEarned += amount
-            
-            // Update balance model
-            balanceModel?.balance = newBalance
-            balanceModel?.totalEarned = totalEarned
-            balanceModel?.lastUpdated = Date()
-            
-            print("💾 StardustManager: Updated balance model - Balance: \(newBalance), Total Earned: \(totalEarned)")
-            
-            // Create transaction record
-            let transaction = StardustTransaction(
-                userId: UserDefaults.standard.string(forKey: "currentUserId") ?? 
-                       UserDefaults.standard.string(forKey: "onboardingUUID"),
-                amount: amount,
-                type: type,
-                description: description,
-                balanceAfterTransaction: newBalance
-            )
-            
-            modelContext.insert(transaction)
-            print("💾 StardustManager: Created transaction record - Amount: \(amount), Type: \(type.displayName)")
-            
-            // Update recent transactions
-            recentTransactions.insert(transaction, at: 0)
-            if recentTransactions.count > 20 {
-                recentTransactions = Array(recentTransactions.prefix(20))
-            }
-            
-            // Save to Core Data
-            print("💾 StardustManager: Saving to Core Data...")
-            saveContext()
-            
-            // Verify save was successful
-            print("✅ StardustManager: Successfully saved stardust data to Core Data")
-            print("📊 StardustManager: Current balance: \(currentBalance), Total earned: \(totalEarned)")
-            
-            // Trigger localized earning animation via notification
-            NotificationCenter.default.post(
-                name: .stardustEarned,
-                object: nil,
-                userInfo: [
-                    "amount": amount,
-                    "type": type
-                ]
-            )
-            
-            print("✅ StardustManager: Earned \(amount) stardust. New balance: \(newBalance)")
-        } catch {
-            print("❌ StardustManager: Error earning stardust: \(error)")
-            print("❌ StardustManager: Error details: \(error.localizedDescription)")
+        let newBalance = currentBalance + amount
+        currentBalance = newBalance
+        totalEarned += amount
+        
+        print("💾 StardustManager: Updated balance - Balance: \(newBalance), Total Earned: \(totalEarned)")
+        
+        // Create transaction record
+        let transaction = StardustTransaction(
+            userId: nil,
+            amount: amount,
+            type: type,
+            description: description,
+            balanceAfterTransaction: newBalance
+        )
+        
+        // Update recent transactions
+        recentTransactions.insert(transaction, at: 0)
+        if recentTransactions.count > 20 {
+            recentTransactions = Array(recentTransactions.prefix(20))
         }
+        
+        print("✅ StardustManager: Successfully updated stardust data")
+        print("📊 StardustManager: Current balance: \(currentBalance), Total earned: \(totalEarned)")
+        
+        // Trigger localized earning animation via notification
+        NotificationCenter.default.post(
+            name: .stardustEarned,
+            object: nil,
+            userInfo: [
+                "amount": amount,
+                "type": type
+            ]
+        )
+        
+        print("✅ StardustManager: Earned \(amount) stardust. New balance: \(newBalance)")
     }
     
     /// Spend stardust
@@ -175,25 +107,16 @@ class StardustManager: ObservableObject {
         currentBalance = newBalance
         totalSpent += amount
         
-        // Update balance model
-        balanceModel?.balance = newBalance
-        balanceModel?.totalSpent = totalSpent
-        balanceModel?.lastUpdated = Date()
-        
-        print("💾 StardustManager: Updated balance model - Balance: \(newBalance), Total Spent: \(totalSpent)")
+        print("💾 StardustManager: Updated balance - Balance: \(newBalance), Total Spent: \(totalSpent)")
         
         // Create transaction record
         let transaction = StardustTransaction(
-            userId: UserDefaults.standard.string(forKey: "currentUserId") ?? 
-                   UserDefaults.standard.string(forKey: "onboardingUUID"),
+            userId: nil,
             amount: -amount, // Negative for spending
             type: type,
             description: description,
             balanceAfterTransaction: newBalance
         )
-        
-        modelContext.insert(transaction)
-        print("💾 StardustManager: Created transaction record - Amount: -\(amount), Type: \(type.displayName)")
         
         // Update recent transactions
         recentTransactions.insert(transaction, at: 0)
@@ -201,12 +124,7 @@ class StardustManager: ObservableObject {
             recentTransactions = Array(recentTransactions.prefix(20))
         }
         
-        // Save to Core Data
-        print("💾 StardustManager: Saving to Core Data...")
-        saveContext()
-        
-        // Verify save was successful
-        print("✅ StardustManager: Successfully saved stardust data to Core Data")
+        print("✅ StardustManager: Successfully updated stardust data")
         print("📊 StardustManager: Current balance: \(currentBalance), Total spent: \(totalSpent)")
         
         print("✅ StardustManager: Spent \(amount) stardust. New balance: \(newBalance)")
@@ -298,58 +216,15 @@ class StardustManager: ObservableObject {
     
     // MARK: - Utility Methods
     
-    /// Save context to Core Data
+    /// Save data to UserDefaults (no longer needed as data is saved immediately)
     private func saveContext() {
-        do {
-            try modelContext.save()
-            print("✅ StardustManager: Context saved successfully to Core Data")
-            
-            // Verify the save by checking if we can retrieve the data
-            let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
-                        UserDefaults.standard.string(forKey: "onboardingUUID")
-            
-            let descriptor = FetchDescriptor<StardustBalance>(
-                predicate: #Predicate<StardustBalance> { balance in
-                    balance.userId == userId
-                }
-            )
-            
-            do {
-                let results = try modelContext.fetch(descriptor)
-                if let savedBalance = results.first {
-                    print("✅ StardustManager: Verified save - Balance in Core Data: \(savedBalance.balance)")
-                } else {
-                    print("⚠️ StardustManager: Save verification failed - No balance found in Core Data")
-                }
-            } catch {
-                print("⚠️ StardustManager: Could not verify save - \(error.localizedDescription)")
-            }
-            
-        } catch {
-            print("❌ StardustManager: Error saving context: \(error)")
-            print("❌ StardustManager: Error details: \(error.localizedDescription)")
-        }
+        // Data is saved immediately in earnStardust and spendStardust methods
+        print("✅ StardustManager: Data already saved to UserDefaults")
     }
     
     /// Get transaction history
     func getTransactionHistory(limit: Int = 50) -> [StardustTransaction] {
-        let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
-                    UserDefaults.standard.string(forKey: "onboardingUUID")
-        
-        var descriptor = FetchDescriptor<StardustTransaction>(
-            predicate: #Predicate<StardustTransaction> { transaction in
-                transaction.userId == userId
-            },
-            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-        )
-        descriptor.fetchLimit = limit
-        
-        do {
-            return try modelContext.fetch(descriptor)
-        } catch {
-            print("❌ StardustManager: Error loading transaction history: \(error)")
-            return []
-        }
+        return Array(recentTransactions.prefix(limit))
     }
     
     /// Get statistics
@@ -364,13 +239,7 @@ class StardustManager: ObservableObject {
         totalEarned = 0
         totalSpent = 0
         
-        balanceModel?.balance = 0
-        balanceModel?.totalEarned = 0
-        balanceModel?.totalSpent = 0
-        balanceModel?.lastUpdated = Date()
-        
         recentTransactions = []
-        saveContext()
         
         print("✅ StardustManager: Balance reset to 0")
     }

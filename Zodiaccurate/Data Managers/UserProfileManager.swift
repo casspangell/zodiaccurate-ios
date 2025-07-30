@@ -2,291 +2,156 @@
 //  UserProfileManager.swift
 //  Zodiaccurate
 //
-//  Created by Cass Pangell on 6/19/25.
+//  Created by Cass Pangell on 7/30/25.
 //
 
 import Foundation
-import SwiftData
 import SwiftUI
 
-@MainActor
 class UserProfileManager: ObservableObject {
-    @Published var profile: UserProfile?
-    private var modelContext: ModelContext
+    @Published var firstName: String = ""
+    @Published var birthDate: String = ""
+    @Published var birthTime: String = ""
+    @Published var zodiacSign: String = ""
     
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    private let userDefaults = UserDefaults.standard
+    private let firstNameKey = "userFirstName"
+    private let birthDateKey = "userBirthDate"
+    private let birthTimeKey = "userBirthTime"
+    private let zodiacSignKey = "userZodiacSign"
+    
+    init() {
+        print("👤 UserProfileManager initialized")
         loadProfile()
     }
     
-    func updateModelContext(_ newContext: ModelContext) {
-        self.modelContext = newContext
-        loadProfile()
-    }
+    // MARK: - Profile Loading
     
     func loadProfile() {
-        // Load from SwiftData first
-        let descriptor = FetchDescriptor<UserDataModel>()
-        do {
-            let results = try modelContext.fetch(descriptor)
-            if let userData = results.first {
-                profile = UserProfile(from: userData)
-                return
-            }
-        } catch {
-            print("❌ Error loading user data from SwiftData: \(error)")
-        }
+        print("👤 Loading user profile...")
         
-        // Fallback to UserDefaults
-        profile = UserProfile.fromUserDefaults()
+        firstName = userDefaults.string(forKey: firstNameKey) ?? ""
+        birthDate = userDefaults.string(forKey: birthDateKey) ?? ""
+        birthTime = userDefaults.string(forKey: birthTimeKey) ?? ""
+        zodiacSign = userDefaults.string(forKey: zodiacSignKey) ?? ""
+        
+        print("👤 Profile loaded - Name: '\(firstName)', Zodiac: '\(zodiacSign)'")
     }
     
-    // Get user's zodiac sign
-    var zodiacSign: String {
-        return profile?.zodiacSign ?? OnboardingDataAccess.zodiacSign
-    }
-    
-    // Get user's name
-    var firstName: String {
-        return profile?.firstName ?? OnboardingDataAccess.firstName
-    }
-    
-    // Get user's birth date
-    var birthDate: String {
-        return profile?.birthDate ?? OnboardingDataAccess.birthDate
-    }
-    
-    // Get user's birth time
-    var birthTime: String {
-        return profile?.birthTime ?? OnboardingDataAccess.birthTime
-    }
-    
-    // Get user's responses
-    var responses: [(String, String, String)] {
-        return profile?.responses ?? OnboardingDataAccess.responses
-    }
-    
-    // Get a specific response
-    func getResponse(for key: String) -> (question: String, answer: String)? {
-        guard let tuple = responses.first(where: { $0.1 == key }) else { return nil }
-        return (question: tuple.0, answer: tuple.2)
-    }
-    
-    // Get just the answer for a key (backward compatibility)
-    func getAnswer(for key: String) -> String? {
-        return getResponse(for: key)?.answer
-    }
-    
-    // Check if user has completed onboarding
-    var hasCompletedOnboarding: Bool {
-        return OnboardingDataAccess.hasCompletedOnboarding
-    }
-    
-    // Get zodiac sign asset name for UI
-    var zodiacSignAssetName: String {
-        let sign = zodiacSign.lowercased()
-        switch sign {
-        case "aries": return "Aries"
-        case "taurus": return "Taurus"
-        case "gemini": return "Gemini"
-        case "cancer": return "Cancer"
-        case "leo": return "Leo"
-        case "virgo": return "Virgo"
-        case "libra": return "Libra"
-        case "scorpio": return "Scorpio"
-        case "sagittarius": return "Saggitarius"
-        case "capricorn": return "Capricorn"
-        case "aquarius": return "Aquarius"
-        case "pisces": return "Pisces"
-        default: return "logo"
-        }
-    }
-    
-    // MARK: - Profile Update Methods
+    // MARK: - Profile Updates
     
     func updateFirstName(_ name: String) {
-        if profile == nil {
-            profile = UserProfile.fromUserDefaults()
-        }
-        profile = UserProfile(
-            firstName: name,
-            birthDate: profile?.birthDate ?? OnboardingDataAccess.birthDate,
-            birthTime: profile?.birthTime ?? OnboardingDataAccess.birthTime,
-            zodiacSign: profile?.zodiacSign ?? OnboardingDataAccess.zodiacSign,
-            responses: profile?.responses ?? OnboardingDataAccess.responses,
-            createdAt: profile?.createdAt ?? Date(),
-            updatedAt: Date()
-        )
-        saveProfile()
+        firstName = name
+        userDefaults.set(name, forKey: firstNameKey)
+        print("👤 First name updated to: '\(name)'")
     }
     
     func updateBirthDate(_ date: Date) {
-        if profile == nil {
-            profile = UserProfile.fromUserDefaults()
-        }
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
-        let dateString = formatter.string(from: date)
+        birthDate = formatter.string(from: date)
+        userDefaults.set(birthDate, forKey: birthDateKey)
         
-        profile = UserProfile(
-            firstName: profile?.firstName ?? OnboardingDataAccess.firstName,
-            birthDate: dateString,
-            birthTime: profile?.birthTime ?? OnboardingDataAccess.birthTime,
-            zodiacSign: profile?.zodiacSign ?? OnboardingDataAccess.zodiacSign,
-            responses: profile?.responses ?? OnboardingDataAccess.responses,
-            createdAt: profile?.createdAt ?? Date(),
-            updatedAt: Date()
-        )
-        saveProfile()
+        // Recalculate zodiac sign when birth date changes
+        calculateZodiacSign()
+        
+        print("👤 Birth date updated to: '\(birthDate)'")
     }
     
     func updateBirthTime(_ time: Date) {
-        if profile == nil {
-            profile = UserProfile.fromUserDefaults()
-        }
         let formatter = DateFormatter()
         formatter.timeStyle = .short
-        let timeString = formatter.string(from: time)
+        birthTime = formatter.string(from: time)
+        userDefaults.set(birthTime, forKey: birthTimeKey)
         
-        profile = UserProfile(
-            firstName: profile?.firstName ?? OnboardingDataAccess.firstName,
-            birthDate: profile?.birthDate ?? OnboardingDataAccess.birthDate,
-            birthTime: timeString,
-            zodiacSign: profile?.zodiacSign ?? OnboardingDataAccess.zodiacSign,
-            responses: profile?.responses ?? OnboardingDataAccess.responses,
-            createdAt: profile?.createdAt ?? Date(),
-            updatedAt: Date()
-        )
-        saveProfile()
+        // Recalculate zodiac sign when birth time changes
+        calculateZodiacSign()
+        
+        print("👤 Birth time updated to: '\(birthTime)'")
     }
     
-    func updateZodiacSign(_ sign: String) {
-        if profile == nil {
-            profile = UserProfile.fromUserDefaults()
-        }
-        profile = UserProfile(
-            firstName: profile?.firstName ?? OnboardingDataAccess.firstName,
-            birthDate: profile?.birthDate ?? OnboardingDataAccess.birthDate,
-            birthTime: profile?.birthTime ?? OnboardingDataAccess.birthTime,
-            zodiacSign: sign,
-            responses: profile?.responses ?? OnboardingDataAccess.responses,
-            createdAt: profile?.createdAt ?? Date(),
-            updatedAt: Date()
-        )
-        saveProfile()
+    // MARK: - Zodiac Sign Calculation
+    
+    private func calculateZodiacSign() {
+        zodiacSign = ZodiacUtility.calculateZodiacSign(birthDate: birthDate, birthTime: birthTime)
+        userDefaults.set(zodiacSign, forKey: zodiacSignKey)
+        
+        print("♈ Zodiac sign calculated: '\(zodiacSign)'")
     }
     
-    // MARK: - Save Methods
+    // MARK: - Save Changes
     
     func saveChanges() throws {
-        guard let profile = profile else { 
-            throw ProfileError.noProfileData
+        print("👤 Saving profile changes...")
+        
+        // Validate required fields
+        guard !firstName.isEmpty else {
+            throw UserProfileError.missingFirstName
         }
         
-        // Save to UserDefaults for quick access
-        UserDefaults.standard.set(profile.firstName, forKey: "userFirstName")
-        UserDefaults.standard.set(profile.birthDate, forKey: "userBirthDate")
-        UserDefaults.standard.set(profile.birthTime, forKey: "userBirthTime")
-        UserDefaults.standard.set(profile.zodiacSign, forKey: "userZodiacSign")
-        
-        // Save to SwiftData using UserDataManager
-        let userDataManager = UserDataManager(modelContext: modelContext)
-        userDataManager.saveUserProfile(profile)
-        
-        print("✅ Profile changes saved to UserDefaults and SwiftData")
-    }
-    
-    // MARK: - Error Types
-    
-    enum ProfileError: Error, LocalizedError {
-        case noProfileData
-        
-        var errorDescription: String? {
-            switch self {
-            case .noProfileData:
-                return "No profile data available to save"
-            }
+        guard !birthDate.isEmpty else {
+            throw UserProfileError.missingBirthDate
         }
-    }
-    
-    // MARK: - Reset Methods
-    
-    func resetToOnboardingData() {
-        profile = UserProfile.fromUserDefaults()
-        saveProfile()
-    }
-    
-    func resetToDefault() {
-        profile = UserProfile.fromUserDefaults()
-        saveProfile()
-    }
-    
-    // MARK: - Helper Methods
-    
-    func formatBirthDate() -> String {
-        return profile?.birthDate ?? OnboardingDataAccess.birthDate
-    }
-    
-    func formatBirthTime() -> String {
-        return profile?.birthTime ?? OnboardingDataAccess.birthTime
-    }
-    
-    // Check if profile has been modified from onboarding data
-    var hasBeenModified: Bool {
-        guard let profile = profile else { return false }
         
-        return profile.firstName != OnboardingDataAccess.firstName ||
-               profile.birthDate != OnboardingDataAccess.birthDate ||
-               profile.birthTime != OnboardingDataAccess.birthTime ||
-               profile.zodiacSign != OnboardingDataAccess.zodiacSign
+        guard !birthTime.isEmpty else {
+            throw UserProfileError.missingBirthTime
+        }
+        
+        // All data is already saved to UserDefaults in the update methods
+        // Just ensure zodiac sign is calculated
+        calculateZodiacSign()
+        
+        print("👤 Profile changes saved successfully")
     }
     
-    private func saveProfile() {
-        // Save to UserDefaults for quick access
-        if let profile = profile {
-            UserDefaults.standard.set(profile.firstName, forKey: "userFirstName")
-            UserDefaults.standard.set(profile.birthDate, forKey: "userBirthDate")
-            UserDefaults.standard.set(profile.birthTime, forKey: "userBirthTime")
-            UserDefaults.standard.set(profile.zodiacSign, forKey: "userZodiacSign")
-            
-            // Save to SwiftData using UserDataManager
-            let userDataManager = UserDataManager(modelContext: modelContext)
-            userDataManager.saveUserProfile(profile)
-        }
+    // MARK: - Profile Validation
+    
+    var isProfileComplete: Bool {
+        return !firstName.isEmpty && !birthDate.isEmpty && !birthTime.isEmpty && !zodiacSign.isEmpty
+    }
+    
+    var hasValidBirthData: Bool {
+        return ZodiacUtility.getBirthDateTime(birthDate: birthDate, birthTime: birthTime) != nil
+    }
+    
+    // MARK: - Profile Reset
+    
+    func resetProfile() {
+        print("👤 Resetting user profile...")
+        
+        firstName = ""
+        birthDate = ""
+        birthTime = ""
+        zodiacSign = ""
+        
+        userDefaults.removeObject(forKey: firstNameKey)
+        userDefaults.removeObject(forKey: birthDateKey)
+        userDefaults.removeObject(forKey: birthTimeKey)
+        userDefaults.removeObject(forKey: zodiacSignKey)
+        
+        print("👤 Profile reset complete")
     }
 }
 
-// Subscription Status View Component
-struct SubscriptionStatusView: View {
-    let status: SubscriptionStatus
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            Circle()
-                .fill(status.color)
-                .frame(width: 12, height: 12)
-                .shadow(color: status.color.opacity(0.5), radius: 4, x: 0, y: 2)
-            Text(status.rawValue)
-                .font(.dmSansMedium(size: 10))
-                .foregroundColor(.white.opacity(0.7))
-        }
-    }
-}
+// MARK: - User Profile Errors
 
-// Subscription Status Enum
-enum SubscriptionStatus: String, CaseIterable {
-    case subscribed = "Subscribed"
-    case trial = "Trial"
-    case expired = "Expired"
+enum UserProfileError: Error, LocalizedError {
+    case missingFirstName
+    case missingBirthDate
+    case missingBirthTime
+    case invalidBirthData
     
-    var color: Color {
+    var errorDescription: String? {
         switch self {
-        case .subscribed:
-            return .green
-        case .trial:
-            return .orange
-        case .expired:
-            return .red
+        case .missingFirstName:
+            return "First name is required"
+        case .missingBirthDate:
+            return "Birth date is required"
+        case .missingBirthTime:
+            return "Birth time is required"
+        case .invalidBirthData:
+            return "Invalid birth date or time"
         }
     }
-} 
+}
+

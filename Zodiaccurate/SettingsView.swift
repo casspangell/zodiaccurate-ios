@@ -1,13 +1,10 @@
 import SwiftUI
-import SwiftData
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var authManager: AuthenticationManager
-    @Environment(\.modelContext) private var modelContext
-    @StateObject private var onboardingDataAccess: OnboardingDataAccess
     @StateObject private var notificationManager = NotificationManager()
-    @StateObject private var userProfileManager: UserProfileManager
+    @StateObject private var userProfileManager = UserProfileManager()
     
     // Settings state
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
@@ -22,10 +19,8 @@ struct SettingsView: View {
     @State private var showingSecretsDebug = false
     
     init() {
-        // Initialize with a temporary context - will be updated in onAppear
-        let tempContext = ModelContext(try! ModelContainer(for: UserDataModel.self))
-        self._onboardingDataAccess = StateObject(wrappedValue: OnboardingDataAccess(modelContext: tempContext))
-        self._userProfileManager = StateObject(wrappedValue: UserProfileManager(modelContext: tempContext))
+        // Initialize managers
+
     }
     
     var body: some View {
@@ -269,8 +264,7 @@ struct SettingsView: View {
                 }
             }
             .onAppear {
-                onboardingDataAccess.updateModelContext(modelContext)
-                userProfileManager.updateModelContext(modelContext)
+                userProfileManager.loadProfile()
                 // Sync notification state
                 notificationsEnabled = notificationManager.isNotificationsEnabled
             }
@@ -299,8 +293,7 @@ struct SettingsView: View {
 // MARK: - Edit Profile View
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
-    @StateObject private var userProfileManager: UserProfileManager
+    @StateObject private var userProfileManager = UserProfileManager()
     
     // Focus states for text fields
     @FocusState private var isFirstNameFocused: Bool
@@ -317,8 +310,6 @@ struct EditProfileView: View {
     let onProfileSaved: (() -> Void)?
     
     init(onProfileSaved: (() -> Void)? = nil) {
-        let tempContext = ModelContext(try! ModelContainer(for: UserDataModel.self))
-        self._userProfileManager = StateObject(wrappedValue: UserProfileManager(modelContext: tempContext))
         self.onProfileSaved = onProfileSaved
     }
     
@@ -494,7 +485,7 @@ struct EditProfileView: View {
                 }
             }
             .onAppear {
-                userProfileManager.updateModelContext(modelContext)
+                userProfileManager.loadProfile()
             }
         }
     }

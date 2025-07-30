@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 import Combine
 
 /// A reusable zodiac-themed chat interface component

@@ -204,6 +204,49 @@ struct ZodiacUtility {
             return false
         }
     }
+    
+    /// Calculate zodiac sign from birth date and time strings
+    /// - Parameters:
+    ///   - birthDate: Birth date string in medium format
+    ///   - birthTime: Birth time string in short format
+    /// - Returns: Zodiac sign string, empty if invalid
+    static func calculateZodiacSign(birthDate: String, birthTime: String) -> String {
+        guard let birthDateTime = getBirthDateTime(birthDate: birthDate, birthTime: birthTime) else {
+            return ""
+        }
+        
+        do {
+            let zodiacSign = try getZodiacSign(from: birthDateTime)
+            return zodiacSign.rawValue
+        } catch {
+            return ""
+        }
+    }
+    
+    /// Helper function to combine birth date and time strings into a Date object
+    /// - Parameters:
+    ///   - birthDate: Birth date string in medium format
+    ///   - birthTime: Birth time string in short format
+    /// - Returns: Combined Date object, nil if invalid
+    static func getBirthDateTime(birthDate: String, birthTime: String) -> Date? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        
+        guard let birthDateObj = dateFormatter.date(from: birthDate),
+              let birthTimeObj = timeFormatter.date(from: birthTime) else {
+            return nil
+        }
+        
+        let calendar = Calendar.current
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: birthTimeObj)
+        return calendar.date(bySettingHour: timeComponents.hour ?? 0,
+                           minute: timeComponents.minute ?? 0,
+                           second: 0,
+                           of: birthDateObj)
+    }
 }
 
 // MARK: - Extensions

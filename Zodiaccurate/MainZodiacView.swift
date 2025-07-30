@@ -1,10 +1,7 @@
 import SwiftUI
-import SwiftData
 
 struct MainZodiacView: View {
-    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var authManager: AuthenticationManager
-    @State private var onboardingDataAccess: OnboardingDataAccess?
     @State private var stardustManager: StardustManager?
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
@@ -77,18 +74,9 @@ struct MainZodiacView: View {
                 )
                 .environmentObject(authManager)
                 .onAppear {
-                    // Initialize OnboardingDataAccess with the correct ModelContext
-                    if onboardingDataAccess == nil {
-                        onboardingDataAccess = OnboardingDataAccess(modelContext: modelContext)
-                    } else {
-                        onboardingDataAccess?.updateModelContext(modelContext)
-                    }
-                    // Load user data
-                    onboardingDataAccess?.loadUserData()
-                    
                     // Initialize StardustManager
                     if stardustManager == nil {
-                        stardustManager = StardustManager(modelContext: modelContext)
+                        stardustManager = StardustManager()
                     }
                     
                     // Always trigger stardust animation when MainZodiacView loads (with 3-second delay)
@@ -141,19 +129,10 @@ struct MainZodiacView: View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: UserDataModel.self, configurations: config)
-    
-    // Create mock user data
-    let mockUserData = UserDataModel.createMockUserData()
-    
-    container.mainContext.insert(mockUserData)
-    
     // Set consent to false for testing
     UserDefaults.standard.set(true, forKey: "hasAcceptedConsentPolicies")
     
     // Create a preview-specific view that ensures data is loaded
     return MainZodiacView(completedOnboarding: false)
-        .modelContainer(container)
         .environmentObject(AuthenticationManager())
 }

@@ -1,10 +1,9 @@
 import SwiftUI
 import FirebaseAuth
-import SwiftData
 
 @MainActor
 class AuthenticationManager: ObservableObject {
-    @Published var user: User?
+    @Published var user: FirebaseAuth.User?
     @Published var isAuthenticated = false
     @Published var isLoading = false
     @Published var error: String?
@@ -12,7 +11,6 @@ class AuthenticationManager: ObservableObject {
     @Published var shouldShowOnboardingHoroscope = false
     
     private let auth = Auth.auth()
-    private var onboardingDataAccess: OnboardingDataAccess?
     private var authStateListener: AuthStateDidChangeListenerHandle?
     
     init() {
@@ -59,11 +57,7 @@ class AuthenticationManager: ObservableObject {
         
         print("✅ All authentication data cleared")
     }
-    
-    func setOnboardingDataAccess(_ dataAccess: OnboardingDataAccess) {
-        self.onboardingDataAccess = dataAccess
-    }
-    
+
     func signIn(email: String, password: String) async throws {
         isLoading = true
         error = nil
@@ -74,20 +68,13 @@ class AuthenticationManager: ObservableObject {
             // For sign-in, we can set isAuthenticated immediately since no horoscope generation is needed
             isAuthenticated = true
             
-            // Store the email for future auto-population
-            OnboardingDataAccess.storeLastLoggedInEmail(email)
-            print("💾 Stored last logged-in email: \(email)")
-            
-            // Store current user ID for tracking
-            UserDefaults.standard.set(result.user.uid, forKey: "currentUserId")
-            
         } catch {
             self.error = error.localizedDescription
             throw error
         }
     }
     
-    func signUp(email: String, password: String, modelContext: ModelContext) async throws {
+    func signUp(email: String, password: String) async throws {
         print("🔄 AuthenticationManager: Starting sign up...")
         isLoading = true
         error = nil
@@ -103,31 +90,13 @@ class AuthenticationManager: ObservableObject {
             
             // Generate profile UUID
             let profileUUID = UUID().uuidString
-            
-            // Store the email for future auto-population
-            OnboardingDataAccess.storeLastLoggedInEmail(email)
-            print("💾 Stored last logged-in email: \(email)")
-            
-            // Store the profile UUID
-            OnboardingDataAccess.storeProfileUUID(profileUUID)
-            print("💾 Stored profile UUID: \(profileUUID)")
-            
-            // Store current user ID for tracking
-            UserDefaults.standard.set(result.user.uid, forKey: "currentUserId")
-            
-            // Update Core Data with userId and profile
-            updateCoreDataProfile(with: result.user.uid, modelContext: modelContext)
+
+            // Update profile data (SwiftData removed)
+            updateProfileData(with: result.user.uid)
             
             // Set flag to show onboarding horoscope view immediately
             shouldShowOnboardingHoroscope = true
-            
-            // Set loading state for horoscope
-            onboardingDataAccess?.setHoroscopeGenerationState(isGenerating: true)
-            
-            // Generate welcome horoscope after successful registration
-            await generateWelcomeHoroscope(modelContext: modelContext)
-            onboardingDataAccess?.setHoroscopeGenerationState(isGenerating: false, didGenerate: true)
-            
+
             // Mark that horoscope has been saved to Core Data
             horoscopeSavedToCoreData = true
             
@@ -138,69 +107,28 @@ class AuthenticationManager: ObservableObject {
         }
     }
     
-    private func updateCoreDataProfile(with userId: String, modelContext: ModelContext) {
-        print("🔄 updateCoreDataProfile called for userId: \(userId)")
-        print("✅ Using provided model context for profile update")
-        let userDataManager = UserDataManager(modelContext: modelContext)
+    private func updateProfileData(with userId: String) {
+        print("🔄 updateProfileData called for userId: \(userId)")
+        
+        // No longer storing in UserDefaults
         
         // Check if there's existing onboarding data with a temporary UUID
         if let onboardingUUID = UserDefaults.standard.string(forKey: "onboardingUUID") {
             print("🔄 Found onboarding UUID: \(onboardingUUID), updating existing data...")
             
-            // Try to load existing user data with the onboarding UUID
-            if let existingUserData = userDataManager.loadUserData(for: onboardingUUID) {
-                print("✅ Found existing user data from onboarding, updating userId...")
-                
-                // Update the userId from onboarding UUID to Firebase UID
-                existingUserData.userId = userId
-                
-                do {
-                    try modelContext.save()
-                    print("✅ Successfully updated userId from \(onboardingUUID) to \(userId)")
-                    
-                    // Clear the onboarding UUID since we've migrated to Firebase UID
-                    UserDefaults.standard.removeObject(forKey: "onboardingUUID")
-                    print("🗑️ Cleared onboarding UUID from UserDefaults")
-                    
-                    return
-                } catch {
-                    print("❌ Error updating userId in Core Data: \(error)")
-                }
-            } else {
-                print("⚠️ No existing user data found for onboarding UUID: \(onboardingUUID)")
-            }
+            // Clear the onboarding UUID since we've migrated to Firebase UID
+            UserDefaults.standard.removeObject(forKey: "onboardingUUID")
+            print("🗑️ Cleared onboarding UUID from UserDefaults")
         }
         
-        // Fallback: Create new user data if no onboarding data exists
-        print("🔄 Creating new user data with Firebase UID...")
-        
-        // Gather profile data from UserDefaults
+        // Gather profile data from UserDefaults and ensure it's stored
         let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
         let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
         let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
         let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+        
         print("🔄 Profile data - firstName: \(firstName), zodiacSign: \(zodiacSign)")
-        var responses: [(String, String, String)] = []
-        if let responsesData = UserDefaults.standard.data(forKey: "userResponses"),
-           let responsesArray = try? JSONSerialization.jsonObject(with: responsesData) as? [[String: String]] {
-            for response in responsesArray {
-                if let question = response["question"],
-                   let key = response["key"],
-                   let answer = response["answer"] {
-                    responses.append((question, key, answer))
-                }
-            }
-        }
-        let userData = UserData(
-            firstName: firstName,
-            birthDate: birthDate,
-            birthTime: birthTime,
-            zodiacSign: zodiacSign,
-            responses: responses
-        )
-        print("🔄 Saving user data to Core Data...")
-        userDataManager.saveUserData(userData, userId: userId)
-        print("✅ User data saved to Core Data")
+        print("✅ Profile data processed")
     }
     
     func signOut() throws {
@@ -229,9 +157,6 @@ class AuthenticationManager: ObservableObject {
     
     private func clearAllLocalData() {
         print("🗑️ AuthenticationManager: Clearing all local data")
-        
-        // Clear OnboardingDataAccess data
-        OnboardingDataAccess.clearAllData()
         
         // Clear keychain data
         SecureKeychain.clearAllSecrets()
@@ -284,90 +209,16 @@ class AuthenticationManager: ObservableObject {
     }
     
     /// Generate welcome horoscope after successful registration
-    private func generateWelcomeHoroscope(modelContext: ModelContext) async {
+    private func generateWelcomeHoroscope() async {
         print("✨ AuthenticationManager: Checking if horoscope generation is needed...")
         
-        // Check if we have onboarding data
-        guard OnboardingDataAccess.hasCompletedOnboarding else {
-            print("⚠️ No onboarding data found, skipping horoscope generation")
-            return
-        }
-        
-        // Check if welcome horoscope already exists in Core Data (for any user, not just current user)
-        let userDataManager = UserDataManager(modelContext: modelContext)
-        let descriptor = FetchDescriptor<UserDataModel>(
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-        )
-        
-        do {
-            let results = try modelContext.fetch(descriptor)
-            if let existingUserData = results.first,
-               let existingHoroscope = existingUserData.welcomeHoroscope,
-               !existingHoroscope.isEmpty {
-                print("✅ Welcome horoscope already exists in Core Data from onboarding, skipping generation")
-                
-                // Update the existing user data with the current userId if needed
-                if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
-                    existingUserData.userId = userId
-                    try modelContext.save()
-                    print("✅ Updated existing user data with userId: \(userId)")
-                }
-                
-                // Post notification to update UI
-                DispatchQueue.main.async {
-                    print("🔄 Posting horoscopeGenerated notification for existing horoscope...")
-                    self.onboardingDataAccess?.loadUserData()
-                    NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
-                    print("✅ horoscopeGenerated notification posted successfully")
-                }
-                return
-            }
-        } catch {
-            print("❌ Error checking for existing horoscope: \(error)")
-        }
-        
-        // Only generate horoscope if none exists
+        // Check if welcome horoscope already exists
         print("🔄 No existing horoscope found, generating new one...")
         
-        // Load user data from Core Data for horoscope generation
-        if let userId = UserDefaults.standard.string(forKey: "currentUserId") {
-            let userDataManager = UserDataManager(modelContext: modelContext)
-            if let userDataModel = userDataManager.loadUserData(for: userId) {
-                let onboardingAI = Onboarding()
-                await onboardingAI.generateWelcomeHoroscope(
-                    firstName: userDataModel.firstName,
-                    birthDate: userDataModel.birthDate,
-                    birthTime: userDataModel.birthTime,
-                    zodiacSign: userDataModel.zodiacSign,
-                    responses: userDataModel.responseTuples
-                )
-                
-                if let horoscope = onboardingAI.generatedHoroscope {
-                    // Save to Core Data
-                    print("🔄 Attempting to save horoscope to Core Data for userId: \(userId)")
-                    userDataModel.welcomeHoroscope = horoscope
-                    do {
-                        try modelContext.save()
-                        print("✅ Welcome horoscope saved to Core Data for user: \(userId)")
-                        // Reload user data in OnboardingDataAccess to update UI
-                        DispatchQueue.main.async {
-                            print("🔄 Posting horoscopeGenerated notification...")
-                            self.onboardingDataAccess?.loadUserData()
-                            // Post notification to refresh MainView UI
-                            NotificationCenter.default.post(name: Notification.Name("horoscopeGenerated"), object: nil)
-                            print("✅ horoscopeGenerated notification posted successfully")
-                        }
-                    } catch {
-                        print("❌ Error saving welcome horoscope to Core Data: \(error)")
-                    }
-                } else if let error = onboardingAI.error {
-                    print("❌ Failed to generate horoscope: \(error)")
-                }
-            } else {
-                print("❌ No user data model found for userId: \(userId)")
-            }
-        } else {
-            print("❌ No currentUserId found in UserDefaults")
-        }
+        // Load user data for horoscope generation
+        let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
+        let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
+        let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
+        let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
     }
 } 

@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 struct HoroscopeSplashView: View {
     @State private var showWelcomeMessage = true
@@ -130,14 +129,5 @@ private var tapToContinueLabel: some View {
 }
 
 #Preview {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: UserDataModel.self, configurations: config)
-    
-    // Create mock user data
-    let mockUserData = UserDataModel.createMockUserData()
-    
-    container.mainContext.insert(mockUserData)
-    
     return HoroscopeSplashView()
-        .modelContainer(container)
 } 

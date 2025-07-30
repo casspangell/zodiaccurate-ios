@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftData
 
 // MARK: - Stardust Transaction Types
 enum StardustTransactionType: String, CaseIterable, Codable {
@@ -47,8 +46,7 @@ enum StardustTransactionType: String, CaseIterable, Codable {
 }
 
 // MARK: - Stardust Transaction Model
-@Model
-class StardustTransaction {
+class StardustTransaction: Codable {
     var id: UUID
     var userId: String?
     var amount: Int
@@ -69,8 +67,7 @@ class StardustTransaction {
 }
 
 // MARK: - Stardust Balance Model
-@Model
-class StardustBalance {
+class StardustBalance: Codable {
     var id: UUID
     var userId: String?
     var balance: Int

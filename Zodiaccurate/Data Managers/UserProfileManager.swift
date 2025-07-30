@@ -103,66 +103,6 @@ class UserProfileManager: ObservableObject {
     }
 }
 
-// User Profile struct for easy data access
-struct UserProfile {
-    let firstName: String
-    let birthDate: String
-    let birthTime: String
-    let zodiacSign: String
-    let responses: [(String, String, String)]
-    let createdAt: Date
-    let updatedAt: Date
-    
-    init(firstName: String = "", 
-         birthDate: String = "", 
-         birthTime: String = "", 
-         zodiacSign: String = "", 
-         responses: [(String, String, String)] = [], 
-         createdAt: Date = Date(), 
-         updatedAt: Date = Date()) {
-        self.firstName = firstName
-        self.birthDate = birthDate
-        self.birthTime = birthTime
-        self.zodiacSign = zodiacSign
-        self.responses = responses
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
-    
-    // Initialize from UserDataModel
-    init(from userData: UserDataModel) {
-        self.firstName = userData.firstName
-        self.birthDate = userData.birthDate
-        self.birthTime = userData.birthTime
-        self.zodiacSign = userData.zodiacSign
-        self.responses = userData.responseTuples.map { ($0.0, $0.1, $0.2) }
-        self.createdAt = userData.createdAt
-        self.updatedAt = userData.updatedAt
-    }
-    
-    // Initialize from UserDefaults
-    static func fromUserDefaults() -> UserProfile {
-        return UserProfile(
-            firstName: OnboardingDataAccess.firstName,
-            birthDate: OnboardingDataAccess.birthDate,
-            birthTime: OnboardingDataAccess.birthTime,
-            zodiacSign: OnboardingDataAccess.zodiacSign,
-            responses: OnboardingDataAccess.responses.map { ($0.0, $0.1, $0.2) }
-        )
-    }
-    
-    // Get a specific response
-    func getResponse(for key: String) -> (question: String, answer: String)? {
-        guard let tuple = responses.first(where: { $0.1 == key }) else { return nil }
-        return (question: tuple.0, answer: tuple.2)
-    }
-    
-    // Check if profile is complete
-    var isComplete: Bool {
-        return !firstName.isEmpty && !birthDate.isEmpty && !zodiacSign.isEmpty
-    }
-}
-
 // Subscription Status View Component
 struct SubscriptionStatusView: View {
     let status: SubscriptionStatus

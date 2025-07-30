@@ -71,7 +71,6 @@ struct MainZodiacView: View {
                         }
                     },
                     onConsentDismissed: {
-                        print("=== CONSENT DISMISSED CALLBACK EXECUTED ===")
                         print("Consent alert dismissed in MainZodiacView")
                     },
                     completedOnboarding: completedOnboarding

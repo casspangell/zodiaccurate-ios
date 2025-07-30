@@ -105,11 +105,7 @@ struct HoroscopeSplashView: View {
             // This will trigger a view refresh when refreshTrigger changes
         }
         .onChange(of: showConsentAlert) { _, newValue in
-            // When consent alert is dismissed (changes from true to false)
-            print("HoroscopeSplashView: showConsentAlert changed to \(newValue)")
             if !newValue {
-                print("done")
-                print("HoroscopeSplashView: Calling onConsentDismissed callback")
                 onConsentDismissed?()
             }
         }
@@ -117,7 +113,6 @@ struct HoroscopeSplashView: View {
     }
 
     private func showMain() {
-        print("Navigating to MainView...")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             onDismiss?()
         }

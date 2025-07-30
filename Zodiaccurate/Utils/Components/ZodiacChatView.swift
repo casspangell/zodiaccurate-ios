@@ -290,7 +290,6 @@ struct ZodiacChatView: View {
                                         lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
                                     )
                                     if targetOffset > 0 {
-                                        print("kilroy: 22")
                                         withAnimation(.easeInOut(duration: 0.3)) {
                                             self.animatedKeyboardOffset = 20 //bump it about the height of a text line
                                         }
@@ -348,7 +347,6 @@ struct ZodiacChatView: View {
 //            }
             .onChange(of: showResponseChatBubble) { _, showResponse in
                 if showResponse {
-                    print("++ show response")
                     // First scroll to bottom, then fade in the response bubble
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                          scrollToBottom(animated: true)
@@ -372,7 +370,6 @@ struct ZodiacChatView: View {
                                 lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
                             )
                             if targetOffset > 0 {
-                                print("kilroy 2")
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     self.animatedKeyboardOffset = targetOffset
                                 }
@@ -382,7 +379,6 @@ struct ZodiacChatView: View {
                 }
             }
             .onAppear {
-                print("++ onappear")
                 // Initial scroll to bottom with longer delay
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                      scrollToBottom(animated: false)
@@ -405,7 +401,6 @@ struct ZodiacChatView: View {
                             lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
                         )
                         if targetOffset < 0 {
-                            print("kilroy 1")
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 self.animatedKeyboardOffset = targetOffset
                             }
@@ -611,7 +606,6 @@ struct ZodiacChatView: View {
             messages.append(responseMessage)
         }
         
-        print("🔍 [InputDebug] Response message added, calling onUserDataUpdate")
         onUserDataUpdate(input, conversationSteps[currentStep])
         currentInput = ""
         currentStep += 1
@@ -678,8 +672,6 @@ struct ZodiacChatView: View {
     
     private func scrollToBottom(animated: Bool) {
 
-        print("Actual function scrollToBottom called")
-
         guard !shouldScrollToBottom else { return }
         
         // Trigger scroll by updating state
@@ -711,14 +703,12 @@ struct ZodiacChatView: View {
             )
 
             if targetOffset > 0 && keyboardHeight > 0 {
-                print("kilroy4")
                 withAnimation(.easeInOut(duration: 0.3)) {
                     self.animatedKeyboardOffset = targetOffset
                 }
             }
             
             if keyboardHeight == 0 {
-                print("kilroy5")
                 // ++ prevents when pressing return everything goes below the screen
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                      scrollToBottom(animated: true)
@@ -921,9 +911,7 @@ struct ChatInputView: View {
                         Color.clear
                             .onAppear {
                                 let frame = geometry.frame(in: .global)
-//                                onFrameChange(frame)
                                 previousFrame = frame
-                                print("🔧 [ChatInputView] Initial frame: \(frame)")
                             }
                             .onChange(of: geometry.frame(in: .global)) { oldFrame, newFrame in
                                 // Only update if the frame has changed significantly (more than 1 point)

@@ -160,6 +160,16 @@ struct ConversationalOnboardingView: View {
         // Save the user data to Core Data with the temporary UUID
         userDataManager?.saveUserData(userData, userId: onboardingUUID)
         
+        // Convert to UserProfile and save it as well
+        let userProfile = UserProfile(
+            firstName: userData.firstName,
+            birthDate: userData.birthDate,
+            birthTime: userData.birthTime,
+            zodiacSign: userData.zodiacSign,
+            responses: userData.responses
+        )
+        userDataManager?.saveUserProfile(userProfile, userId: onboardingUUID)
+        
         // Save completion flag to UserDefaults
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         
@@ -175,6 +185,7 @@ struct ConversationalOnboardingView: View {
         }
         
         print("✅ Onboarding data saved successfully to Core Data!")
+        print("✅ UserProfile saved successfully to Core Data!")
         print("🎯 hasCompletedOnboarding set to: \(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding"))")
         print("🎫 Trial flag set to: \(UserDefaults.standard.bool(forKey: "isTrialActive"))")
         print("🆔 Onboarding UUID stored: \(onboardingUUID)")
@@ -251,7 +262,7 @@ struct ConversationalOnboardingView: View {
             print("⚠️ No existing user data found in Core Data, creating new entry...")
             
             // Create a new UserDataModel with the horoscope
-            let responses = userData.responses.map { "\($0.0)|\($0.1)|\($0.2)" }
+            let responses = userData.responses.map { OnboardingResponse(question: $0.0, key: $0.1, answer: $0.2) }
             let userDataModel = UserDataModel(
                 firstName: userData.firstName,
                 birthDate: userData.birthDate,

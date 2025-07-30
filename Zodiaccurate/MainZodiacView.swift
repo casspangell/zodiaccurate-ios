@@ -9,6 +9,7 @@ struct MainZodiacView: View {
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
+    @State private var hasTriggeredStardustAnimation = false
     
     let completedOnboarding: Bool
     
@@ -89,21 +90,14 @@ struct MainZodiacView: View {
                     // Initialize StardustManager
                     if stardustManager == nil {
                         stardustManager = StardustManager(modelContext: modelContext)
-                        
-                        // Earn stardust when user reaches this screen (if not already earned)
-                        let hasEarnedStardust = UserDefaults.standard.bool(forKey: "hasEarnedStardustForSession")
-                        print("🎯 MainZodiacView: Checking stardust earning - hasEarnedStardust: \(hasEarnedStardust)")
-                        if !hasEarnedStardust {
-                            print("🎯 MainZodiacView: Earning stardust for reaching main screen")
-                            stardustManager?.earnStardust(
-                                amount: 25,
-                                type: .achievement,
-                                description: "Reached main zodiac screen"
-                            )
-                            UserDefaults.standard.set(true, forKey: "hasEarnedStardustForSession")
-                            print("🎯 MainZodiacView: Stardust earned and session flag set")
-                        } else {
-                            print("🎯 MainZodiacView: Stardust already earned for this session")
+                    }
+                    
+                    // Always trigger stardust animation when MainZodiacView loads (with 3-second delay)
+                    if !hasTriggeredStardustAnimation {
+                        print("🎯 MainZodiacView: Scheduling stardust animation with 3-second delay")
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            triggerStardustAnimation()
+                            hasTriggeredStardustAnimation = true
                         }
                     }
                 }
@@ -114,6 +108,35 @@ struct MainZodiacView: View {
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
+        }
+    }
+    
+    private func triggerStardustAnimation() {
+        guard let stardustManager = stardustManager else {
+            print("⚠️ MainZodiacView: StardustManager not available")
+            return
+        }
+        
+        print("🎯 MainZodiacView: Current stardust balance: \(stardustManager.currentBalance)")
+        
+        // Check if user has completed onboarding and has stardust to show
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        
+        if hasCompletedOnboarding && stardustManager.currentBalance > 0 {
+            print("🎯 MainZodiacView: User has completed onboarding with \(stardustManager.currentBalance) stardust - triggering animation")
+            
+            // Trigger the stardust earned notification to show the animation
+            // Use a small amount (1) to trigger the animation without changing the balance
+            NotificationCenter.default.post(
+                name: .stardustEarned,
+                object: nil,
+                userInfo: [
+                    "amount": 1, // Small amount to trigger animation
+                    "type": StardustTransactionType.achievement
+                ]
+            )
+        } else {
+            print("🎯 MainZodiacView: No stardust animation needed - onboarding: \(hasCompletedOnboarding), balance: \(stardustManager.currentBalance)")
         }
     }
 }

@@ -293,7 +293,7 @@ class StardustManager: ObservableObject {
     /// Earn stardust for completing onboarding
     func earnOnboardingReward() {
         earnStardust(
-            amount: 50,
+            amount: 15,
             type: .achievement,
             description: "Completed onboarding and received your first horoscope"
         )

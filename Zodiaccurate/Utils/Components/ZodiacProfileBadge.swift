@@ -658,7 +658,7 @@ struct LocalizedStardustAnimation: View {
             
             // Amount text floating up
             VStack(spacing: 4) {
-                Text("+\(amount)")
+                Text("\(amount)")
                     .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundColor(.accentGold)
                     .scaleEffect(textScale)
@@ -773,10 +773,13 @@ struct ZodiacProfileBadgeWithStardust: View {
     }
     
     private func triggerEarningAnimation(amount: Int, type: StardustTransactionType) {
-        earningAmount = amount
+        // Use the current stardust balance for the animation, not the earned amount
+        earningAmount = stardustPoints
         earningType = type
         hasTriggeredEarning = true
         showEarningAnimation = true
+        
+        print("🎯 ZodiacProfileBadgeWithStardust: Triggering earning animation for current balance: \(stardustPoints) stardust")
         
         // Show stardust indicator after earning animation completes (1.5 seconds)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -840,10 +843,13 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
     }
     
     private func triggerEarningAnimation(amount: Int, type: StardustTransactionType) {
-        earningAmount = amount
+        // Use the current stardust balance for the animation, not the earned amount
+        earningAmount = stardustPoints
         earningType = type
         hasTriggeredEarning = true
         showEarningAnimation = true
+        
+        print("🎯 ZodiacProfileBadgeWhiteWithStardust: Triggering earning animation for current balance: \(stardustPoints) stardust")
         
         // Show stardust indicator after earning animation completes (1.5 seconds)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {

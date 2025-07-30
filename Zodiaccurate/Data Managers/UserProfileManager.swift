@@ -24,7 +24,7 @@ class UserProfileManager: ObservableObject {
         loadProfile()
     }
     
-    private func loadProfile() {
+    func loadProfile() {
         // Load from SwiftData first
         let descriptor = FetchDescriptor<UserDataModel>()
         do {
@@ -178,8 +178,10 @@ class UserProfileManager: ObservableObject {
     
     // MARK: - Save Methods
     
-    func saveChanges() {
-        guard let profile = profile else { return }
+    func saveChanges() throws {
+        guard let profile = profile else { 
+            throw ProfileError.noProfileData
+        }
         
         // Save to UserDefaults for quick access
         UserDefaults.standard.set(profile.firstName, forKey: "userFirstName")
@@ -187,9 +189,24 @@ class UserProfileManager: ObservableObject {
         UserDefaults.standard.set(profile.birthTime, forKey: "userBirthTime")
         UserDefaults.standard.set(profile.zodiacSign, forKey: "userZodiacSign")
         
-        // Save to SwiftData if we have a model context
-        // TODO: Implement SwiftData save when UserDataManager is available
-        print("✅ Profile changes saved to UserDefaults")
+        // Save to SwiftData using UserDataManager
+        let userDataManager = UserDataManager(modelContext: modelContext)
+        userDataManager.saveUserProfile(profile)
+        
+        print("✅ Profile changes saved to UserDefaults and SwiftData")
+    }
+    
+    // MARK: - Error Types
+    
+    enum ProfileError: Error, LocalizedError {
+        case noProfileData
+        
+        var errorDescription: String? {
+            switch self {
+            case .noProfileData:
+                return "No profile data available to save"
+            }
+        }
     }
     
     // MARK: - Reset Methods
@@ -225,12 +242,16 @@ class UserProfileManager: ObservableObject {
     }
     
     private func saveProfile() {
-        // Save to UserDefaults for now
+        // Save to UserDefaults for quick access
         if let profile = profile {
             UserDefaults.standard.set(profile.firstName, forKey: "userFirstName")
             UserDefaults.standard.set(profile.birthDate, forKey: "userBirthDate")
             UserDefaults.standard.set(profile.birthTime, forKey: "userBirthTime")
             UserDefaults.standard.set(profile.zodiacSign, forKey: "userZodiacSign")
+            
+            // Save to SwiftData using UserDataManager
+            let userDataManager = UserDataManager(modelContext: modelContext)
+            userDataManager.saveUserProfile(profile)
         }
     }
 }

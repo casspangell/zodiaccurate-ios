@@ -112,7 +112,6 @@ struct ConversationalOnboardingView: View {
             // Initialize StardustManager (no do-catch needed)
             if stardustManager == nil {
                 stardustManager = StardustManager(modelContext: modelContext)
-                print("✅ StardustManager initialized successfully")
             }
         }
         .animation(Animation.easeInOut(duration: 0.7), value: showOnboardingHoroscope)

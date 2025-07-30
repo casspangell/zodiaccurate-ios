@@ -4,6 +4,13 @@ import SwiftUI
 struct DatePickerView: View {
     @Binding var selectedDate: Date
     let onDateSelected: (Date) -> Void
+    let showSubmitButton: Bool
+    
+    init(selectedDate: Binding<Date>, onDateSelected: @escaping (Date) -> Void, showSubmitButton: Bool = true) {
+        self._selectedDate = selectedDate
+        self.onDateSelected = onDateSelected
+        self.showSubmitButton = showSubmitButton
+    }
     
     var body: some View {
         HStack {
@@ -19,21 +26,23 @@ struct DatePickerView: View {
                 .colorScheme(.dark)
                 .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        onDateSelected(selectedDate)
-                    }) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Submit")
+                if showSubmitButton {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            onDateSelected(selectedDate)
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Submit")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.accentGold)
+                            .cornerRadius(12)
                         }
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.accentGold)
-                        .cornerRadius(12)
                     }
                 }
             }
@@ -51,6 +60,14 @@ struct TimePickerView: View {
     @Binding var selectedTime: Date
     let onTimeSelected: (Date) -> Void
     let onUnknownTime: () -> Void
+    let showSubmitButton: Bool
+    
+    init(selectedTime: Binding<Date>, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, showSubmitButton: Bool = true) {
+        self._selectedTime = selectedTime
+        self.onTimeSelected = onTimeSelected
+        self.onUnknownTime = onUnknownTime
+        self.showSubmitButton = showSubmitButton
+    }
     
     var body: some View {
         HStack {
@@ -66,35 +83,37 @@ struct TimePickerView: View {
                 .colorScheme(.dark)
                 .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 
-                HStack(spacing: 12) {
-                    Button(action: {
-                        onUnknownTime()
-                    }) {
-                        HStack {
-                            Image(systemName: "questionmark.circle.fill")
-                            Text("I don't know")
+                if showSubmitButton {
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            onUnknownTime()
+                        }) {
+                            HStack {
+                                Image(systemName: "questionmark.circle.fill")
+                                Text("I don't know")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.lightSaphire.opacity(0.8))
+                            .cornerRadius(12)
                         }
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.lightSaphire.opacity(0.8))
-                        .cornerRadius(12)
-                    }
-                    
-                    Button(action: {
-                        onTimeSelected(selectedTime)
-                    }) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                            Text("Submit")
+                        
+                        Button(action: {
+                            onTimeSelected(selectedTime)
+                        }) {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                Text("Submit")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.accentGold)
+                            .cornerRadius(12)
                         }
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.accentGold)
-                        .cornerRadius(12)
                     }
                 }
             }
@@ -115,6 +134,17 @@ struct InteractivePickerView: View {
     let onDateSelected: (Date) -> Void
     let onTimeSelected: (Date) -> Void
     let onUnknownTime: () -> Void
+    let showSubmitButton: Bool
+    
+    init(step: ConversationStep, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, showSubmitButton: Bool = true) {
+        self.step = step
+        self._selectedDate = selectedDate
+        self._selectedTime = selectedTime
+        self.onDateSelected = onDateSelected
+        self.onTimeSelected = onTimeSelected
+        self.onUnknownTime = onUnknownTime
+        self.showSubmitButton = showSubmitButton
+    }
     
     var body: some View {
         Group {
@@ -122,13 +152,15 @@ struct InteractivePickerView: View {
             case "date":
                 DatePickerView(
                     selectedDate: $selectedDate,
-                    onDateSelected: onDateSelected
+                    onDateSelected: onDateSelected,
+                    showSubmitButton: showSubmitButton
                 )
             case "time":
                 TimePickerView(
                     selectedTime: $selectedTime,
                     onTimeSelected: onTimeSelected,
-                    onUnknownTime: onUnknownTime
+                    onUnknownTime: onUnknownTime,
+                    showSubmitButton: showSubmitButton
                 )
             default:
                 EmptyView()

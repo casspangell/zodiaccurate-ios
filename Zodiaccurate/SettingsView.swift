@@ -275,7 +275,10 @@ struct SettingsView: View {
                 notificationsEnabled = notificationManager.isNotificationsEnabled
             }
             .sheet(isPresented: $showingEditProfile) {
-                EditProfileView()
+                EditProfileView(onProfileSaved: {
+                    // Reload profile data in the main settings view
+                    userProfileManager.loadProfile()
+                })
             }
             .sheet(isPresented: $showingHelp) {
                 HelpSupportView()
@@ -305,9 +308,18 @@ struct EditProfileView: View {
     // Highlight states for text fields
     @State private var highlightFirstNameField = false
     
-    init() {
+    // Loading and error states
+    @State private var isSaving = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    
+    // Callback for when profile is saved
+    let onProfileSaved: (() -> Void)?
+    
+    init(onProfileSaved: (() -> Void)? = nil) {
         let tempContext = ModelContext(try! ModelContainer(for: UserDataModel.self))
         self._userProfileManager = StateObject(wrappedValue: UserProfileManager(modelContext: tempContext))
+        self.onProfileSaved = onProfileSaved
     }
     
     var body: some View {
@@ -344,13 +356,7 @@ struct EditProfileView: View {
                                 
                                 // Birth Date Picker
                                 VStack(alignment: .leading, spacing: 8) {
-                                    InteractivePickerView(
-                                        step: ConversationStep(
-                                            message: "Select your birth date",
-                                            inputType: "date",
-                                            placeholder: "Your birth date",
-                                            dataKey: "birthDate"
-                                        ),
+                                    DatePickerView(
                                         selectedDate: Binding(
                                             get: { 
                                                 let formatter = DateFormatter()
@@ -359,43 +365,16 @@ struct EditProfileView: View {
                                             },
                                             set: { userProfileManager.updateBirthDate($0) }
                                         ),
-                                        selectedTime: Binding(
-                                            get: { 
-                                                let formatter = DateFormatter()
-                                                formatter.timeStyle = .short
-                                                return formatter.date(from: userProfileManager.birthTime) ?? Date()
-                                            },
-                                            set: { userProfileManager.updateBirthTime($0) }
-                                        ),
                                         onDateSelected: { date in
                                             userProfileManager.updateBirthDate(date)
                                         },
-                                        onTimeSelected: { time in
-                                            userProfileManager.updateBirthTime(time)
-                                        },
-                                        onUnknownTime: {
-                                            // Handle unknown time if needed
-                                        }
+                                        showSubmitButton: false
                                     )
                                 }
                                 
                                 // Birth Time Picker
                                 VStack(alignment: .leading, spacing: 8) {
-                                    InteractivePickerView(
-                                        step: ConversationStep(
-                                            message: "Select your birth time",
-                                            inputType: "time",
-                                            placeholder: "Birth time (if known)",
-                                            dataKey: "birthTime"
-                                        ),
-                                        selectedDate: Binding(
-                                            get: { 
-                                                let formatter = DateFormatter()
-                                                formatter.dateStyle = .medium
-                                                return formatter.date(from: userProfileManager.birthDate) ?? Date()
-                                            },
-                                            set: { userProfileManager.updateBirthDate($0) }
-                                        ),
+                                    TimePickerView(
                                         selectedTime: Binding(
                                             get: { 
                                                 let formatter = DateFormatter()
@@ -404,27 +383,46 @@ struct EditProfileView: View {
                                             },
                                             set: { userProfileManager.updateBirthTime($0) }
                                         ),
-                                        onDateSelected: { date in
-                                            userProfileManager.updateBirthDate(date)
-                                        },
                                         onTimeSelected: { time in
                                             userProfileManager.updateBirthTime(time)
                                         },
                                         onUnknownTime: {
                                             // Handle unknown time
-                                        }
+                                            userProfileManager.updateBirthTime(Date())
+                                        },
+                                        showSubmitButton: false
                                     )
                                 }
                             }
                         }
                         
                         // Actions Section
-                        SettingsSection(title: "Actions") {
+                        SettingsSection(title: "") {
                             VStack(spacing: 12) {
                                 // Save Changes Button styled like SettingsRow
                                 Button(action: {
-                                    userProfileManager.saveChanges()
-                                    dismiss()
+                                    isSaving = true
+                                    
+                                    // Save profile changes
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        do {
+                                            try userProfileManager.saveChanges()
+                                            
+                                            // Call the callback to refresh the main settings view
+                                            onProfileSaved?()
+                                            
+                                            // Show loading for 2 seconds before dismissing
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                                isSaving = false
+                                                dismiss()
+                                            }
+                                        } catch {
+                                            // Handle error
+                                            isSaving = false
+                                            errorMessage = "Failed to save profile changes. Please try again."
+                                            showError = true
+                                        }
+                                    }
                                 }) {
                                     HStack(spacing: 16) {
                                         Image(systemName: "checkmark.circle")
@@ -456,6 +454,31 @@ struct EditProfileView: View {
                     }
                     .padding(.horizontal)
                 }
+            }
+            .overlay(
+                // Loading overlay
+                Group {
+                    if isSaving {
+                        ZStack {
+                            Color.black.opacity(0.5)
+                                .ignoresSafeArea()
+                            
+                            VStack(spacing: 20) {
+                                ZodiacLoadingSpinner(size: .large)
+                            }
+                        }
+                    }
+                }
+            )
+            .sheet(isPresented: $showError) {
+                ZodiacAlertView(
+                    title: "Error",
+                    message: errorMessage,
+                    primaryButtonTitle: "OK",
+                    primaryButtonAction: {
+                        showError = false
+                    }
+                )
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.backgroundSecondary, for: .navigationBar)

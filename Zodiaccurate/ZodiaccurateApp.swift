@@ -9,21 +9,47 @@ import SwiftUI
 import SwiftData
 import FirebaseCore
 import FirebaseAuth
+import UIKit
+
+// Minimal app delegate to satisfy GoogleUtilities
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Firebase is now configured in the SwiftUI App init
+        return true
+    }
+}
 
 @main
 struct ZodiaccurateApp: App {
-    @StateObject private var authManager = AuthenticationManager()
+    @StateObject private var authManager: AuthenticationManager
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var shouldClearAuthData = false
     
+    // Add the app delegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
     init() {
-        FirebaseApp.configure()
+        // Configure Firebase first
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+        
+        // Initialize AuthenticationManager after Firebase is configured
+        self._authManager = StateObject(wrappedValue: AuthenticationManager())
+        
+        // Suppress GoogleUtilities warning for SwiftUI apps
+        suppressGoogleUtilitiesWarning()
         
         // Check if this is the first launch after installation
         shouldClearAuthData = checkFirstLaunchAfterInstallation()
         
         // Configure API key for development (remove this after first run)
         // APIConfig.configureForDevelopment(openAIKey: "your-actual-api-key-here")
+    }
+    
+    private func suppressGoogleUtilitiesWarning() {
+        // Set environment variable to suppress GoogleUtilities warning
+        setenv("GOOGLE_UTILITIES_APP_DELEGATE_SWIZZLER_DISABLED", "1", 1)
     }
     
     private func checkFirstLaunchAfterInstallation() -> Bool {

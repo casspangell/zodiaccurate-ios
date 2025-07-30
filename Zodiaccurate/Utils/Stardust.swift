@@ -23,22 +23,16 @@ class StardustManager: ObservableObject {
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        print("🪙 StardustManager: Initializing...")
         loadBalance()
-        print("🪙 StardustManager: Initialization complete")
     }
     
     // MARK: - Balance Management
     
     /// Load the current stardust balance from Core Data
     func loadBalance() {
-        print("🪙 StardustManager: Loading stardust balance...")
-        
         let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
                     UserDefaults.standard.string(forKey: "onboardingUUID")
-        
-        print("🪙 StardustManager: Using userId: \(userId ?? "nil")")
-        
+
         let descriptor = FetchDescriptor<StardustBalance>(
             predicate: #Predicate<StardustBalance> { balance in
                 balance.userId == userId
@@ -47,7 +41,6 @@ class StardustManager: ObservableObject {
         
         do {
             let results = try modelContext.fetch(descriptor)
-            print("🪙 StardustManager: Found \(results.count) balance records")
             
             if let balance = results.first {
                 self.balanceModel = balance
@@ -57,7 +50,6 @@ class StardustManager: ObservableObject {
                 print("✅ StardustManager: Loaded balance - \(balance.balance) stardust")
             } else {
                 // Create new balance for user
-                print("🆕 StardustManager: Creating new balance for user")
                 let newBalance = StardustBalance(userId: userId, balance: 0)
                 modelContext.insert(newBalance)
                 self.balanceModel = newBalance
@@ -77,8 +69,7 @@ class StardustManager: ObservableObject {
     
     /// Load recent transactions
     private func loadRecentTransactions() {
-        print("🪙 StardustManager: Loading recent transactions...")
-        
+
         let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
                     UserDefaults.standard.string(forKey: "onboardingUUID")
         

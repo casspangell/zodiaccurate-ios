@@ -295,6 +295,7 @@ struct SettingsView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.backgroundSecondary, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
@@ -340,72 +341,219 @@ struct SettingsView: View {
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var firstName = OnboardingDataAccess.firstName
-    @State private var birthDate = OnboardingDataAccess.birthDate
-    @State private var birthTime = OnboardingDataAccess.birthTime
+    @State private var selectedBirthDate = Date()
+    @State private var selectedBirthTime = Date()
+    
+    // Focus states for text fields
+    @FocusState private var isFirstNameFocused: Bool
+    
+    // Highlight states for text fields
+    @State private var highlightFirstNameField = false
     
     var body: some View {
         NavigationView {
             ZStack {
-                MainCelestialBackground()
-                    .ignoresSafeArea()
+                // Background
+                SubBackground()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea(.all, edges: .all)
                 
-                VStack(spacing: 24) {
-                    Text("Edit Profile")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Header
+                        VStack(spacing: 16) {
+                            Text("Edit Profile")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                         .padding(.top, 20)
-                    
-                    VStack(spacing: 16) {
-                        SettingsInputField(
-                            title: "First Name",
-                            text: $firstName,
-                            placeholder: "Enter your first name"
-                        )
                         
-                        SettingsInputField(
-                            title: "Birth Date",
-                            text: $birthDate,
-                            placeholder: "MM/DD/YYYY"
-                        )
+                        // Current Profile Preview Section
+                        SettingsSection(title: "Current Profile") {
+                            VStack(spacing: 16) {
+                                // Profile Card
+                                HStack(spacing: 16) {
+                                    ZodiacProfileBadge()
+                                        .frame(width: 60, height: 60)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(OnboardingDataAccess.firstName)
+                                            .font(.system(size: 18, weight: .semibold))
+                                            .foregroundColor(.white)
+                                        
+                                        Text(OnboardingDataAccess.zodiacSign)
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.7))
+                                        
+                                        Text("Member since \(getFormattedDate())")
+                                            .font(.system(size: 12, weight: .regular))
+                                            .foregroundColor(.white.opacity(0.5))
+                                    }
+                                    
+                                    Spacer()
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.05))
+                                .cornerRadius(12)
+                            }
+                        }
                         
-                        SettingsInputField(
-                            title: "Birth Time",
-                            text: $birthTime,
-                            placeholder: "HH:MM AM/PM (optional)"
-                        )
+                        // Profile Information Section
+                        SettingsSection(title: "Profile Information") {
+                            VStack(spacing: 16) {
+                                // First Name Field
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("First Name")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.white)
+                                    
+                                    SingleLineTextField(
+                                        text: $firstName,
+                                        placeholder: "Enter your first name",
+                                        isFocused: $isFirstNameFocused,
+                                        onSubmit: {},
+                                        highlightInputField: $highlightFirstNameField
+                                    )
+                                }
+                                
+                                // Birth Date Picker
+                                VStack(alignment: .leading, spacing: 8) {
+                                    InteractivePickerView(
+                                        step: ConversationStep(
+                                            message: "Select your birth date",
+                                            inputType: "date",
+                                            placeholder: "Your birth date",
+                                            dataKey: "birthDate"
+                                        ),
+                                        selectedDate: $selectedBirthDate,
+                                        selectedTime: $selectedBirthTime,
+                                        onDateSelected: { date in
+                                            selectedBirthDate = date
+                                        },
+                                        onTimeSelected: { time in
+                                            selectedBirthTime = time
+                                        },
+                                        onUnknownTime: {
+                                            // Handle unknown time if needed
+                                        }
+                                    )
+                                }
+                                
+                                // Birth Time Picker
+                                VStack(alignment: .leading, spacing: 8) {
+                                    InteractivePickerView(
+                                        step: ConversationStep(
+                                            message: "Select your birth time",
+                                            inputType: "time",
+                                            placeholder: "Birth time (if known)",
+                                            dataKey: "birthTime"
+                                        ),
+                                        selectedDate: $selectedBirthDate,
+                                        selectedTime: $selectedBirthTime,
+                                        onDateSelected: { date in
+                                            selectedBirthDate = date
+                                        },
+                                        onTimeSelected: { time in
+                                            selectedBirthTime = time
+                                        },
+                                        onUnknownTime: {
+                                            // Handle unknown time
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Actions Section
+                        SettingsSection(title: "Actions") {
+                            VStack(spacing: 12) {
+                                // Save Changes Button styled like SettingsRow
+                                Button(action: {
+                                    // TODO: Save profile changes
+                                    dismiss()
+                                }) {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "checkmark.circle")
+                                            .font(.system(size: 20, weight: .medium))
+                                            .foregroundColor(.green)
+                                            .frame(width: 24)
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Save Changes")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.white)
+                                            
+                                            Text("Update your profile information")
+                                                .font(.system(size: 14, weight: .regular))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.5))
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                                
+                                // Reset to Default Button styled like SettingsRow
+                                Button(action: {
+                                    firstName = OnboardingDataAccess.firstName
+                                    selectedBirthDate = Date()
+                                    selectedBirthTime = Date()
+                                }) {
+                                    HStack(spacing: 16) {
+                                        Image(systemName: "arrow.clockwise")
+                                            .font(.system(size: 20, weight: .medium))
+                                            .foregroundColor(.orange)
+                                            .frame(width: 24)
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Reset to Default")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.white)
+                                            
+                                            Text("Restore original profile data")
+                                                .font(.system(size: 14, weight: .regular))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.5))
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                            }
+                        }
+                        .padding(.bottom, 40)
                     }
-                    .padding()
-                    .background(Color.white.opacity(0.1))
-                    .cornerRadius(16)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        // TODO: Save profile changes
-                        dismiss()
-                    }) {
-                        Text("Save Changes")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.accentColor)
-                            .cornerRadius(12)
-                    }
-                    .padding(.bottom, 40)
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.backgroundSecondary, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(action: {
                         dismiss()
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
                     }
-                    .foregroundColor(.white)
                 }
             }
         }
+    }
+    
+    private func getFormattedDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM yyyy"
+        return formatter.string(from: Date())
     }
 }
 

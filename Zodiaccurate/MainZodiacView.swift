@@ -5,6 +5,7 @@ struct MainZodiacView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var authManager: AuthenticationManager
     @State private var onboardingDataAccess: OnboardingDataAccess?
+    @State private var stardustManager: StardustManager?
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
@@ -45,13 +46,16 @@ struct MainZodiacView: View {
                         starFieldOpacity: 0.4,
                         cosmicParticlesOpacity: 0.6,
                         sparkleOpacity: 0.8,
-                        stardustPoints: 0,
+                        stardustPoints: stardustManager?.currentBalance ?? 0,
                         badgeSize: nil,
                         horoscopeDate: "Monday\nJanuary 5, 2025",
                         onSettingsTap: {
                             showingSettings = true
                         }
                     )
+                    .onAppear {
+                        print("🎯 MainZodiacView: ZodiacHeaderFull appeared with stardust: \(stardustManager?.currentBalance ?? 0)")
+                    }
 //                    .transition(.opacity.combined(with: .move(edge: .top)))
                     .animation(.easeInOut(duration: 0.5), value: splashViewDismissed)
                     .padding(.top, cameFromHoroscopeSplash ? getSafeAreaTop() : 0) // Align with purple rectangle bottom
@@ -81,6 +85,27 @@ struct MainZodiacView: View {
                     }
                     // Load user data
                     onboardingDataAccess?.loadUserData()
+                    
+                    // Initialize StardustManager
+                    if stardustManager == nil {
+                        stardustManager = StardustManager(modelContext: modelContext)
+                        
+                        // Earn stardust when user reaches this screen (if not already earned)
+                        let hasEarnedStardust = UserDefaults.standard.bool(forKey: "hasEarnedStardustForSession")
+                        print("🎯 MainZodiacView: Checking stardust earning - hasEarnedStardust: \(hasEarnedStardust)")
+                        if !hasEarnedStardust {
+                            print("🎯 MainZodiacView: Earning stardust for reaching main screen")
+                            stardustManager?.earnStardust(
+                                amount: 25,
+                                type: .achievement,
+                                description: "Reached main zodiac screen"
+                            )
+                            UserDefaults.standard.set(true, forKey: "hasEarnedStardustForSession")
+                            print("🎯 MainZodiacView: Stardust earned and session flag set")
+                        } else {
+                            print("🎯 MainZodiacView: Stardust already earned for this session")
+                        }
+                    }
                 }
             }
             if splashViewDismissed || completedOnboarding {

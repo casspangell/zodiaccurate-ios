@@ -23,9 +23,9 @@ struct InputTextField: View {
                     // Placeholder text
                     if text.isEmpty {
                         Text(placeholder)
-                            .foregroundColor(.gray)
+                            .foregroundColor(Color.white.opacity(0.5))
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 16)
                             .allowsHitTesting(false)
                     }
                     
@@ -146,7 +146,7 @@ struct SingleLineTextField: View {
     var onSubmit: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
-    var backgroundColor: Color = Color.bubbleFrost
+    var backgroundColor: Color = Color.textFieldBackground
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textChangeWorkItem: DispatchWorkItem?
@@ -264,7 +264,7 @@ struct MultiLineTextField: View {
     var onSubmit: () -> Void
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
-    var backgroundColor: Color = Color.bubbleFrost
+    var backgroundColor: Color = Color.textFieldBackground
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 100 // Initial height for 4 lines
@@ -277,7 +277,7 @@ struct MultiLineTextField: View {
                     // Placeholder text
                     if text.isEmpty {
                         Text(placeholder)
-                            .foregroundColor(Color.white.opacity(0.85))
+                            .foregroundColor(Color.white.opacity(0.5))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 16)
                             .allowsHitTesting(false)

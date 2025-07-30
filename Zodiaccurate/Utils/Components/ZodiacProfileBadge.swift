@@ -481,11 +481,17 @@ struct StardustIndicator: View {
     }
 }
 
-// MARK: - Customizable Stardust Indicator
-/// A customizable version of StardustIndicator that scales with the badge frame size
+// MARK: - Customizable Stardust Indicator with Ripple Animation
+/// A customizable version of StardustIndicator that scales with the badge frame size and includes ripple animation
 struct CustomStardustIndicator: View {
     let stardustPoints: Int
     let frameSize: CGFloat
+    
+    // Animation states for ripple effect
+    @State private var rippleScale: CGFloat = 1.0
+    @State private var rippleOpacity: Double = 0.0
+    @State private var showRipple: Bool = false
+    @State private var previousStardustPoints: Int = 0
     
     // Scale the indicator size based on frame size (32/180 ratio)
     private var indicatorSize: CGFloat { frameSize * 0.178 }
@@ -519,6 +525,28 @@ struct CustomStardustIndicator: View {
     
     var body: some View {
         ZStack {
+            // Ripple effect (water droplet animation)
+            if showRipple {
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.accentGold.opacity(0.8),
+                                Color.yellow.opacity(0.6),
+                                Color.clear
+                            ]),
+                            startPoint: .center,
+                            endPoint: .trailing
+                        ),
+                        lineWidth: 2
+                    )
+                    .frame(width: indicatorSize * rippleScale, height: indicatorSize * rippleScale)
+                    .scaleEffect(rippleScale)
+                    .opacity(rippleOpacity)
+                    .animation(.easeOut(duration: 0.8), value: rippleScale)
+                    .animation(.easeOut(duration: 0.8), value: rippleOpacity)
+            }
+            
             // Background circle with gradient
             Circle()
                 .fill(
@@ -533,15 +561,45 @@ struct CustomStardustIndicator: View {
                 )
                 .frame(width: indicatorSize, height: indicatorSize)
                 .shadow(color: Color.accentGold.opacity(0.5), radius: shadowRadius, x: 0, y: 2)
+                .scaleEffect(showRipple ? 1.1 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showRipple)
             
             // Stardust points text
             Text("\(stardustPoints)")
                 .font(.system(size: fontSize, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
+                .scaleEffect(showRipple ? 1.05 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showRipple)
         }
         .offset(offset)
+        .opacity(1.0) // Ensure stardust indicator is fully visible
         .animation(.easeInOut(duration: 0.5), value: stardustPoints)
+        .onChange(of: stardustPoints) { oldValue, newValue in
+            if newValue > oldValue {
+                triggerRippleAnimation()
+            }
+        }
+    }
+    
+    private func triggerRippleAnimation() {
+        // Reset ripple state
+        rippleScale = 1.0
+        rippleOpacity = 0.8
+        showRipple = true
+        
+        // Animate ripple expansion
+        withAnimation(.easeOut(duration: 0.8)) {
+            rippleScale = 2.5
+            rippleOpacity = 0.0
+        }
+        
+        // Reset after animation completes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            showRipple = false
+            rippleScale = 1.0
+            rippleOpacity = 0.0
+        }
     }
 }
 
@@ -671,15 +729,18 @@ struct ZodiacProfileBadgeWithStardust: View {
     @State private var showEarningAnimation = false
     @State private var earningAmount = 0
     @State private var earningType: StardustTransactionType = .achievement
+    @State private var showStardustIndicator = false
+    @State private var hasTriggeredEarning = false
     
     var body: some View {
         ZStack {
             // Customizable ZodiacProfileBadge with frame size
             CustomZodiacProfileBadge(zodiacImage: zodiacImage, frameSize: frameSize)
             
-            // Stardust indicator (scaled to frame size)
-            if stardustPoints > 0 {
+            // Stardust indicator (scaled to frame size) - appears after earning animation
+            if stardustPoints > 0 && showStardustIndicator {
                 CustomStardustIndicator(stardustPoints: stardustPoints, frameSize: frameSize)
+                    .transition(.scale.combined(with: .opacity))
             }
             
             // Localized earning animation
@@ -699,12 +760,30 @@ struct ZodiacProfileBadgeWithStardust: View {
                 triggerEarningAnimation(amount: amount, type: type)
             }
         }
+        .onAppear {
+            // Show stardust indicator immediately if no earning animation is expected
+            if stardustPoints > 0 && !hasTriggeredEarning {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        showStardustIndicator = true
+                    }
+                }
+            }
+        }
     }
     
     private func triggerEarningAnimation(amount: Int, type: StardustTransactionType) {
         earningAmount = amount
         earningType = type
+        hasTriggeredEarning = true
         showEarningAnimation = true
+        
+        // Show stardust indicator after earning animation completes (1.5 seconds)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showStardustIndicator = true
+            }
+        }
     }
 }
 
@@ -717,15 +796,18 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
     @State private var showEarningAnimation = false
     @State private var earningAmount = 0
     @State private var earningType: StardustTransactionType = .achievement
+    @State private var showStardustIndicator = false
+    @State private var hasTriggeredEarning = false
     
     var body: some View {
         ZStack {
             // Customizable ZodiacProfileBadgeWhite with frame size
             CustomZodiacProfileBadgeWhite(zodiacImage: zodiacImage, frameSize: frameSize)
             
-            // Stardust indicator (scaled to frame size)
-            if stardustPoints > 0 {
+            // Stardust indicator (scaled to frame size) - appears after earning animation
+            if stardustPoints > 0 && showStardustIndicator {
                 CustomStardustIndicator(stardustPoints: stardustPoints, frameSize: frameSize)
+                    .transition(.scale.combined(with: .opacity))
             }
             
             // Localized earning animation
@@ -745,12 +827,30 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
                 triggerEarningAnimation(amount: amount, type: type)
             }
         }
+        .onAppear {
+            // Show stardust indicator immediately if no earning animation is expected
+            if stardustPoints > 0 && !hasTriggeredEarning {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        showStardustIndicator = true
+                    }
+                }
+            }
+        }
     }
     
     private func triggerEarningAnimation(amount: Int, type: StardustTransactionType) {
         earningAmount = amount
         earningType = type
+        hasTriggeredEarning = true
         showEarningAnimation = true
+        
+        // Show stardust indicator after earning animation completes (1.5 seconds)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showStardustIndicator = true
+            }
+        }
     }
 }
 

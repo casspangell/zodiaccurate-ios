@@ -14,6 +14,8 @@ extension Color {
     static let fontDateGradientStart = Color(hex: "8BBAFF")
     static let fontDateGradientEnd = Color(hex: "E5D7FF")
     
+    static let textFieldBackground = Color(hex: "D0F0FF").opacity(0.5)
+    
     static let backgroundPrimary = Color(hex: "15141B")
     static let backgroundSecondary = Color(hex: "18131C")
     static let accentGold = Color(hex: "E39D4D")

@@ -135,71 +135,59 @@ struct RootView: View {
                 SplashScreenView { _ in
                     withAnimation(.easeInOut(duration: 0.7)) {
                         showSplash = false
+                        print("Splashscreen dismissed")
                         // Check if user has completed onboarding and trial status
                         if hasCompletedOnboarding {
-                            print("✅ User has completed onboarding, checking trial status...")
-                            if isTrialActive {
-                                print("🎫 Trial user detected, bypassing login and going directly to main view")
-                                // Trial users bypass login and go directly to main view
-                                showOnboarding = false
-                                showLogin = false
-                                // Set authenticated state for trial users
-                                authManager.setTrialMode()
-                            } else {
-                                print("✅ User has completed onboarding but trial is inactive, going to signup")
-                                // Non-trial users go to signup flow
-                                showOnboarding = false
-                                showLogin = true
-                                shouldStartWithRegistration = true // Force registration for non-trial users
-                            }
+                            print("✅ User has completed onboarding")
                         } else {
                             print("🆕 New user detected, showing onboarding flow")
-                            // Show onboarding flow for new users
                             showOnboarding = true
                         }
                     }
                 }
                 .transition(.opacity)
             }
-            
+
             if showOnboarding {
                 ConversationalOnboardingView {
-                    withAnimation(.easeInOut(duration: 0.7)) {
-                        // Save onboarding completion flag
-                        hasCompletedOnboarding = true
-                        showOnboarding = false
-                        showLogin = true
-                        shouldStartWithRegistration = true
-                    }
+//                    withAnimation(.easeInOut(duration: 0.7)) {
+//                        // Save onboarding completion flag
+//                        hasCompletedOnboarding = true
+//                        showOnboarding = false
+////                        showLogin = true
+////                        shouldStartWithRegistration = true
+//                    }
                 }
                 .transition(.opacity)
             }
-            
-            if showLogin && !authManager.isAuthenticated {
-                LoginView(isRegistering: shouldStartWithRegistration)
-                    .transition(.opacity)
-            }
-            
-            // If user is already authenticated and has completed onboarding, show main view
-            if authManager.isAuthenticated && hasCompletedOnboarding {
-                MainZodiacView(completedOnboarding: true)
-                    .transition(.opacity)
-                    .onAppear {
-                        print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
-                    }
-            } else if authManager.shouldShowOnboardingHoroscope && !hasCompletedOnboarding {
-                HoroscopeSplashView(completedOnboarding: false)
-                    .transition(.opacity)
-                    .onAppear {
-                        print("✨ Showing onboarding horoscope splash")
-                    }
-            } else if authManager.isAuthenticated {
-                MainZodiacView(completedOnboarding: hasCompletedOnboarding)
-                    .transition(.opacity)
-                    .onAppear {
-                        print("🔐 Authenticated user, showing MainZodiacView")
-                    }
-            }
+//            
+//            if showLogin && !authManager.isAuthenticated {
+//                LoginView(isRegistering: shouldStartWithRegistration)
+//                    .transition(.opacity)
+//            }
+//            
+//            // If user is already authenticated and has completed onboarding, show main view
+//            if authManager.isAuthenticated && hasCompletedOnboarding {
+//                MainZodiacView(completedOnboarding: true)
+//                    .transition(.opacity)
+//                    .onAppear {
+//                        print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
+//                    }
+//            }
+//            else if authManager.shouldShowOnboardingHoroscope && !hasCompletedOnboarding {
+//                HoroscopeSplashView(completedOnboarding: false)
+//                    .transition(.opacity)
+//                    .onAppear {
+//                        print("✨ Showing onboarding horoscope splash")
+//                    }
+//            }
+//            else if authManager.isAuthenticated {
+//                MainZodiacView(completedOnboarding: hasCompletedOnboarding)
+//                    .transition(.opacity)
+//                    .onAppear {
+//                        print("🔐 Authenticated user, showing MainZodiacView")
+//                    }
+//            }
         }
         .animation(.easeInOut(duration: 0.7), value: showSplash)
         .animation(.easeInOut(duration: 0.7), value: showOnboarding)

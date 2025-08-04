@@ -22,7 +22,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct ZodiaccurateApp: App {
     @StateObject private var authManager: AuthenticationManager
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var shouldClearAuthData = false
     
     // Add the app delegate

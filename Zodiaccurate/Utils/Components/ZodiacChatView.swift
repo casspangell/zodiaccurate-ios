@@ -575,11 +575,12 @@ struct ZodiacChatView: View {
             return
         }
         highlightInputField = false
-        handleUserInput(input: currentInput)
+        handleUserInput(input: trimmed)
     }
     
     private func handleUserInput(input: String) {
-        guard !input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedInput.isEmpty else { return }
 
         tutorialManager.stopTutorial()
         
@@ -597,7 +598,7 @@ struct ZodiacChatView: View {
         tutorialBubbleOpacity = 0.0
         
         let responseMessage = ChatMessage(
-            text: input,
+            text: trimmedInput,
             isUser: true,
             timestamp: Date()
         )
@@ -605,7 +606,7 @@ struct ZodiacChatView: View {
             messages.append(responseMessage)
         }
         
-        onUserDataUpdate(input, conversationSteps[currentStep])
+        onUserDataUpdate(trimmedInput, conversationSteps[currentStep])
         currentInput = ""
         currentStep += 1
         onStepComplete(currentStep)

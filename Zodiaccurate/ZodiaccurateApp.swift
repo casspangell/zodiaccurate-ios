@@ -151,7 +151,7 @@ struct RootView: View {
                 ConversationalOnboardingView {
                     withAnimation(.easeInOut(duration: 0.7)) {
 //                        // Save onboarding completion flag
-//                        hasCompletedOnboarding = true
+                        hasCompletedOnboarding = true
 //                        showOnboarding = false
 ////                        showLogin = true
 ////                        shouldStartWithRegistration = true

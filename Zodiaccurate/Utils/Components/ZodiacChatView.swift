@@ -372,28 +372,28 @@ struct ZodiacChatView: View {
                      scrollToBottom(animated: false)
                 }
             }
-//            .onChange(of: shouldScrollToBottom) { _, shouldScroll in
-//                if shouldScroll {
-//                    withAnimation(.easeInOut(duration: 0.8)) {
-//                        proxy.scrollTo("bottomAnchor", anchor: .bottom)
-//                    }
-//                }
-//            } kilroy
-//            .onChange(of: isTextFieldFocused) { _, isFocused in
-//                if isFocused && keyboardManager.keyboardHeight > 0 {
-//                    print("is focused")
-//                    // Text field gained focus while keyboard is visible
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-//                        keyboardManager.updateKeyboardOffset(
-//                            keyboardHeight: keyboardManager.keyboardHeight,
-//                            inputFieldFrame: self.inputFieldFrame,
-//                            lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
-//                        )
-//                    }
-//                } else {
-//                    print("not focused")
-//                }
-//            } kilroy
+            .onChange(of: shouldScrollToBottom) { _, shouldScroll in
+                if shouldScroll {
+                    withAnimation(.easeInOut(duration: 0.8)) {
+                        proxy.scrollTo("bottomAnchor", anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: isTextFieldFocused) { _, isFocused in
+                if isFocused && keyboardManager.keyboardHeight > 0 {
+                    print("is focused")
+                    // Text field gained focus while keyboard is visible
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        keyboardManager.updateKeyboardOffset(
+                            keyboardHeight: keyboardManager.keyboardHeight,
+                            inputFieldFrame: self.inputFieldFrame,
+                            lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
+                        )
+                    }
+                } else {
+                    print("not focused")
+                }
+            }
             .simultaneousGesture(
                 DragGesture(minimumDistance: 10)
                     .onChanged { value in

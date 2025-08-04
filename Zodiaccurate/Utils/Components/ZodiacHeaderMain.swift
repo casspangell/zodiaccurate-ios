@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+/// Display modes for the ZodiacHeaderMain component
+enum ZodiacHeaderDisplayMode {
+    case initial  // Default UI with centered badge only
+    case main     // Full UI with buttons and date
+}
+
 /// A reusable zodiac-themed header component with animated profile badge
 struct ZodiacHeaderMain: View {
     // MARK: - Properties
@@ -22,6 +28,7 @@ struct ZodiacHeaderMain: View {
     let badgeSize: CGFloat?
     let horoscopeDate: String
     let onSettingsTap: (() -> Void)?
+    let displayMode: ZodiacHeaderDisplayMode
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
@@ -42,7 +49,8 @@ struct ZodiacHeaderMain: View {
         stardustPoints: Int = 0,
         badgeSize: CGFloat? = nil,
         horoscopeDate: String = "Monday\nJanuary 5, 2025",
-        onSettingsTap: (() -> Void)? = nil
+        onSettingsTap: (() -> Void)? = nil,
+        displayMode: ZodiacHeaderDisplayMode = .initial
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -56,73 +64,161 @@ struct ZodiacHeaderMain: View {
         self.badgeSize = badgeSize
         self.horoscopeDate = horoscopeDate
         self.onSettingsTap = onSettingsTap
+        self.displayMode = displayMode
     }
     
     // MARK: - Body
     var body: some View {
         ZStack {
-//            VStack(spacing: 0) {
-//                Rectangle()
-//                    .fill(Color.blue)
-//                    .frame(height: UIScreen.main.bounds.height * 0.3)
-//                
-//                Spacer()
-//            }
-//            .frame(maxWidth: .infinity, alignment: .top)
-//            .allowsHitTesting(false)
-            
-            // Fixed Header Content
-            VStack(spacing: 0) {
-                HStack {
-                    ZStack {
-                        ZodiacProfileBadgeWithStardust(
-                            zodiacImage: Image(profileImage),
-                            stardustPoints: stardustPoints,
-                            frameSize: ZodiacHeaderMain.profileBadgeHeight()
-                        )
-                        .scaleEffect(badgeScale)
-                        .rotationEffect(.degrees(badgeRotation))
-                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                        .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
-                    }
-                    .frame(width: ZodiacHeaderMain.profileBadgeHeight(), height: ZodiacHeaderMain.profileBadgeHeight() - 50) //don't know needed a buffer
+            // Dark header background with gradient fade (only for initial mode)
+            if displayMode == .initial {
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .fill(Color.deepBlue.opacity(1.0))
+                        .frame(height: 75)
                     
-//                    Spacer()
-                    
-                    // Vertical stack of buttons
-                    VStack(alignment: .trailing, spacing: 16) {
-                        CircleIconButton(
-                            systemName: "bell",
-                            accessibilityLabel: "Notifications"
-                        ) {
-                            // Bell button action
-                        }
-                        
-                        CircleIconButton(
-                            systemName: "gearshape",
-                            accessibilityLabel: "Settings"
-                        ) {
-                            onSettingsTap?()
-                        }
-                        
-                        // Date display
-                        HoroscopeDateText(date: horoscopeDate)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
+                            .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
+                            .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
+                            .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
+                            .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
+                            .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
+                            .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
+                            .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
+                            .init(color: Color.clear, location: 1.0)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 100)
                 }
-                .padding(.trailing, 20)
-                Spacer()
+                .allowsHitTesting(false)
+                .ignoresSafeArea(.all, edges: .top)
             }
-            .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height/5, alignment: .top)
-            .padding(.top, 10)
-            .padding(.bottom, 10)
+            
+            // Header Content
+            if displayMode == .main {
+                // Main mode - current UI with buttons and date
+                VStack(spacing: 0) {
+                    HStack {
+                        ZStack {
+                            // Profile badge that animates between states
+                            ZodiacProfileBadgeWithStardust(
+                                zodiacImage: Image("Leo"),
+                                stardustPoints: 1250,
+                                frameSize: displayMode == .main ? ZodiacHeaderMain.profileBadgeHeight() : 150
+                            )
+                            .scaleEffect(displayMode == .main ? 1.0 : 0.9)
+                            .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                        }
+                        .frame(
+                            width: displayMode == .main ? ZodiacHeaderMain.profileBadgeHeight() : 150,
+                            height: displayMode == .main ? ZodiacHeaderMain.profileBadgeHeight() - 50 : 150
+                        )
+                        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                        
+                        // Settings buttons that slide in
+                        if displayMode == .main {
+                            settingsButtons
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                        }
+                    }
+                    .padding(.leading, displayMode == .main ? 15 : 0)
+                    .padding(.trailing, displayMode == .main ? 20 : 0)
+                    .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height/5, alignment: .top)
+                .padding(.top, displayMode == .main ? 10 : 36)
+                .padding(.bottom, displayMode == .main ? 10 : 0)
+                .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+            } else {
+                // Initial mode - only profile badge centered like ZodiacHeader
+                VStack(spacing: 8) {
+                    ZStack {
+                        if profileImage == "logo" {
+                            // Original simple white circle for logo state
+                            Circle()
+                                .fill(Color.white.opacity(0.5))
+                                .frame(width: 130, height: 130)
+                                .scaleEffect(badgeScale)
+                                .rotationEffect(.degrees(badgeRotation))
+                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                                .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
+                            
+                            Image(profileImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 140, height: 140)
+                                .id(profileImage)
+                                .scaleEffect(badgeScale)
+                                .rotationEffect(.degrees(badgeRotation))
+                        } else {
+                            // Use enhanced ZodiacProfileBadge with stardust for zodiac signs
+                            ZodiacProfileBadgeWhiteWithStardust(
+                                zodiacImage: Image(profileImage),
+                                stardustPoints: stardustPoints
+                            )
+                            .scaleEffect(badgeScale)
+                            .rotationEffect(.degrees(badgeRotation))
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
+                            .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
+                        }
+                    }
+                    .frame(height: 150)
+                    .padding(.top, profileImage == "logo" ? 60 : 36)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    Text("")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.bottom, 8)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 0)
+                .background(
+                    GeometryReader { headerGeometry in
+                        Color.clear
+                            .preference(key: HeaderHeightPreferenceKey.self, value: headerGeometry.size.height)
+                    }
+                )
+            }
         }
         .zIndex(2)
         .onAppear {
-            print("🎯 ZodiacHeaderFull: Header appeared")
+            print("🎯 ZodiacHeaderMain: Header appeared")
             print("   🎭 Profile image: \(profileImage)")
             print("   📅 Horoscope date: \(horoscopeDate)")
+            print("   🎛️ Display mode: \(displayMode)")
         }
+    }
+    
+    // MARK: - Layout Components
+    private var settingsButtons: some View {
+        VStack(alignment: .trailing, spacing: 16) {
+            CircleIconButton(
+                systemName: "bell",
+                accessibilityLabel: "Notifications"
+            ) {
+                // Bell button action
+            }
+            
+            CircleIconButton(
+                systemName: "gearshape",
+                accessibilityLabel: "Settings"
+            ) {
+                onSettingsTap?()
+            }
+            
+            // Date display
+            HoroscopeDateText(date: horoscopeDate)
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .offset(x: displayMode == .main ? 0 : 200) // Slide in from off-screen
+        .animation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2), value: displayMode)
     }
 }
 
@@ -131,23 +227,262 @@ struct ZodiacHeaderMain: View {
     ZStack {
         Color.black.ignoresSafeArea()
         
-        ZodiacHeaderMain(
-            profileImage: "Leo",
-            badgeScale: 1.0,
-            badgeRotation: 0,
-            cosmicGlowOpacity: 0.5,
-            nebulaOpacity: 0.3,
-            starFieldOpacity: 0.4,
-            cosmicParticlesOpacity: 0.6,
-            sparkleOpacity: 0.8,
-            badgeSize: nil,
-            horoscopeDate: "Monday\nJanuary 5, 2025",
-            onSettingsTap: {
-                // This would be implemented in the actual view that uses ZodiacHeaderFull
-                // Example: showingSettings = true
-                print("Settings button tapped")
-            }
-        )
+        VStack(spacing: 20) {
+            ZodiacHeaderMain(
+                profileImage: "Leo",
+                badgeScale: 1.0,
+                badgeRotation: 0,
+                cosmicGlowOpacity: 0.5,
+                nebulaOpacity: 0.3,
+                starFieldOpacity: 0.4,
+                cosmicParticlesOpacity: 0.6,
+                sparkleOpacity: 0.8,
+                badgeSize: nil,
+                horoscopeDate: "Monday\nJanuary 5, 2025",
+                onSettingsTap: {
+                    print("Settings button tapped")
+                },
+                displayMode: .main
+            )
+            
+            ZodiacHeaderMain(
+                profileImage: "Leo",
+                badgeScale: 1.0,
+                badgeRotation: 0,
+                cosmicGlowOpacity: 0.5,
+                nebulaOpacity: 0.3,
+                starFieldOpacity: 0.4,
+                cosmicParticlesOpacity: 0.6,
+                sparkleOpacity: 0.8,
+                badgeSize: nil,
+                horoscopeDate: "Monday\nJanuary 5, 2025",
+                onSettingsTap: {
+                    print("Settings button tapped")
+                },
+                displayMode: .initial
+            )
+        }
     }
 }
 
+// MARK: - Canvas Preview with Animation
+#Preview("Canvas Preview with Animation") {
+    AnimatedHeaderDemo()
+}
+
+// MARK: - Demo Component for Canvas Preview
+struct AnimatedHeaderDemo: View {
+    @State private var displayMode: ZodiacHeaderDisplayMode = .initial
+    @State private var isAnimating = false
+    
+    // MARK: - Computed Properties
+    private var profileBadge: some View {
+        ZodiacProfileBadgeWithStardust(
+            zodiacImage: Image("Leo"),
+            stardustPoints: 1250,
+            frameSize: ZodiacHeaderMain.profileBadgeHeight()
+        )
+        .scaleEffect(1.0)
+        .rotationEffect(.degrees(0))
+    }
+    
+    private var initialProfileBadge: some View {
+        ZodiacProfileBadgeWhiteWithStardust(
+            zodiacImage: Image("Leo"),
+            stardustPoints: 1250
+        )
+        .scaleEffect(displayMode == .main ? 0.8 : 1.0) // Size animation
+        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+    }
+    
+    private var mainProfileBadge: some View {
+        ZodiacProfileBadgeWithStardust(
+            zodiacImage: Image("Leo"),
+            stardustPoints: 1250,
+            frameSize: ZodiacHeaderMain.profileBadgeHeight()
+        )
+        .scaleEffect(displayMode == .main ? 1.0 : 0.8) // Size animation
+        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+    }
+    
+    private var settingsButtons: some View {
+        VStack(alignment: .trailing, spacing: 16) {
+            CircleIconButton(
+                systemName: "bell",
+                accessibilityLabel: "Notifications"
+            ) {
+                // Bell button action
+            }
+            
+            CircleIconButton(
+                systemName: "gearshape",
+                accessibilityLabel: "Settings"
+            ) {
+                print("Settings tapped")
+            }
+            
+            // Date display
+            HoroscopeDateText(date: "Monday\nJanuary 5, 2025")
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .offset(x: displayMode == .main ? 0 : 200) // Slide in from off-screen
+        .animation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2), value: displayMode)
+    }
+    
+    var body: some View {
+        ZStack {
+            // Background gradient to simulate app background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.black,
+                    Color.deepBlue.opacity(0.3),
+                    Color.purple.opacity(0.2)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Animation button at the top
+                animationControls
+                
+                // Animated Header with position transitions
+                VStack(spacing: 0) {
+                    HStack {
+                        ZStack {
+                            // Profile badge that animates between states
+                            ZodiacProfileBadgeWithStardust(
+                                zodiacImage: Image("Leo"),
+                                stardustPoints: 1250,
+                                frameSize: displayMode == .main ? ZodiacHeaderMain.profileBadgeHeight() : 150
+                            )
+                            .scaleEffect(displayMode == .main ? 1.0 : 0.9)
+                            .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                        }
+                        .frame(
+                            width: displayMode == .main ? ZodiacHeaderMain.profileBadgeHeight() : 150,
+                            height: displayMode == .main ? ZodiacHeaderMain.profileBadgeHeight() - 50 : 150
+                        )
+                        .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                        
+                        // Settings buttons that slide in
+                        if displayMode == .main {
+                            VStack(alignment: .trailing, spacing: 16) {
+                                CircleIconButton(
+                                    systemName: "bell",
+                                    accessibilityLabel: "Notifications"
+                                ) {
+                                    // Bell button action
+                                }
+                                
+                                CircleIconButton(
+                                    systemName: "gearshape",
+                                    accessibilityLabel: "Settings"
+                                ) {
+                                    print("Settings tapped")
+                                }
+                                
+                                // Date display
+                                HoroscopeDateText(date: "Monday\nJanuary 5, 2025")
+                            }
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                        }
+                    }
+                    .padding(.leading, displayMode == .main ? 15 : 0)
+                    .padding(.trailing, displayMode == .main ? 20 : 0)
+                    .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height/5, alignment: .top)
+                .padding(.top, displayMode == .main ? 10 : 36)
+                .padding(.bottom, displayMode == .main ? 10 : 0)
+                .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                
+                // Simulated content area
+                contentArea
+            }
+        }
+    }
+    
+    // MARK: - Layout Components
+    private var animationControls: some View {
+        VStack(spacing: 16) {
+            Text("Animation Demo")
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.top, 20)
+            
+            // Primary transition button
+            Button("🚀 Animate to Main UI") {
+                transitionToMain()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+            .font(.headline)
+            .padding(.horizontal, 20)
+            
+            HStack(spacing: 20) {
+                Button("Initial Mode") {
+                    transitionToInitial()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                
+                Button("Main Mode") {
+                    transitionToMain()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+            }
+            .padding(.horizontal, 20)
+        }
+        .padding(.bottom, 20)
+    }
+    
+    private var contentArea: some View {
+        Rectangle()
+            .fill(Color.clear)
+            .frame(height: 200)
+            .overlay(
+                Text("App Content Area")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.5))
+            )
+    }
+    
+    // MARK: - Animation Functions
+    /// Transitions from initial mode to main mode with animation
+    private func transitionToMain() {
+        guard !isAnimating else { return }
+        isAnimating = true
+        
+        // Animate to main mode
+        withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
+            displayMode = .main
+        }
+        
+        // Reset animation flag after delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            isAnimating = false
+        }
+    }
+    
+    /// Transitions from main mode to initial mode with animation
+    private func transitionToInitial() {
+        guard !isAnimating else { return }
+        isAnimating = true
+        
+        // Animate to initial mode
+        withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
+            displayMode = .initial
+        }
+        
+        // Reset animation flag after delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            isAnimating = false
+        }
+    }
+}

@@ -21,3 +21,7 @@
 Search /Utils before writing
 
 Double check that functions, structs, etc and files are not written already in the project. Beware of duplication.
+
+All keyboard utilities and functions are located in Keyboard.swift
+App colors are located in Colors.swift
+App Fonts are located in Fonts.swift

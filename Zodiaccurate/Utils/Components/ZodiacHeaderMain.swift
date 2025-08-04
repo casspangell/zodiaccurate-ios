@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// A reusable zodiac-themed header component with animated profile badge
-struct ZodiacHeaderFull: View {
+struct ZodiacHeaderMain: View {
     // MARK: - Properties
     let profileImage: String
     let badgeScale: CGFloat
@@ -78,14 +78,14 @@ struct ZodiacHeaderFull: View {
                         ZodiacProfileBadgeWithStardust(
                             zodiacImage: Image(profileImage),
                             stardustPoints: stardustPoints,
-                            frameSize: ZodiacHeaderFull.profileBadgeHeight()
+                            frameSize: ZodiacHeaderMain.profileBadgeHeight()
                         )
                         .scaleEffect(badgeScale)
                         .rotationEffect(.degrees(badgeRotation))
                         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
                         .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
                     }
-                    .frame(width: ZodiacHeaderFull.profileBadgeHeight(), height: ZodiacHeaderFull.profileBadgeHeight() - 50) //don't know needed a buffer
+                    .frame(width: ZodiacHeaderMain.profileBadgeHeight(), height: ZodiacHeaderMain.profileBadgeHeight() - 50) //don't know needed a buffer
                     
 //                    Spacer()
                     
@@ -131,7 +131,7 @@ struct ZodiacHeaderFull: View {
     ZStack {
         Color.black.ignoresSafeArea()
         
-        ZodiacHeaderFull(
+        ZodiacHeaderMain(
             profileImage: "Leo",
             badgeScale: 1.0,
             badgeRotation: 0,

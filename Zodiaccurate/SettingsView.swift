@@ -278,7 +278,7 @@ struct SettingsView: View {
                 HelpSupportView()
             }
             .sheet(isPresented: $showingSecretsDebug) {
-                ConfigDebugView()
+                APIConfigDebugView()
             }
         }
     }
@@ -854,6 +854,177 @@ struct SettingsRow: View {
             .padding(.vertical, 4)
         }
         .disabled(action == nil)
+    }
+}
+
+// MARK: - API Configuration Debug View
+
+@MainActor
+struct APIConfigDebugView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                // Background
+                SubBackground()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea(.all, edges: .all)
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Header
+                        VStack(spacing: 8) {
+                            Text("🔧 API Configuration")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            
+                            Text(APIConfig.configStatus.description)
+                                .font(.subheadline)
+                                .foregroundColor(APIConfig.configStatus.color)
+                        }
+                        .padding(.top)
+                        
+                        // Status Card
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Configuration Status")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                StatusRow(
+                                    title: "OpenAI API Key",
+                                    isConfigured: APIConfig.isAPIKeyConfigured
+                                )
+                                
+                                StatusRow(
+                                    title: "Firebase URL",
+                                    isConfigured: !APIConfig.firebaseURL.contains("YOUR_FIREBASE_URL_HERE")
+                                )
+                                
+                                StatusRow(
+                                    title: "Firebase API Key",
+                                    isConfigured: !APIConfig.firebaseAPIKey.contains("YOUR_FIREBASE_API_KEY_HERE")
+                                )
+                                
+                                StatusRow(
+                                    title: "Firebase Password",
+                                    isConfigured: !APIConfig.firebasePassword.contains("YOUR_FIREBASE_PASSWORD_HERE")
+                                )
+                                
+                                StatusRow(
+                                    title: "Stripe API Key",
+                                    isConfigured: APIConfig.isStripeConfigured
+                                )
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                        
+                        // Actions
+                        VStack(spacing: 12) {
+                            Button(action: {
+                                APIConfig.checkConfigStatus()
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Refresh Status")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.green)
+                                .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        // Debug Report
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Debug Report")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal)
+                                
+                                Text(getConfigReport())
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(8)
+                                    .padding(.horizontal)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: Button("Done") {
+                dismiss()
+            })
+        }
+    }
+    
+    private func getConfigReport() -> String {
+        var report = "🔧 CONFIGURATION REPORT\n"
+        report += "======================\n\n"
+        
+        // OpenAI
+        let openAIStatus = APIConfig.isAPIKeyConfigured ? "✅" : "❌"
+        report += "\(openAIStatus) OpenAI API Key: \(openAIStatus == "✅" ? "Configured" : "Missing")\n"
+        report += "   Base URL: \(APIConfig.openAIBaseURL)\n"
+        report += "   Model: \(APIConfig.defaultModel)\n"
+        report += "   Temperature: \(APIConfig.defaultTemperature)\n"
+        report += "   Max Tokens: \(APIConfig.maxTokens)\n\n"
+        
+        // Firebase
+        let firebaseStatus = APIConfig.isFirebaseConfigured ? "✅" : "❌"
+        report += "\(firebaseStatus) Firebase Configuration: \(firebaseStatus == "✅" ? "Configured" : "Missing")\n"
+        report += "   URL: \(APIConfig.firebaseURL)\n"
+        report += "   API Key: \(APIConfig.firebaseAPIKey.contains("YOUR_") ? "Missing" : "Configured")\n"
+        report += "   Password: \(APIConfig.firebasePassword.contains("YOUR_") ? "Missing" : "Configured")\n\n"
+        
+        // Stripe
+        let stripeStatus = APIConfig.isStripeConfigured ? "✅" : "❌"
+        report += "\(stripeStatus) Stripe Configuration: \(stripeStatus == "✅" ? "Configured" : "Missing")\n"
+        report += "   API Key: \(APIConfig.stripeAPIKey.contains("YOUR_") ? "Missing" : "Configured")\n\n"
+        
+        // Overall
+        let overallStatus = APIConfig.areAllSecretsConfigured ? "✅" : "❌"
+        report += "\(overallStatus) Overall Status: \(overallStatus == "✅" ? "Ready" : "Needs Configuration")\n"
+        
+        return report
+    }
+}
+
+// MARK: - Status Row Component
+
+struct StatusRow: View {
+    let title: String
+    let isConfigured: Bool
+    
+    var body: some View {
+        HStack {
+            Image(systemName: isConfigured ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .foregroundColor(isConfigured ? .green : .red)
+            
+            Text(title)
+                .font(.subheadline)
+                .foregroundColor(.white)
+            
+            Spacer()
+            
+            Text(isConfigured ? "Configured" : "Missing")
+                .font(.caption)
+                .foregroundColor(isConfigured ? .green : .red)
+        }
     }
 }
 

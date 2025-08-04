@@ -150,13 +150,13 @@ struct RootView: View {
 
             if showOnboarding {
                 ConversationalOnboardingView {
-//                    withAnimation(.easeInOut(duration: 0.7)) {
+                    withAnimation(.easeInOut(duration: 0.7)) {
 //                        // Save onboarding completion flag
 //                        hasCompletedOnboarding = true
 //                        showOnboarding = false
 ////                        showLogin = true
 ////                        shouldStartWithRegistration = true
-//                    }
+                    }
                 }
                 .transition(.opacity)
             }
@@ -168,12 +168,13 @@ struct RootView: View {
 //            
 //            // If user is already authenticated and has completed onboarding, show main view
 //            if authManager.isAuthenticated && hasCompletedOnboarding {
-//                MainZodiacView(completedOnboarding: true)
-//                    .transition(.opacity)
-//                    .onAppear {
-//                        print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
-//                    }
-//            }
+            else if hasCompletedOnboarding {
+                MainZodiacView(completedOnboarding: true)
+                    .transition(.opacity)
+                    .onAppear {
+                        print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
+                    }
+            }
 //            else if authManager.shouldShowOnboardingHoroscope && !hasCompletedOnboarding {
 //                HoroscopeSplashView(completedOnboarding: false)
 //                    .transition(.opacity)

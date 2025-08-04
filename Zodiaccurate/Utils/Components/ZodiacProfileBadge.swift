@@ -1180,10 +1180,7 @@ struct SpinningStardustDemo: View {
     }
 }
 
-// MARK: - Notification Extensions
-extension Notification.Name {
-    static let stardustEarned = Notification.Name("stardustEarned")
-}
+
 
 #Preview {
     VStack(spacing: 20) {

@@ -435,4 +435,3 @@ struct StardustHistoryView: View {
 extension Notification.Name {
     static let stardustEarned = Notification.Name("stardustEarned")
 }
-

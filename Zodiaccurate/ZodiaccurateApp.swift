@@ -148,15 +148,28 @@ struct RootView: View {
             }
 
             if showOnboarding {
-                ConversationalOnboardingView {
-                    withAnimation(.easeInOut(duration: 0.7)) {
+                ZStack {
+                    ConversationalOnboardingView {
+                        withAnimation(.easeInOut(duration: 0.7)) {
 //                        // Save onboarding completion flag
-                        hasCompletedOnboarding = true
+                            hasCompletedOnboarding = true
 //                        showOnboarding = false
 ////                        showLogin = true
 ////                        shouldStartWithRegistration = true
+                        }
+                    }
+                    
+                    VStack {
+                        ZodiacHeader(
+                            profileImage: "logo",
+                            displayMode: .initial
+                        )
+                        .ignoresSafeArea(.all, edges: .top)
+                        
+                        Spacer()
                     }
                 }
+                .ignoresSafeArea(.all, edges: .top)
                 .transition(.opacity)
             }
 //            

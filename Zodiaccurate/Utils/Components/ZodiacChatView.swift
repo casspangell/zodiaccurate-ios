@@ -26,6 +26,7 @@ struct ZodiacChatView: View {
     @State private var headerFrame: CGRect = .zero
     @State private var responseBubbleOpacity: Double = 0.0
     @State private var tutorialBubbleOpacity: Double = 0.0
+    @State private var headerDisplayMode: ZodiacHeaderDisplayMode = .initial
     
     // MARK: - Auto-scroll Properties
     @State private var isUserAtBottom = true
@@ -109,22 +110,7 @@ struct ZodiacChatView: View {
                 isTextFieldFocused = false
             }
     }
-    
-    @ViewBuilder
-    private var headerView: some View {
-        ZodiacHeader(
-            profileImage: badgeAnimationManager.currentProfileImage,
-            badgeScale: badgeAnimationManager.badgeScale,
-            badgeRotation: badgeAnimationManager.badgeRotation,
-            cosmicGlowOpacity: badgeAnimationManager.cosmicGlowOpacity,
-            nebulaOpacity: badgeAnimationManager.nebulaOpacity,
-            starFieldOpacity: badgeAnimationManager.starFieldOpacity,
-            cosmicParticlesOpacity: badgeAnimationManager.cosmicParticlesOpacity,
-            sparkleOpacity: badgeAnimationManager.sparkleOpacity,
-            stardustPoints: 0 // TODO: Get from StardustManager
-        )
-    }
-    
+
     @ViewBuilder
     private var tapToContinueLabel: some View {
         if shouldShowCompleteButton {
@@ -174,7 +160,7 @@ struct ZodiacChatView: View {
     private var topAnchorView: some View {
         Color.clear
             .frame(height: 1)
-            .padding(.top, 60)
+            .padding(.top, ZodiacHeader.headerHeight())
             .id("topAnchor")
             .onAppear {
                 // User scrolled to top
@@ -444,20 +430,8 @@ struct ZodiacChatView: View {
     var body: some View {
         ZStack {
             backgroundView
-            
+                
             VStack(spacing: 0) {
-                headerView
-                    .background(
-                        GeometryReader { geometry in
-                            Color.clear
-                                .onAppear {
-                                    headerFrame = geometry.frame(in: .global)
-                                }
-                                .onChange(of: geometry.frame(in: .global)) { _, newFrame in
-                                    headerFrame = newFrame
-                                }
-                        }
-                    )
                 chatScrollView
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -474,7 +448,6 @@ struct ZodiacChatView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.all, edges: .all)
         .onAppear {
             startConversation()
         }

@@ -1,8 +1,8 @@
 //
-//  Stardust.swift
+//  StardustManager.swift
 //  Zodiaccurate
 //
-//  Created by Cass Pangell on 7/3/25.
+//  Created by Cass Pangell on 8/4/25.
 //
 
 import Foundation
@@ -429,4 +429,10 @@ struct StardustHistoryView: View {
             }
         }
     }
-} 
+}
+
+// MARK: - Notification Extension
+extension Notification.Name {
+    static let stardustEarned = Notification.Name("stardustEarned")
+}
+

@@ -174,7 +174,7 @@ struct ConversationalOnboardingView: View {
                     },
                     onStepComplete: { step in
                         // Handle step completion if needed
-                        print("👤 Completed step \(step)")
+//                        print("👤 Completed step \(step)")
                     },
                     onConversationComplete: {
                         completeOnboarding()

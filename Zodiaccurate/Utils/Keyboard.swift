@@ -9,6 +9,51 @@ import Foundation
 import SwiftUI
 import Combine
 
+// MARK: - Centralized Keyboard Manager
+class KeyboardManager: ObservableObject {
+    @Published var keyboardHeight: CGFloat = 0
+    @Published var animatedKeyboardOffset: CGFloat = 0
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        setupKeyboardPublisher()
+    }
+    
+    private func setupKeyboardPublisher() {
+        Publishers.keyboardHeight
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] keyboardHeight in
+                self?.keyboardHeight = keyboardHeight
+            }
+            .store(in: &cancellables)
+    }
+    
+    func updateKeyboardOffset(
+        keyboardHeight: CGFloat,
+        inputFieldFrame: CGRect,
+        lastResponseBubbleHeight: CGFloat
+    ) {
+        let targetOffset = calculateKeyboardOffset(
+            keyboardHeight: keyboardHeight,
+            inputFieldFrame: inputFieldFrame,
+            lastResponseBubbleHeight: lastResponseBubbleHeight
+        )
+        
+        if targetOffset > 0 && keyboardHeight > 0 {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.animatedKeyboardOffset = targetOffset
+            }
+        }
+    }
+    
+    func resetKeyboardOffset() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            self.animatedKeyboardOffset = 0
+        }
+    }
+}
+
 // MARK: - Keyboard Adaptive View Modifier
 struct KeyboardAdaptive: ViewModifier {
     @State private var keyboardHeight: CGFloat = 0

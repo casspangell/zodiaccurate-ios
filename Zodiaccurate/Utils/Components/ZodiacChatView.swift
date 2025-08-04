@@ -13,8 +13,7 @@ struct ZodiacChatView: View {
     @State private var showInputField = false
     @State private var showResponseChatBubble = false
     @State private var showTutorialBubble = false
-    @State private var keyboardHeight: CGFloat = 0
-    @State private var animatedKeyboardOffset: CGFloat = 0
+    @StateObject private var keyboardManager = KeyboardManager()
     @State private var headerHeight: CGFloat = 0
 
     @State private var inputFieldFrame: CGRect = .zero
@@ -88,7 +87,7 @@ struct ZodiacChatView: View {
     }
     
     private var totalScrollOffset: CGFloat {
-        return animatedKeyboardOffset
+        return keyboardManager.animatedKeyboardOffset
     }
     
     private var shouldShowCompleteButton: Bool {
@@ -281,18 +280,13 @@ struct ZodiacChatView: View {
                         onFrameChange: { frame in
                             inputFieldFrame = frame
                             // Recalculate keyboard offset when input field appears
-                            if keyboardHeight > 0 {
+                            if keyboardManager.keyboardHeight > 0 {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    let targetOffset = calculateKeyboardOffset(
-                                        keyboardHeight: self.keyboardHeight,
+                                    keyboardManager.updateKeyboardOffset(
+                                        keyboardHeight: keyboardManager.keyboardHeight,
                                         inputFieldFrame: self.inputFieldFrame,
                                         lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
                                     )
-                                    if targetOffset > 0 {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            self.animatedKeyboardOffset = 20 //bump it about the height of a text line
-                                        }
-                                    }
                                 }
                             }
                         },
@@ -360,19 +354,14 @@ struct ZodiacChatView: View {
                     }
                     
                     // Recalculate keyboard offset when input field appears
-                    if keyboardHeight > 0 {
+                    if keyboardManager.keyboardHeight > 0 {
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            let targetOffset = calculateKeyboardOffset(
-                                keyboardHeight: self.keyboardHeight,
+                            keyboardManager.updateKeyboardOffset(
+                                keyboardHeight: keyboardManager.keyboardHeight,
                                 inputFieldFrame: self.inputFieldFrame,
                                 lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
                             )
-                            if targetOffset > 0 {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    self.animatedKeyboardOffset = targetOffset
-                                }
-                            }
                         }
                     }
                 }
@@ -391,19 +380,14 @@ struct ZodiacChatView: View {
                 }
             }
             .onChange(of: isTextFieldFocused) { _, isFocused in
-                if isFocused && keyboardHeight > 0 {
+                if isFocused && keyboardManager.keyboardHeight > 0 {
                     // Text field gained focus while keyboard is visible
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        let targetOffset = calculateKeyboardOffset(
-                            keyboardHeight: self.keyboardHeight,
+                        keyboardManager.updateKeyboardOffset(
+                            keyboardHeight: keyboardManager.keyboardHeight,
                             inputFieldFrame: self.inputFieldFrame,
                             lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
                         )
-                        if targetOffset < 0 {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                self.animatedKeyboardOffset = targetOffset
-                            }
-                        }
                     }
                 }
             }
@@ -499,7 +483,7 @@ struct ZodiacChatView: View {
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
             self.headerHeight = headerHeight
         }
-        .onReceive(Publishers.keyboardHeight) { keyboardHeight in
+        .onReceive(keyboardManager.$keyboardHeight) { keyboardHeight in
             handleKeyboardHeightChange(keyboardHeight)
         }
 
@@ -585,11 +569,7 @@ struct ZodiacChatView: View {
         tutorialManager.stopTutorial()
         
         // Reset keyboard offset immediately before response bubble appears
-        if animatedKeyboardOffset > 0 {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                animatedKeyboardOffset = 0
-            }
-        }
+        keyboardManager.resetKeyboardOffset()
         
         showInputField = false
         showResponseChatBubble = false
@@ -671,7 +651,7 @@ struct ZodiacChatView: View {
     }
     
     private func scrollToBottom(animated: Bool) {
-
+        print("scrollToBottom")
         guard !shouldScrollToBottom else { return }
         
         // Trigger scroll by updating state
@@ -684,35 +664,27 @@ struct ZodiacChatView: View {
     }
     
     private func handleKeyboardHeightChange(_ keyboardHeight: CGFloat) {
-//        print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
+        print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
         
         // Dismiss tutorial bubble when keyboard appears
-        if keyboardHeight > 0 && showTutorialBubble {
+        if keyboardHeight > 0 {
             dismissTutorialOnTyping()
         }
-        
-        self.keyboardHeight = keyboardHeight
 
         // Add longer delay for first input field to ensure it's rendered
         let delay = showInputField && showResponseChatBubble ? 0.3 : 0.1
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            let targetOffset = calculateKeyboardOffset(
-                keyboardHeight: self.keyboardHeight,
+            keyboardManager.updateKeyboardOffset(
+                keyboardHeight: keyboardHeight,
                 inputFieldFrame: self.inputFieldFrame,
                 lastResponseBubbleHeight: ChatBubbleHeightTracker.getLastResponseBubbleHeight()
             )
-
-            if targetOffset > 0 && keyboardHeight > 0 {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    self.animatedKeyboardOffset = targetOffset
-                }
-            }
             
             if keyboardHeight == 0 {
                 // ++ prevents when pressing return everything goes below the screen
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                     scrollToBottom(animated: true)
-                }
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+//                      scrollToBottom(animated: true) //kilroy
+//                }
             }
         }
     }
@@ -797,7 +769,7 @@ struct ChatHistoryContentView: View {
                 .id("typingIndicator")
 
             // Ensure we always have a bottom anchor for scrolling
-            // Adjust this for ++padding between question and response bubbles kilroy
+            // Adjust this for ++padding between question and response bubbles
             Color.clear
                 .frame(height: 20)
                 .id("chatBottom")

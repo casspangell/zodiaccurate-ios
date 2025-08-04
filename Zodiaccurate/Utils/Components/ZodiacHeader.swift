@@ -29,17 +29,12 @@ struct ZodiacHeader: View {
     let horoscopeDate: String
     let onSettingsTap: (() -> Void)?
     let displayMode: ZodiacHeaderDisplayMode
+    let badgeAnimationManager: BadgeAnimationManager
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
     static func profileBadgeHeight() -> CGFloat {
         return UIScreen.main.bounds.width * 0.5
-    }
-    
-    /// Returns the total height of the header for initial mode
-    static func headerHeight() -> CGFloat {
-        // Background rectangle height + gradient height
-        return 75 + 100
     }
 
     // MARK: - Initialization
@@ -56,7 +51,8 @@ struct ZodiacHeader: View {
         badgeSize: CGFloat? = nil,
         horoscopeDate: String = "Monday\nJanuary 5, 2025",
         onSettingsTap: (() -> Void)? = nil,
-        displayMode: ZodiacHeaderDisplayMode = .initial
+        displayMode: ZodiacHeaderDisplayMode = .initial,
+        badgeAnimationManager: BadgeAnimationManager
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -71,6 +67,7 @@ struct ZodiacHeader: View {
         self.horoscopeDate = horoscopeDate
         self.onSettingsTap = onSettingsTap
         self.displayMode = displayMode
+        self.badgeAnimationManager = badgeAnimationManager
     }
     
     // MARK: - Body
@@ -145,33 +142,33 @@ struct ZodiacHeader: View {
                 // Initial mode - only profile badge centered like ZodiacHeader
                 VStack(spacing: 8) {
                     ZStack {
-                        if profileImage == "logo" {
+                        if badgeAnimationManager.currentProfileImage == "logo" {
                             // Original simple white circle for logo state
                             Circle()
                                 .fill(Color.white.opacity(0.5))
                                 .frame(width: 130, height: 130)
-                                .scaleEffect(badgeScale)
-                                .rotationEffect(.degrees(badgeRotation))
-                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                                .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
+                                .scaleEffect(badgeAnimationManager.badgeScale)
+                                .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
+                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeAnimationManager.badgeScale)
+                                .animation(Animation.easeInOut(duration: 0.8), value: badgeAnimationManager.badgeRotation)
                             
-                            Image(profileImage)
+                            Image(badgeAnimationManager.currentProfileImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 140, height: 140)
-                                .id(profileImage)
-                                .scaleEffect(badgeScale)
-                                .rotationEffect(.degrees(badgeRotation))
+                                .id(badgeAnimationManager.currentProfileImage)
+                                .scaleEffect(badgeAnimationManager.badgeScale)
+                                .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
                         } else {
                             // Use enhanced ZodiacProfileBadge with stardust for zodiac signs
                             ZodiacProfileBadgeWhiteWithStardust(
-                                zodiacImage: Image(profileImage),
+                                zodiacImage: Image(badgeAnimationManager.currentProfileImage),
                                 stardustPoints: stardustPoints
                             )
-                            .scaleEffect(badgeScale)
-                            .rotationEffect(.degrees(badgeRotation))
-                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeScale)
-                            .animation(Animation.easeInOut(duration: 0.8), value: badgeRotation)
+                            .scaleEffect(badgeAnimationManager.badgeScale)
+                            .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeAnimationManager.badgeScale)
+                            .animation(Animation.easeInOut(duration: 0.8), value: badgeAnimationManager.badgeRotation)
                         }
                     }
                     .frame(height: 150)
@@ -200,6 +197,9 @@ struct ZodiacHeader: View {
             print("   🎭 Profile image: \(profileImage)")
             print("   📅 Horoscope date: \(horoscopeDate)")
             print("   🎛️ Display mode: \(displayMode)")
+            
+            // Initialize BadgeAnimationManager with the initial profile image
+            badgeAnimationManager.currentProfileImage = profileImage
         }
     }
     
@@ -249,7 +249,8 @@ struct ZodiacHeader: View {
                 onSettingsTap: {
                     print("Settings button tapped")
                 },
-                displayMode: .main
+                displayMode: .main,
+                badgeAnimationManager: BadgeAnimationManager()
             )
             
             ZodiacHeader(
@@ -266,7 +267,8 @@ struct ZodiacHeader: View {
                 onSettingsTap: {
                     print("Settings button tapped")
                 },
-                displayMode: .initial
+                displayMode: .initial,
+                badgeAnimationManager: BadgeAnimationManager()
             )
         }
     }

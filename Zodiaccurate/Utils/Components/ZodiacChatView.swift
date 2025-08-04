@@ -45,7 +45,6 @@ struct ZodiacChatView: View {
     let personalizeMessage: (String, String) -> String
     let determineZodiacSign: (String) -> String
     let triggerBadgeAnimation: (String) -> Void
-    let badgeAnimationManager: BadgeAnimationManager
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
     
@@ -60,7 +59,6 @@ struct ZodiacChatView: View {
         personalizeMessage: @escaping (String, String) -> String,
         determineZodiacSign: @escaping (String) -> String,
         triggerBadgeAnimation: @escaping (String) -> Void,
-        badgeAnimationManager: BadgeAnimationManager,
         backgroundColor: Color? = nil,
         bubbleColor: ChatBubbleColor? = nil
     ) {
@@ -73,7 +71,6 @@ struct ZodiacChatView: View {
         self.personalizeMessage = personalizeMessage
         self.determineZodiacSign = determineZodiacSign
         self.triggerBadgeAnimation = triggerBadgeAnimation
-        self.badgeAnimationManager = badgeAnimationManager
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
     }
@@ -160,7 +157,7 @@ struct ZodiacChatView: View {
     private var topAnchorView: some View {
         Color.clear
             .frame(height: 1)
-            .padding(.top, ZodiacHeader.headerHeight())
+            .padding(.top, ZodiacHeader.profileBadgeHeight())
             .id("topAnchor")
             .onAppear {
                 // User scrolled to top

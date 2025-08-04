@@ -127,6 +127,7 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showLogin = false
     @State private var shouldStartWithRegistration = false
+    @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     
     var body: some View {
         ZStack {
@@ -149,20 +150,26 @@ struct RootView: View {
 
             if showOnboarding {
                 ZStack {
-                    ConversationalOnboardingView {
-                        withAnimation(.easeInOut(duration: 0.7)) {
+                    ConversationalOnboardingView(
+                        onComplete: {
+                            withAnimation(.easeInOut(duration: 0.7)) {
 //                        // Save onboarding completion flag
-                            hasCompletedOnboarding = true
+                                hasCompletedOnboarding = true
 //                        showOnboarding = false
 ////                        showLogin = true
 ////                        shouldStartWithRegistration = true
+                            }
+                        },
+                        triggerBadgeAnimation: { newAssetName in
+                            badgeAnimationManager.triggerBadgeAnimation(andSwapTo: newAssetName)
                         }
-                    }
+                    )
                     
                     VStack {
                         ZodiacHeader(
                             profileImage: "logo",
-                            displayMode: .initial
+                            displayMode: .initial,
+                            badgeAnimationManager: badgeAnimationManager
                         )
                         .ignoresSafeArea(.all, edges: .top)
                         

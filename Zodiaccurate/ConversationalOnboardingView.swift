@@ -28,16 +28,17 @@ struct ConversationalOnboardingView: View {
     @State private var isOnboardingComplete = false
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
-    @StateObject private var badgeAnimationManager = BadgeAnimationManager()
+    let triggerBadgeAnimation: (String) -> Void
     
     var onComplete: () -> Void = {}
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
     
-    init(onComplete: @escaping () -> Void = {}, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
+    init(onComplete: @escaping () -> Void = {}, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil, triggerBadgeAnimation: @escaping (String) -> Void) {
         self.onComplete = onComplete
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
+        self.triggerBadgeAnimation = triggerBadgeAnimation
     }
     
     // MARK: - User Data Management
@@ -64,7 +65,7 @@ struct ConversationalOnboardingView: View {
             // Trigger badge animation when birth date is selected
             let (zodiacSign, assetName) = determineZodiacSignAndAsset(from: input)
             if zodiacSign != "Unknown" {
-                badgeAnimationManager.triggerBadgeAnimation(andSwapTo: assetName)
+                triggerBadgeAnimation(assetName)//kilroy
             }
             
             print("👤 Updated birthDate: '\(input)' - Zodiac: \(zodiacSign)")
@@ -186,10 +187,7 @@ struct ConversationalOnboardingView: View {
                     determineZodiacSign: { dateString in
                         determineZodiacSign(from: dateString)
                     },
-                    triggerBadgeAnimation: { newAssetName in
-                        badgeAnimationManager.triggerBadgeAnimation(andSwapTo: newAssetName)
-                    },
-                    badgeAnimationManager: badgeAnimationManager,
+                    triggerBadgeAnimation: triggerBadgeAnimation,
                     backgroundColor: backgroundColor,
                     bubbleColor: bubbleColor
                 )
@@ -224,7 +222,10 @@ struct ConversationalOnboardingView: View {
 }
 
 #Preview {
-    ConversationalOnboardingView(bubbleColor: .active)
+    ConversationalOnboardingView(
+        bubbleColor: .active,
+        triggerBadgeAnimation: { _ in }
+    )
 }
 
 

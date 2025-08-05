@@ -241,20 +241,9 @@ struct ZodiacHeader: View {
                 setHeaderOpacity(0.0)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .setHeaderBackgroundOpacity)) { notification in
-            if let userInfo = notification.userInfo,
-               let opacity = userInfo["opacity"] as? Double {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    headerBackgroundOpacity = opacity
-                }
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .setHeaderOpacity)) { notification in
-            if let userInfo = notification.userInfo,
-               let opacity = userInfo["opacity"] as? Double {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    setHeaderOpacity(opacity)
-                }
+        .onReceive(NotificationCenter.default.publisher(for: .setHeaderFullOpacity)) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                setHeaderOpacity(1.0)
             }
         }
     }

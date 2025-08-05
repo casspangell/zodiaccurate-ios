@@ -28,6 +28,8 @@ struct MainZodiacView: View {
                         .ignoresSafeArea(.all, edges: .top)
                         .zIndex(999) // Add high z-index to ensure it's visible
                         .onAppear {
+                            // Post notification to trigger header opacity change
+                            NotificationCenter.default.post(name: .setHeaderFullOpacity, object: nil)
                         }
                     Spacer()
                 }
@@ -62,11 +64,18 @@ struct MainZodiacView: View {
                         }
                         
                         // Set header background opacity to 0.0 when main view appears
-                        NotificationCenter.default.post(
-                            name: .setHeaderBackgroundOpacity,
-                            object: nil,
-                            userInfo: ["opacity": 0.0]
-                        )
+//                        NotificationCenter.default.post(
+//                            name: .setHeaderBackgroundOpacity,
+//                            object: nil,
+//                            userInfo: ["opacity": 0.0]
+//                        )
+//                        
+//                        // Set header opacity to 1.0 when main view appears
+//                        NotificationCenter.default.post(
+//                            name: .setHeaderOpacity,
+//                            object: nil,
+//                            userInfo: ["opacity": 1.0]
+//                        )
                     }
                     
                     // Always trigger stardust animation when MainZodiacView loads (with 3-second delay)

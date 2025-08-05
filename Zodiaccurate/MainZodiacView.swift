@@ -30,6 +30,7 @@ struct MainZodiacView: View {
                         .onAppear {
                             // Post notification to trigger header opacity change
                             NotificationCenter.default.post(name: .setHeaderFullOpacity, object: nil)
+                            NotificationCenter.default.post(name: .setHeaderBackgroundZeroOpacity, object: nil)
                         }
                     Spacer()
                 }

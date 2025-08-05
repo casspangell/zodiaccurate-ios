@@ -246,6 +246,11 @@ struct ZodiacHeader: View {
                 setHeaderOpacity(1.0)
             }
         }
+                 .onReceive(NotificationCenter.default.publisher(for: .setHeaderBackgroundZeroOpacity)) { _ in
+             withAnimation(.easeInOut(duration: 0.2)) {
+                 headerBackgroundOpacity = 0.0
+             }
+         }
     }
     
     // MARK: - Layout Components

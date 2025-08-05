@@ -15,6 +15,7 @@ extension Notification.Name {
     static let badgeAnimationTriggered = Notification.Name("badgeAnimationTriggered")
     static let consentAccepted = Notification.Name("consentAccepted")
     static let setHeaderBackgroundOpacity = Notification.Name("setHeaderBackgroundOpacity")
+    static let setHeaderBackgroundZeroOpacity = Notification.Name("setHeaderBackgroundZeroOpacity")
     static let setHeaderFullOpacity = Notification.Name("setHeaderFullOpacity")
 }
 

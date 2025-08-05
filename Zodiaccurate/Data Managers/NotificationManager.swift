@@ -1,6 +1,25 @@
+//
+//  NotificationManager.swift
+//  Zodiaccurate
+//
+//  Created by Cass Pangell on 7/28/25.
+//
+
 import Foundation
 import UserNotifications
+import SwiftUI
 
+// MARK: - Notification Names
+extension Notification.Name {
+    static let stardustEarned = Notification.Name("stardustEarned")
+    static let badgeAnimationTriggered = Notification.Name("badgeAnimationTriggered")
+    static let consentAccepted = Notification.Name("consentAccepted")
+    static let setHeaderBackgroundOpacity = Notification.Name("setHeaderBackgroundOpacity")
+    static let setHeaderOpacity = Notification.Name("setHeaderOpacity")
+}
+
+// MARK: - Notification Manager
+@MainActor
 class NotificationManager: ObservableObject {
     @Published var isNotificationsEnabled = false
     
@@ -30,11 +49,6 @@ class NotificationManager: ObservableObject {
             DispatchQueue.main.async {
                 print("🔔 Permission request result: granted=\(granted)")
                 self.isNotificationsEnabled = granted
-                
-                if granted {
-                    // Schedule daily horoscope when permission is granted
-                    self.scheduleDailyHoroscope()
-                }
             }
             
             if let error = error {
@@ -42,38 +56,7 @@ class NotificationManager: ObservableObject {
             }
         }
     }
-    
-    func scheduleDailyHoroscope() {
-        print("🔔 Scheduling daily horoscope...")
-        // First check if we have permission
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            guard settings.authorizationStatus == .authorized else {
-                print("🔔 Notification permission not granted")
-                return
-            }
-            
-            let content = UNMutableNotificationContent()
-            content.title = "Your Daily Horoscope"
-            content.body = "Discover what the stars have in store for you today! 🌟"
-            content.sound = .default
-            
-            // Schedule for 9 AM daily
-            var dateComponents = DateComponents()
-            dateComponents.hour = 9
-            dateComponents.minute = 0
-            
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-            let request = UNNotificationRequest(identifier: "dailyHoroscope", content: content, trigger: trigger)
-            
-            UNUserNotificationCenter.current().add(request) { error in
-                if let error = error {
-                    print("🔔 Error scheduling notification: \(error)")
-                } else {
-                    print("🔔 Daily horoscope notification scheduled successfully")
-                }
-            }
-        }
-    }
+
     
     func cancelAllNotifications() {
         print("🔔 Cancelling all notifications...")

@@ -7,6 +7,43 @@
 
 import SwiftUI
 
+/// A reusable header background component with gradient fade
+struct HeaderBackground: View {
+    let opacity: Double
+    
+    init(opacity: Double = 1.0) {
+        self.opacity = opacity
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(Color.deepBlue.opacity(1.0))
+                .frame(height: 75)
+            
+            LinearGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
+                    .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
+                    .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
+                    .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
+                    .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
+                    .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
+                    .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
+                    .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
+                    .init(color: Color.clear, location: 1.0)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 100)
+        }
+        .opacity(opacity)
+        .allowsHitTesting(false)
+        .ignoresSafeArea(.all, edges: .top)
+    }
+}
+
 /// Display modes for the ZodiacHeaderMain component
 enum ZodiacHeaderDisplayMode {
     case initial  // Default UI with centered badge only
@@ -31,6 +68,7 @@ struct ZodiacHeader: View {
     let displayMode: ZodiacHeaderDisplayMode
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
+    @State private var headerBackgroundOpacity: Double = 1.0
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
@@ -80,30 +118,7 @@ struct ZodiacHeader: View {
         ZStack {
             // Dark header background with gradient fade (only for initial mode)
             if displayMode == .initial {
-                VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color.deepBlue.opacity(1.0))
-                        .frame(height: 75)
-                    
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
-                            .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
-                            .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
-                            .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
-                            .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
-                            .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
-                            .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
-                            .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
-                            .init(color: Color.clear, location: 1.0)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 100)
-                }
-                .allowsHitTesting(false)
-                .ignoresSafeArea(.all, edges: .top)
+                HeaderBackground(opacity: headerBackgroundOpacity)
             }
             
             // Header Content
@@ -206,6 +221,14 @@ struct ZodiacHeader: View {
             
             // Initialize BadgeAnimationManager with the initial profile image
             badgeAnimationManager.currentProfileImage = profileImage
+            
+            // Ensure header opacity is set to 1.0 when header appears
+            setHeaderOpacity(1.0)
+            
+            // Set header background opacity to 0.0 when main view appears
+            if displayMode == .main {
+                headerBackgroundOpacity = 0.0
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .badgeAnimationTriggered)) { notification in
             if let userInfo = notification.userInfo,
@@ -216,6 +239,22 @@ struct ZodiacHeader: View {
         .onReceive(NotificationCenter.default.publisher(for: .consentAccepted)) { _ in
             withAnimation(.easeInOut(duration: 0.2)) {
                 setHeaderOpacity(0.0)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .setHeaderBackgroundOpacity)) { notification in
+            if let userInfo = notification.userInfo,
+               let opacity = userInfo["opacity"] as? Double {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    headerBackgroundOpacity = opacity
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .setHeaderOpacity)) { notification in
+            if let userInfo = notification.userInfo,
+               let opacity = userInfo["opacity"] as? Double {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    setHeaderOpacity(opacity)
+                }
             }
         }
     }

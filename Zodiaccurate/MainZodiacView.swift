@@ -60,6 +60,13 @@ struct MainZodiacView: View {
                         withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
                             headerDisplayMode = .main
                         }
+                        
+                        // Set header background opacity to 0.0 when main view appears
+                        NotificationCenter.default.post(
+                            name: .setHeaderBackgroundOpacity,
+                            object: nil,
+                            userInfo: ["opacity": 0.0]
+                        )
                     }
                     
                     // Always trigger stardust animation when MainZodiacView loads (with 3-second delay)

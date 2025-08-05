@@ -17,6 +17,7 @@ extension Notification.Name {
     static let setHeaderBackgroundOpacity = Notification.Name("setHeaderBackgroundOpacity")
     static let setHeaderBackgroundZeroOpacity = Notification.Name("setHeaderBackgroundZeroOpacity")
     static let setHeaderFullOpacity = Notification.Name("setHeaderFullOpacity")
+    static let triggerTransitionHeaderAnimation = Notification.Name("triggerTransitionHeaderAnimation")
 }
 
 // MARK: - Notification Manager

@@ -65,7 +65,7 @@ struct ZodiacHeader: View {
     let badgeSize: CGFloat?
     let horoscopeDate: String
     let onSettingsTap: (() -> Void)?
-    let displayMode: ZodiacHeaderDisplayMode
+    @State private var displayMode: ZodiacHeaderDisplayMode
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
     @State private var headerBackgroundOpacity: Double = 1.0
@@ -80,6 +80,13 @@ struct ZodiacHeader: View {
     /// - Parameter opacity: The opacity value (0.0 to 1.0)
     func setHeaderOpacity(_ opacity: Double) {
         headerOpacity = max(0.0, min(1.0, opacity)) // Clamp between 0.0 and 1.0
+    }
+    
+    /// Transitions from initial mode to main mode with animation
+    private func transitionToMain() {
+        withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
+            displayMode = .main
+        }
     }
 
     // MARK: - Initialization
@@ -110,7 +117,7 @@ struct ZodiacHeader: View {
         self.badgeSize = badgeSize
         self.horoscopeDate = horoscopeDate
         self.onSettingsTap = onSettingsTap
-        self.displayMode = displayMode
+        self._displayMode = State(initialValue: displayMode)
     }
     
     // MARK: - Body
@@ -246,11 +253,14 @@ struct ZodiacHeader: View {
                 setHeaderOpacity(1.0)
             }
         }
-                 .onReceive(NotificationCenter.default.publisher(for: .setHeaderBackgroundZeroOpacity)) { _ in
-             withAnimation(.easeInOut(duration: 0.2)) {
-                 headerBackgroundOpacity = 0.0
-             }
-         }
+        .onReceive(NotificationCenter.default.publisher(for: .setHeaderBackgroundZeroOpacity)) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                headerBackgroundOpacity = 0.0
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .triggerTransitionHeaderAnimation)) { _ in
+            transitionToMain()
+        }
     }
     
     // MARK: - Layout Components

@@ -41,9 +41,11 @@ struct MainZodiacView: View {
                 // Main content area
                 HoroscopeSplashView(
                     onDismiss: {
+                        print("HoroscopeSplashView dismissed in MainZodiacView")
                         withAnimation(.easeInOut(duration: 0.5)) {
                             splashViewDismissed = true
                             cameFromHoroscopeSplash = true
+                            triggerHeaderAnimation()
                         }
                     },
                     onConsentDismissed: {
@@ -59,10 +61,10 @@ struct MainZodiacView: View {
                     }
                     
                     // Trigger header animation to main mode when view loads
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
-                            headerDisplayMode = .main
-                        }
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//                        withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
+//                            headerDisplayMode = .main
+//                        }
                         
                         // Set header background opacity to 0.0 when main view appears
 //                        NotificationCenter.default.post(
@@ -77,12 +79,14 @@ struct MainZodiacView: View {
 //                            object: nil,
 //                            userInfo: ["opacity": 1.0]
 //                        )
-                    }
+//                    }
+
+
                     
                     // Always trigger stardust animation when MainZodiacView loads (with 3-second delay)
                     if !hasTriggeredStardustAnimation {
                         print("🎯 MainZodiacView: Scheduling stardust animation with 3-second delay")
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                             triggerStardustAnimation()
                             hasTriggeredStardustAnimation = true
                         }
@@ -95,6 +99,15 @@ struct MainZodiacView: View {
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
+        }
+    }
+    
+    private func triggerHeaderAnimation() {
+        
+        NotificationCenter.default.post(name: .setHeaderFullOpacity, object: nil)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            NotificationCenter.default.post(name: .triggerTransitionHeaderAnimation, object: nil)
         }
     }
     

@@ -127,7 +127,7 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showLogin = false
     @State private var shouldStartWithRegistration = false
-    @StateObject private var badgeAnimationManager = BadgeAnimationManager()
+
     
     var body: some View {
         ZStack {
@@ -161,15 +161,19 @@ struct RootView: View {
                             }
                         },
                         triggerBadgeAnimation: { newAssetName in
-                            badgeAnimationManager.triggerBadgeAnimation(andSwapTo: newAssetName)
+                            // Post notification to trigger badge animation
+                            NotificationCenter.default.post(
+                                name: .badgeAnimationTriggered,
+                                object: nil,
+                                userInfo: ["newAssetName": newAssetName]
+                            )
                         }
                     )
                     
                     VStack {
                         ZodiacHeader(
                             profileImage: "logo",
-                            displayMode: .initial,
-                            badgeAnimationManager: badgeAnimationManager
+                            displayMode: .initial
                         )
                         .ignoresSafeArea(.all, edges: .top)
                         

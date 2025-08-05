@@ -38,7 +38,7 @@ struct SettingsView: View {
                             VStack(spacing: 16) {
                                 // Profile Card
                                 HStack(spacing: 16) {
-                                    ZodiacProfileBadge()
+                                    ZodiacProfileBadgeForSettings()
                                         .frame(width: 80, height: 80)
                                     
                                     VStack(alignment: .leading, spacing: 4) {

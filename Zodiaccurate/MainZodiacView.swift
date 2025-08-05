@@ -7,7 +7,6 @@ struct MainZodiacView: View {
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
     @State private var hasTriggeredStardustAnimation = false
-    @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     
     let completedOnboarding: Bool
     
@@ -50,8 +49,7 @@ struct MainZodiacView: View {
                         horoscopeDate: "Monday\nJanuary 5, 2025",
                         onSettingsTap: {
                             showingSettings = true
-                        },
-                        badgeAnimationManager: badgeAnimationManager
+                        }
                     )
                     .onAppear {
                         print("🎯 MainZodiacView: ZodiacHeaderFull appeared with stardust: \(stardustManager?.currentBalance ?? 0)")

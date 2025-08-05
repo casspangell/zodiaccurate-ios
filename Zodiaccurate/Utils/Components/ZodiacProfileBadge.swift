@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct ZodiacProfileBadge: View {
+//used in settings
+struct ZodiacProfileBadgeForSettings: View {
     var zodiacImage: Image = Image("Capricorn") // Change as needed
     var body: some View {
         ZStack {

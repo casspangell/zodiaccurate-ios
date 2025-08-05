@@ -434,4 +434,5 @@ struct StardustHistoryView: View {
 // MARK: - Notification Extension
 extension Notification.Name {
     static let stardustEarned = Notification.Name("stardustEarned")
+    static let badgeAnimationTriggered = Notification.Name("badgeAnimationTriggered")
 }

@@ -29,7 +29,7 @@ struct ZodiacHeader: View {
     let horoscopeDate: String
     let onSettingsTap: (() -> Void)?
     let displayMode: ZodiacHeaderDisplayMode
-    let badgeAnimationManager: BadgeAnimationManager
+    @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
@@ -51,8 +51,7 @@ struct ZodiacHeader: View {
         badgeSize: CGFloat? = nil,
         horoscopeDate: String = "Monday\nJanuary 5, 2025",
         onSettingsTap: (() -> Void)? = nil,
-        displayMode: ZodiacHeaderDisplayMode = .initial,
-        badgeAnimationManager: BadgeAnimationManager
+        displayMode: ZodiacHeaderDisplayMode = .initial
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -67,39 +66,38 @@ struct ZodiacHeader: View {
         self.horoscopeDate = horoscopeDate
         self.onSettingsTap = onSettingsTap
         self.displayMode = displayMode
-        self.badgeAnimationManager = badgeAnimationManager
     }
     
     // MARK: - Body
     var body: some View {
         ZStack {
             // Dark header background with gradient fade (only for initial mode)
-            if displayMode == .initial {
-                VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color.deepBlue.opacity(1.0))
-                        .frame(height: 75)
-                    
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
-                            .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
-                            .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
-                            .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
-                            .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
-                            .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
-                            .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
-                            .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
-                            .init(color: Color.clear, location: 1.0)
-                        ]),
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 100)
-                }
-                .allowsHitTesting(false)
-                .ignoresSafeArea(.all, edges: .top)
+//            if displayMode == .initial {
+            VStack(spacing: 0) {
+                Rectangle()
+                    .fill(Color.deepBlue.opacity(1.0))
+                    .frame(height: 75)
+                
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
+                        .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
+                        .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
+                        .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
+                        .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
+                        .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
+                        .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
+                        .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
+                        .init(color: Color.clear, location: 1.0)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 100)
             }
+            .allowsHitTesting(false)
+            .ignoresSafeArea(.all, edges: .top)
+//            }
             
             // Header Content
             if displayMode == .main {
@@ -201,6 +199,12 @@ struct ZodiacHeader: View {
             // Initialize BadgeAnimationManager with the initial profile image
             badgeAnimationManager.currentProfileImage = profileImage
         }
+        .onReceive(NotificationCenter.default.publisher(for: .badgeAnimationTriggered)) { notification in
+            if let userInfo = notification.userInfo,
+               let newAssetName = userInfo["newAssetName"] as? String {
+                badgeAnimationManager.triggerBadgeAnimation(andSwapTo: newAssetName)
+            }
+        }
     }
     
     // MARK: - Layout Components
@@ -249,8 +253,7 @@ struct ZodiacHeader: View {
                 onSettingsTap: {
                     print("Settings button tapped")
                 },
-                displayMode: .main,
-                badgeAnimationManager: BadgeAnimationManager()
+                displayMode: .main
             )
             
             ZodiacHeader(
@@ -267,8 +270,7 @@ struct ZodiacHeader: View {
                 onSettingsTap: {
                     print("Settings button tapped")
                 },
-                displayMode: .initial,
-                badgeAnimationManager: BadgeAnimationManager()
+                displayMode: .initial
             )
         }
     }

@@ -7,6 +7,7 @@ struct MainZodiacView: View {
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
     @State private var hasTriggeredStardustAnimation = false
+    @State private var headerDisplayMode: ZodiacHeaderDisplayMode = .initial
     
     let completedOnboarding: Bool
     
@@ -34,31 +35,6 @@ struct MainZodiacView: View {
             }
             
             VStack(spacing: 0) {
-                if splashViewDismissed || completedOnboarding {
-                    ZodiacHeader(
-                        profileImage: "Leo",
-                        badgeScale: 1.0,
-                        badgeRotation: 0,
-                        cosmicGlowOpacity: 0.5,
-                        nebulaOpacity: 0.3,
-                        starFieldOpacity: 0.4,
-                        cosmicParticlesOpacity: 0.6,
-                        sparkleOpacity: 0.8,
-                        stardustPoints: stardustManager?.currentBalance ?? 0,
-                        badgeSize: nil,
-                        horoscopeDate: "Monday\nJanuary 5, 2025",
-                        onSettingsTap: {
-                            showingSettings = true
-                        }
-                    )
-                    .onAppear {
-                        print("🎯 MainZodiacView: ZodiacHeaderFull appeared with stardust: \(stardustManager?.currentBalance ?? 0)")
-                    }
-//                    .transition(.opacity.combined(with: .move(edge: .top)))
-                    .animation(.easeInOut(duration: 0.5), value: splashViewDismissed)
-                    .padding(.top, cameFromHoroscopeSplash ? getSafeAreaTop() : 0) // Align with purple rectangle bottom
-                }
-                
                 // Main content area
                 HoroscopeSplashView(
                     onDismiss: {
@@ -77,6 +53,13 @@ struct MainZodiacView: View {
                     // Initialize StardustManager
                     if stardustManager == nil {
                         stardustManager = StardustManager()
+                    }
+                    
+                    // Trigger header animation to main mode when view loads
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
+                            headerDisplayMode = .main
+                        }
                     }
                     
                     // Always trigger stardust animation when MainZodiacView loads (with 3-second delay)

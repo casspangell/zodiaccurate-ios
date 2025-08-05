@@ -30,11 +30,18 @@ struct ZodiacHeader: View {
     let onSettingsTap: (() -> Void)?
     let displayMode: ZodiacHeaderDisplayMode
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
+    @State private var headerOpacity: Double = 1.0
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
     static func profileBadgeHeight() -> CGFloat {
         return UIScreen.main.bounds.width * 0.5
+    }
+    
+    /// Changes the opacity of the header
+    /// - Parameter opacity: The opacity value (0.0 to 1.0)
+    func setHeaderOpacity(_ opacity: Double) {
+        headerOpacity = max(0.0, min(1.0, opacity)) // Clamp between 0.0 and 1.0
     }
 
     // MARK: - Initialization
@@ -72,32 +79,32 @@ struct ZodiacHeader: View {
     var body: some View {
         ZStack {
             // Dark header background with gradient fade (only for initial mode)
-//            if displayMode == .initial {
-            VStack(spacing: 0) {
-                Rectangle()
-                    .fill(Color.deepBlue.opacity(1.0))
-                    .frame(height: 75)
-                
-                LinearGradient(
-                    gradient: Gradient(stops: [
-                        .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
-                        .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
-                        .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
-                        .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
-                        .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
-                        .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
-                        .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
-                        .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
-                        .init(color: Color.clear, location: 1.0)
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 100)
+            if displayMode == .initial {
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .fill(Color.deepBlue.opacity(1.0))
+                        .frame(height: 75)
+                    
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: Color.deepBlue.opacity(1.0), location: 0.0),
+                            .init(color: Color.deepBlue.opacity(0.95), location: 0.1),
+                            .init(color: Color.deepBlue.opacity(0.85), location: 0.25),
+                            .init(color: Color.deepBlue.opacity(0.7), location: 0.4),
+                            .init(color: Color.deepBlue.opacity(0.5), location: 0.55),
+                            .init(color: Color.deepBlue.opacity(0.3), location: 0.7),
+                            .init(color: Color.deepBlue.opacity(0.15), location: 0.85),
+                            .init(color: Color.deepBlue.opacity(0.05), location: 0.95),
+                            .init(color: Color.clear, location: 1.0)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 100)
+                }
+                .allowsHitTesting(false)
+                .ignoresSafeArea(.all, edges: .top)
             }
-            .allowsHitTesting(false)
-            .ignoresSafeArea(.all, edges: .top)
-//            }
             
             // Header Content
             if displayMode == .main {
@@ -188,6 +195,7 @@ struct ZodiacHeader: View {
                 )
             }
         }
+        .opacity(headerOpacity)
         .ignoresSafeArea(.all, edges: .top)
         .zIndex(2)
         .onAppear {
@@ -203,6 +211,11 @@ struct ZodiacHeader: View {
             if let userInfo = notification.userInfo,
                let newAssetName = userInfo["newAssetName"] as? String {
                 badgeAnimationManager.triggerBadgeAnimation(andSwapTo: newAssetName)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .consentAccepted)) { _ in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                setHeaderOpacity(0.0)
             }
         }
     }

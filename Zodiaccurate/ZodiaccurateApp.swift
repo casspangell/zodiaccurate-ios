@@ -192,11 +192,22 @@ struct RootView: View {
 //            // If user is already authenticated and has completed onboarding, show main view
 //            if authManager.isAuthenticated && hasCompletedOnboarding {
             else if hasCompletedOnboarding {
-                MainZodiacView(completedOnboarding: true)
-                    .transition(.opacity)
-                    .onAppear {
-                        print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
+                ZStack {
+                    MainZodiacView(completedOnboarding: true)
+                        .transition(.opacity)
+                        .onAppear {
+                            print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
+                        }
+                    VStack {
+                        ZodiacHeader(
+                            profileImage: "logo",
+                            displayMode: .main
+                        )
+                        .ignoresSafeArea(.all, edges: .top)
+                        
+                        Spacer()
                     }
+                }
             }
 //            else if authManager.shouldShowOnboardingHoroscope && !hasCompletedOnboarding {
 //                HoroscopeSplashView(completedOnboarding: false)

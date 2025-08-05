@@ -91,6 +91,9 @@ struct ConsentAlertView: View {
                         UserDefaults.standard.set(true, forKey: "hasAcceptedConsentPolicies")
                         print("✅ User accepted consent policies, flag saved")
                         
+                        // Post notification to trigger header opacity change
+                        NotificationCenter.default.post(name: .consentAccepted, object: nil)
+                        
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showConsentAlert = false
                         }

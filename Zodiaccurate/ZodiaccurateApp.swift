@@ -198,12 +198,18 @@ struct RootView: View {
                         .onAppear {
                             print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
                         }
+                    
                     VStack {
+                        // Clear rectangle at top don't know why this works
+                        Rectangle()
+                            .fill(Color.clear)
+                            .frame(height: 1)
+                            .frame(maxWidth: .infinity, alignment: .top)
+                        
                         ZodiacHeader(
                             profileImage: "logo",
                             displayMode: .main
                         )
-                        .ignoresSafeArea(.all, edges: .top)
                         
                         Spacer()
                     }

@@ -8,7 +8,7 @@ struct UpdateCard: View {
     
     var body: some View {
         GeometryReader { geometry in
-                        ZStack {
+            ZStack {
                 // Black rectangle covering safe area at bottom (static)
                 VStack {
                     Spacer()
@@ -24,16 +24,17 @@ struct UpdateCard: View {
                     
                     VStack(spacing: 0) {
                         // Draggable indicator
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.white.opacity(0.6))
-                            .frame(width: 40, height: 4)
-                            .padding(.top, 24)
-                            .padding(.bottom, 8)
+//                        RoundedRectangle(cornerRadius: 8)
+//                            .fill(Color.white.opacity(0.6))
+//                            .frame(width: 40, height: 4)
+//                            .padding(.top, 24)
+//                            .padding(.bottom, 8)
                         
                         // Card content
                         UpdateCardText()
                             .padding(.horizontal, 20)
                             .padding(.bottom, 20)
+                            .padding(.top, 40)
                         
                         Spacer()
                     }
@@ -82,6 +83,18 @@ struct UpdateCard: View {
                         isDragging = false
                     }
             )
+            .onTapGesture {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                    if isExpanded {
+                        cardHeight = 0.25
+                        isExpanded = false
+                    } else {
+                        cardHeight = 0.5
+                        isExpanded = true
+                    }
+                    dragOffset = 0
+                }
+            }
         }
     }
 }

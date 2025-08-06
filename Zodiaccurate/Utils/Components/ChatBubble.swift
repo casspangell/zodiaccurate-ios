@@ -186,8 +186,10 @@ struct ResponseChatBubble: View {
     let onHeightChange: ((CGFloat) -> Void)?
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
+    let textFieldBackgroundColor: Color?
+    let textFieldTextColor: Color?
     
-    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
+    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil, textFieldBackgroundColor: Color? = nil, textFieldTextColor: Color? = nil) {
         self.currentStep = currentStep
         self._currentInput = currentInput
         self._selectedDate = selectedDate
@@ -201,6 +203,8 @@ struct ResponseChatBubble: View {
         self.onHeightChange = onHeightChange
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
+        self.textFieldBackgroundColor = textFieldBackgroundColor
+        self.textFieldTextColor = textFieldTextColor
     }
     
     private var finalBackgroundColor: Color {
@@ -225,7 +229,9 @@ struct ResponseChatBubble: View {
                         isFocused: $isTextFieldFocused,
                         onSubmit: onSend,
                         highlightInputField: $highlightInputField,
-                        onHeightChange: onHeightChange
+                        onHeightChange: onHeightChange,
+                        backgroundColor: textFieldBackgroundColor ?? Color.textFieldBackground,
+                        textColor: textFieldTextColor ?? .white
                     )
                     .onTapGesture {
                         isTextFieldFocused = true
@@ -237,7 +243,9 @@ struct ResponseChatBubble: View {
                         isFocused: $isTextFieldFocused,
                         onSubmit: onSend,
                         highlightInputField: $highlightInputField,
-                        onHeightChange: onHeightChange
+                        onHeightChange: onHeightChange,
+                        backgroundColor: textFieldBackgroundColor ?? Color.textFieldBackground,
+                        textColor: textFieldTextColor ?? .white
                     )
                     .onTapGesture {
                         isTextFieldFocused = true

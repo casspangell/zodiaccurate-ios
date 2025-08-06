@@ -147,6 +147,7 @@ struct SingleLineTextField: View {
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     var backgroundColor: Color = Color.textFieldBackground
+    var textColor: Color = .white
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textChangeWorkItem: DispatchWorkItem?
@@ -171,7 +172,7 @@ struct SingleLineTextField: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .frame(height: 44) // Fixed height for single line
-                        .foregroundColor(.white)
+                        .foregroundColor(textColor)
                         .background(
                             CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                 .fill(backgroundColor)
@@ -265,6 +266,7 @@ struct MultiLineTextField: View {
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     var backgroundColor: Color = Color.textFieldBackground
+    var textColor: Color = .white
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 100 // Initial height for 4 lines
@@ -284,7 +286,7 @@ struct MultiLineTextField: View {
                     }
                     
                     // Multi-line TransparentTextEditor - fixed height like original "text" type
-                    TransparentTextEditor(text: $text)
+                    TransparentTextEditor(text: $text, textColor: UIColor(textColor))
                         .frame(minHeight: 100, maxHeight: 100)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)

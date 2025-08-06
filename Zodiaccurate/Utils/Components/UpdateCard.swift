@@ -72,7 +72,9 @@ struct UpdateCard: View {
                                     highlightInputField: $highlightInputField,
                                     onHeightChange: nil,
                                     backgroundColor: Color.clear,
-                                    bubbleColor: .clear
+                                    bubbleColor: .clear,
+                                    textFieldBackgroundColor: Color.white,
+                                    textFieldTextColor: .black
                                 )
                                 .padding(.horizontal, 20)
                                 .opacity(isExpanded ? 1.0 : 0.0)

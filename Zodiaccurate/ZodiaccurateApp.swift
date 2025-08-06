@@ -167,7 +167,7 @@ struct RootView: View {
                         }
                     )
                 }
-//                .ignoresSafeArea(.all, edges: .top)
+//                .ignoresSafeArea(.all, edges: .top)ef
 //                .transition(.opacity)
 //            }
 //            

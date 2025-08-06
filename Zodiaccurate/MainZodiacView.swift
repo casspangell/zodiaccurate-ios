@@ -69,13 +69,15 @@ struct MainZodiacView: View {
             if completedOnboarding {
                 VStack(spacing: 0) {
                     Rectangle()
-                        .fill(Color.red)
+                        .fill(Color.clear)
                         .frame(height: 1)
                         .frame(maxWidth: .infinity)
                     
                     ZodiacHeader(
                         profileImage: "logo",
-                        displayMode: .main
+                        onSettingsTap: {
+                            showingSettings = true
+                        }, displayMode: .main
                     )
                     .frame(maxWidth: .infinity)
                     

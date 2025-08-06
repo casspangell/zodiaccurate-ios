@@ -18,7 +18,7 @@
   - Be concise. Minimize any other prose.
   - If you think there might not be a correct answer, you say so. If you do not know the answer, say so instead of guessing.
   
-Search /Utils before writing
+**IMPORTANT** Search /Utils folder and files before writing any solutions
 
 Double check that functions, structs, etc and files are not written already in the project. Beware of duplication. Don't create functionality that wasn't requested.
 

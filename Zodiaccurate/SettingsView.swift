@@ -1,10 +1,19 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var authManager: AuthenticationManager
+    @Environment(\.modelContext) private var modelContext
     @StateObject private var notificationManager = NotificationManager()
-    @StateObject private var userProfileManager = UserProfileManager()
+    
+    // SwiftData query to fetch User
+    @Query private var users: [User]
+    
+    // Computed property to get the current user
+    private var currentUser: User? {
+        return users.first
+    }
     
     // Settings state
     @AppStorage("notificationsEnabled") private var notificationsEnabled = true
@@ -38,15 +47,15 @@ struct SettingsView: View {
                             VStack(spacing: 16) {
                                 // Profile Card
                                 HStack(spacing: 16) {
-                                    ZodiacProfileBadgeForSettings()
+                                    ZodiacProfileBadgeForSettings(zodiacSign: currentUser?.zodiacSign ?? "")
                                         .frame(width: 80, height: 80)
                                     
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(userProfileManager.firstName.isEmpty ? "User" : userProfileManager.firstName)
+                                        Text(currentUser?.firstName.isEmpty == true ? "User" : (currentUser?.firstName ?? "User"))
                                             .font(.system(size: 20, weight: .semibold))
                                             .foregroundColor(.white)
                                         
-                                        Text(userProfileManager.zodiacSign.isEmpty ? "Unknown" : userProfileManager.zodiacSign)
+                                        Text(currentUser?.zodiacSign.isEmpty == true ? "Unknown" : (currentUser?.zodiacSign ?? "Unknown"))
                                             .font(.system(size: 14, weight: .medium))
                                             .foregroundColor(.white.opacity(0.7))
                                         
@@ -264,14 +273,12 @@ struct SettingsView: View {
                 }
             }
             .onAppear {
-                userProfileManager.loadProfile()
                 // Sync notification state
                 notificationsEnabled = notificationManager.isNotificationsEnabled
             }
             .sheet(isPresented: $showingEditProfile) {
                 EditProfileView(onProfileSaved: {
-                    // Reload profile data in the main settings view
-                    userProfileManager.loadProfile()
+                    // Profile data will automatically update via SwiftData @Query
                 })
             }
             .sheet(isPresented: $showingHelp) {
@@ -293,7 +300,8 @@ struct SettingsView: View {
 // MARK: - Edit Profile View
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var userProfileManager = UserProfileManager()
+    @Environment(\.modelContext) private var modelContext
+    @Query private var users: [User]
     
     // Focus states for text fields
     @FocusState private var isFirstNameFocused: Bool
@@ -305,6 +313,54 @@ struct EditProfileView: View {
     @State private var isSaving = false
     @State private var showError = false
     @State private var errorMessage = ""
+    
+    // Local state for editing
+    @State private var editingFirstName: String = ""
+    @State private var editingBirthDate: Date = Date()
+    @State private var editingBirthTime: Date = Date()
+    
+    // Computed property to get the current user
+    private var currentUser: User? {
+        return users.first
+    }
+    
+    // Helper function to create a User from editing state
+    private func createUserFromEditingState() -> User {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        
+        let birthDateString = dateFormatter.string(from: editingBirthDate)
+        let birthTimeString = timeFormatter.string(from: editingBirthTime)
+        
+        return User(
+            firstName: editingFirstName,
+            birthDate: birthDateString,
+            birthTime: birthTimeString,
+            zodiacSign: determineZodiacSign(from: birthDateString)
+        )
+    }
+    
+    // Helper function to load user data into editing state
+    private func loadUserDataIntoEditingState() {
+        guard let user = currentUser else { return }
+        
+        editingFirstName = user.firstName
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        if let birthDate = dateFormatter.date(from: user.birthDate) {
+            editingBirthDate = birthDate
+        }
+        
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        if let birthTime = timeFormatter.date(from: user.birthTime) {
+            editingBirthTime = birthTime
+        }
+    }
     
     // Callback for when profile is saved
     let onProfileSaved: (() -> Void)?
@@ -334,10 +390,7 @@ struct EditProfileView: View {
                                         .foregroundColor(.white)
                                     
                                     SingleLineTextField(
-                                        text: Binding(
-                                            get: { userProfileManager.firstName },
-                                            set: { userProfileManager.updateFirstName($0) }
-                                        ),
+                                        text: $editingFirstName,
                                         placeholder: "Enter your first name",
                                         isFocused: $isFirstNameFocused,
                                         onSubmit: {},
@@ -348,16 +401,9 @@ struct EditProfileView: View {
                                 // Birth Date Picker
                                 VStack(alignment: .leading, spacing: 8) {
                                     DatePickerView(
-                                        selectedDate: Binding(
-                                            get: { 
-                                                let formatter = DateFormatter()
-                                                formatter.dateStyle = .medium
-                                                return formatter.date(from: userProfileManager.birthDate) ?? Date()
-                                            },
-                                            set: { userProfileManager.updateBirthDate($0) }
-                                        ),
+                                        selectedDate: $editingBirthDate,
                                         onDateSelected: { date in
-                                            userProfileManager.updateBirthDate(date)
+                                            editingBirthDate = date
                                         },
                                         showSubmitButton: false
                                     )
@@ -366,20 +412,13 @@ struct EditProfileView: View {
                                 // Birth Time Picker
                                 VStack(alignment: .leading, spacing: 8) {
                                     TimePickerView(
-                                        selectedTime: Binding(
-                                            get: { 
-                                                let formatter = DateFormatter()
-                                                formatter.timeStyle = .short
-                                                return formatter.date(from: userProfileManager.birthTime) ?? Date()
-                                            },
-                                            set: { userProfileManager.updateBirthTime($0) }
-                                        ),
+                                        selectedTime: $editingBirthTime,
                                         onTimeSelected: { time in
-                                            userProfileManager.updateBirthTime(time)
+                                            editingBirthTime = time
                                         },
                                         onUnknownTime: {
                                             // Handle unknown time
-                                            userProfileManager.updateBirthTime(Date())
+                                            editingBirthTime = Date()
                                         },
                                         showSubmitButton: false
                                     )
@@ -394,10 +433,29 @@ struct EditProfileView: View {
                                 Button(action: {
                                     isSaving = true
                                     
-                                    // Save profile changes
+                                    // Save profile changes to SwiftData
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                         do {
-                                            try userProfileManager.saveChanges()
+                                            if let user = currentUser {
+                                                // Update existing user data
+                                                let updatedUser = createUserFromEditingState()
+                                                user.firstName = updatedUser.firstName
+                                                user.birthDate = updatedUser.birthDate
+                                                user.birthTime = updatedUser.birthTime
+                                                user.zodiacSign = updatedUser.zodiacSign
+                                                
+                                                // Save to SwiftData
+                                                try modelContext.save()
+                                                
+                                                print("✅ User profile updated successfully")
+                                            } else {
+                                                // Create new user if none exists
+                                                let newUser = createUserFromEditingState()
+                                                modelContext.insert(newUser)
+                                                try modelContext.save()
+                                                
+                                                print("✅ New user created successfully")
+                                            }
                                             
                                             // Call the callback to refresh the main settings view
                                             onProfileSaved?()
@@ -485,7 +543,8 @@ struct EditProfileView: View {
                 }
             }
             .onAppear {
-                userProfileManager.loadProfile()
+                // Load current user data into editing state
+                loadUserDataIntoEditingState()
             }
         }
     }

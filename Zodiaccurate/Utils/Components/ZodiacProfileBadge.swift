@@ -2,7 +2,18 @@ import SwiftUI
 
 //used in settings
 struct ZodiacProfileBadgeForSettings: View {
-    var zodiacImage: Image = Image("Capricorn") // Change as needed
+    var zodiacSign: String = ""
+    
+    // Computed property to get the zodiac image based on the sign
+    private var zodiacImage: Image {
+        // Use the existing ZodiacSign enum to get the asset name
+        if let sign = ZodiacSign(rawValue: zodiacSign) {
+            return Image(sign.assetName)
+        } else {
+            return Image("logo") // Default fallback
+        }
+    }
+    
     var body: some View {
         ZStack {
             // Large gradient circle behind

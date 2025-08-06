@@ -429,74 +429,66 @@ struct EditProfileView: View {
                         // Actions Section
                         SettingsSection(title: "") {
                             VStack(spacing: 12) {
-                                // Save Changes Button styled like SettingsRow
-                                Button(action: {
-                                    isSaving = true
-                                    
-                                    // Save profile changes to SwiftData
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                        do {
-                                            if let user = currentUser {
-                                                // Update existing user data
-                                                let updatedUser = createUserFromEditingState()
-                                                user.firstName = updatedUser.firstName
-                                                user.birthDate = updatedUser.birthDate
-                                                user.birthTime = updatedUser.birthTime
-                                                user.zodiacSign = updatedUser.zodiacSign
+                                // Save Changes Button using PrimaryGradientButton
+                                PrimaryGradientButton(
+                                    title: isSaving ? "Saving..." : "Save Changes",
+                                    action: {
+                                        isSaving = true
+                                        
+                                        // Save profile changes to SwiftData
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            do {
+                                                if let user = currentUser {
+                                                    // Update existing user data
+                                                    let updatedUser = createUserFromEditingState()
+                                                    user.firstName = updatedUser.firstName
+                                                    user.birthDate = updatedUser.birthDate
+                                                    user.birthTime = updatedUser.birthTime
+                                                    user.zodiacSign = updatedUser.zodiacSign
+                                                    
+                                                    // Save to SwiftData
+                                                    try modelContext.save()
+                                                    
+                                                    print("✅ User profile updated successfully")
+                                                } else {
+                                                    // Create new user if none exists
+                                                    let newUser = createUserFromEditingState()
+                                                    modelContext.insert(newUser)
+                                                    try modelContext.save()
+                                                    
+                                                    print("✅ New user created successfully")
+                                                }
                                                 
-                                                // Save to SwiftData
-                                                try modelContext.save()
+                                                // Call the callback to refresh the main settings view
+                                                onProfileSaved?()
                                                 
-                                                print("✅ User profile updated successfully")
-                                            } else {
-                                                // Create new user if none exists
-                                                let newUser = createUserFromEditingState()
-                                                modelContext.insert(newUser)
-                                                try modelContext.save()
-                                                
-                                                print("✅ New user created successfully")
-                                            }
-                                            
-                                            // Call the callback to refresh the main settings view
-                                            onProfileSaved?()
-                                            
-                                            // Show loading for 2 seconds before dismissing
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                                // Show loading for 3 seconds before dismissing
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                                    isSaving = false
+                                                    dismiss()
+                                                }
+                                            } catch {
+                                                // Handle error
                                                 isSaving = false
-                                                dismiss()
+                                                errorMessage = "Failed to save profile changes. Please try again."
+                                                showError = true
                                             }
-                                        } catch {
-                                            // Handle error
-                                            isSaving = false
-                                            errorMessage = "Failed to save profile changes. Please try again."
-                                            showError = true
                                         }
                                     }
-                                }) {
-                                    HStack(spacing: 16) {
-                                        Image(systemName: "checkmark.circle")
-                                            .font(.system(size: 20, weight: .medium))
-                                            .foregroundColor(.green)
-                                            .frame(width: 24)
-                                        
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Save Changes")
-                                                .font(.system(size: 16, weight: .medium))
-                                                .foregroundColor(.white)
-                                            
-                                            Text("Update your profile information")
-                                                .font(.system(size: 14, weight: .regular))
-                                                .foregroundColor(.white.opacity(0.7))
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundColor(.white.opacity(0.5))
-                                    }
-                                    .padding(.vertical, 4)
+                                )
+                                .disabled(isSaving)
+                                
+                                // Test Error Button (only in DEBUG builds)
+                                #if DEBUG
+                                Button("Test Error Alert") {
+                                    errorMessage = "This is a test error message to verify the ZodiacAlertView functionality. The error simulation is working correctly."
+                                    showError = true
                                 }
+                                .foregroundColor(.red)
+                                .padding()
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(8)
+                                #endif
                             }
                         }
                         .padding(.bottom, 40)
@@ -519,16 +511,20 @@ struct EditProfileView: View {
                     }
                 }
             )
-            .sheet(isPresented: $showError) {
-                ZodiacAlertView(
-                    title: "Error",
-                    message: errorMessage,
-                    primaryButtonTitle: "OK",
-                    primaryButtonAction: {
-                        showError = false
+            .overlay(
+                Group {
+                    if showError {
+                        ZodiacAlertView(
+                            title: "Error",
+                            message: errorMessage,
+                            primaryButtonTitle: "OK",
+                            primaryButtonAction: {
+                                showError = false
+                            }
+                        )
                     }
-                )
-            }
+                }
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.backgroundSecondary, for: .navigationBar)
             .toolbar {
@@ -1090,4 +1086,28 @@ struct StatusRow: View {
 #Preview {
     SettingsView()
         .environmentObject(AuthenticationManager())
+}
+
+// MARK: - EditProfileView Preview with Test Error Button
+#Preview("EditProfileView with Error Test") {
+    EditProfileView(onProfileSaved: {})
+        .overlay(
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button("Test Error") {
+                        // Simulate a mock error for testing
+                        let mockError = "This is a test error message to verify the ZodiacAlertView functionality. The error simulation is working correctly."
+                        // You can access this in the preview by adding @State variables to EditProfileView
+                        print("Mock error triggered: \(mockError)")
+                    }
+                    .foregroundColor(.red)
+                    .padding()
+                    .background(Color.white.opacity(0.2))
+                    .cornerRadius(8)
+                    .padding()
+                }
+            }
+        )
 } 

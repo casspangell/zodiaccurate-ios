@@ -186,10 +186,8 @@ struct ResponseChatBubble: View {
     let onHeightChange: ((CGFloat) -> Void)?
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
-    let textFieldBackgroundColor: Color?
-    let textFieldTextColor: Color?
     
-    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil, textFieldBackgroundColor: Color? = nil, textFieldTextColor: Color? = nil) {
+    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
         self.currentStep = currentStep
         self._currentInput = currentInput
         self._selectedDate = selectedDate
@@ -203,8 +201,6 @@ struct ResponseChatBubble: View {
         self.onHeightChange = onHeightChange
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
-        self.textFieldBackgroundColor = textFieldBackgroundColor
-        self.textFieldTextColor = textFieldTextColor
     }
     
     private var finalBackgroundColor: Color {
@@ -229,9 +225,7 @@ struct ResponseChatBubble: View {
                         isFocused: $isTextFieldFocused,
                         onSubmit: onSend,
                         highlightInputField: $highlightInputField,
-                        onHeightChange: onHeightChange,
-                        backgroundColor: textFieldBackgroundColor ?? Color.textFieldBackground,
-                        textColor: textFieldTextColor ?? .white
+                        onHeightChange: onHeightChange
                     )
                     .onTapGesture {
                         isTextFieldFocused = true
@@ -243,9 +237,7 @@ struct ResponseChatBubble: View {
                         isFocused: $isTextFieldFocused,
                         onSubmit: onSend,
                         highlightInputField: $highlightInputField,
-                        onHeightChange: onHeightChange,
-                        backgroundColor: textFieldBackgroundColor ?? Color.textFieldBackground,
-                        textColor: textFieldTextColor ?? .white
+                        onHeightChange: onHeightChange
                     )
                     .onTapGesture {
                         isTextFieldFocused = true
@@ -266,21 +258,10 @@ struct ResponseChatBubble: View {
             // Send button (only show for text input types)
             if currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
                 Spacer()
-                Button(action: onSend) {
-                    Image(systemName: "paperplane.fill")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentGold)
-                        .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
-                        .frame(width: 44, height: 44)
-                        .background(
-                            Circle()
-                                .fill(Color.white.opacity(0.1))
-                                .opacity(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.3 : 0.6)
-                        )
-                        .scaleEffect(currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.9 : 1.0)
-                        .animation(.easeInOut(duration: 0.2), value: currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-                .buttonStyle(PlainButtonStyle())
+                SendButton(
+                    onSend: onSend,
+                    isEnabled: !currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                )
             }
         }
         .padding(.horizontal, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 16 : 0)

@@ -55,26 +55,15 @@ struct UpdateCard: View {
                             
                             // Chat bubble (only when expanded)
                             if isExpanded {
-                                ResponseChatBubble(
-                                    currentStep: updateConversationStep,
+                                UpdateBubble(
                                     currentInput: $currentInput,
-                                    selectedDate: $selectedDate,
-                                    selectedTime: $selectedTime,
                                     onSend: {
                                         // Handle send action
                                         print("Update sent: \(currentInput)")
                                         currentInput = ""
                                     },
-                                    onDateSelected: { _ in },
-                                    onTimeSelected: { _ in },
-                                    onUnknownTime: {},
                                     onFrameChange: { _ in },
-                                    highlightInputField: $highlightInputField,
-                                    onHeightChange: nil,
-                                    backgroundColor: Color.clear,
-                                    bubbleColor: .clear,
-                                    textFieldBackgroundColor: Color.white,
-                                    textFieldTextColor: .black
+                                    highlightInputField: .constant(false)
                                 )
                                 .padding(.horizontal, 20)
                                 .opacity(isExpanded ? 1.0 : 0.0)

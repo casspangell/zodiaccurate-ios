@@ -101,6 +101,65 @@ struct CircleAssetButton: View {
     }
 }
 
+// MARK: - Send Button Component
+struct SendButton: View {
+    let onSend: () -> Void
+    let isEnabled: Bool
+    let size: CGFloat
+    let iconSize: CGFloat
+    
+    init(onSend: @escaping () -> Void, isEnabled: Bool = true, size: CGFloat = 44, iconSize: CGFloat = 18) {
+        self.onSend = onSend
+        self.isEnabled = isEnabled
+        self.size = size
+        self.iconSize = iconSize
+    }
+    
+    var body: some View {
+        Button(action: onSend) {
+            Image(systemName: "paperplane.fill")
+                .font(.system(size: iconSize, weight: .medium))
+                .foregroundColor(isEnabled ? Color.accentGold : Color.gray)
+                .opacity(isEnabled ? 1.0 : 0.5)
+                .frame(width: size, height: size)
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.1))
+                        .opacity(isEnabled ? 0.6 : 0.3)
+                )
+                .scaleEffect(isEnabled ? 1.0 : 0.9)
+                .animation(.easeInOut(duration: 0.2), value: isEnabled)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(!isEnabled)
+    }
+}
+
+// MARK: - Clear Button Component
+struct ClearButton: View {
+    let onClear: () -> Void
+    let size: CGFloat
+    let color: Color
+    
+    init(onClear: @escaping () -> Void, size: CGFloat = 16, color: Color = .gray) {
+        self.onClear = onClear
+        self.size = size
+        self.color = color
+    }
+    
+    var body: some View {
+        Button(action: onClear) {
+            Image(systemName: "xmark.circle.fill")
+                .foregroundColor(color)
+                .font(.system(size: size))
+        }
+        .buttonStyle(PlainButtonStyle())
+        .transition(.opacity.combined(with: .scale))
+        .accessibilityLabel("Clear text")
+        .accessibilityHint("Tap to clear the text field")
+    }
+}
+
 // Preview
 struct PrimaryGradientButton_Previews: PreviewProvider {
     static var previews: some View {

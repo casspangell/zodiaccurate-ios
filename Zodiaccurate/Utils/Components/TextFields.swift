@@ -1,142 +1,8 @@
 import SwiftUI
 
+// Global CustomBubbleShape radius constants
 let bubbleCornerRadius: CGFloat = 20
 let bubbleTopRightRatio: CGFloat = 0.5
-
-//struct InputTextField: View {
-//    @Binding var text: String
-//    var placeholder: String
-//    var isFocused: FocusState<Bool>.Binding
-//    var onSubmit: () -> Void
-//    @Binding var highlightInputField: Bool
-//    var onHeightChange: ((CGFloat) -> Void)?
-//    var backgroundColor: Color = Color.bubbleFrost
-//    
-//    @State private var shakeOffset: CGFloat = 0
-//    @State private var textFieldHeight: CGFloat = 100 // Initial height for 4 lines
-//    @State private var textChangeWorkItem: DispatchWorkItem?
-//    
-//    var body: some View {
-//        HStack(spacing: 12) {
-//            HStack {
-//                ZStack(alignment: .topLeading) {
-//                    // Placeholder text
-//                    if text.isEmpty {
-//                        Text(placeholder)
-//                            .foregroundColor(Color.white.opacity(0.5))
-//                            .padding(.horizontal, 12)
-//                            .padding(.vertical, 16)
-//                            .allowsHitTesting(false)
-//                    }
-//                    
-//                    // Dynamic TextEditor
-//                    TextEditor(text: $text)
-//                        .focused(isFocused)
-//                        .frame(minHeight: 100, maxHeight: 100) // Fixed height for 4 lines
-//                        .padding(.horizontal, 8)
-//                        .padding(.vertical, 4)
-//                        .foregroundColor(.white)
-//                        .background(
-//                            CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
-//                                .fill(backgroundColor)
-//                                .overlay(
-//                                    CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
-//                                        .stroke(highlightInputField ? Color.red : Color.clear, lineWidth: 2)
-//                                )
-//                        )
-//                        .onChange(of: text) { _, newValue in
-//                            // Cancel any pending text change work
-//                            textChangeWorkItem?.cancel()
-//                            
-//                            // Check if the new text contains a newline character (handle immediately)
-//                            if newValue.contains("\n") {
-//                                // Remove the newline and trigger submit
-//                                let cleanedText = newValue.replacingOccurrences(of: "\n", with: "")
-//                                text = cleanedText
-//                                onSubmit()
-//                                return
-//                            }
-//                            
-//                            // Debounce other text changes to prevent multiple updates per frame
-//                            let workItem = DispatchWorkItem {
-//                                if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-//                                    highlightInputField = false
-//                                }
-//                                // Calculate new height based on content
-//                                updateTextFieldHeight(for: newValue)
-//                            }
-//                            
-//                            textChangeWorkItem = workItem
-//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
-//                        }
-//                        .onChange(of: isFocused.wrappedValue) { _, newValue in
-//                            // Debounce focus changes to prevent multiple updates per frame
-//                            DispatchQueue.main.async {
-//                                if newValue { highlightInputField = false }
-//                            }
-//                        }
-//                        .offset(x: shakeOffset)
-//                        .animation(.default, value: shakeOffset)
-//                        .submitLabel(.send)
-//                        .accessibilityLabel("Message input field")
-//                        .accessibilityHint("Type your message and tap return to send")
-//                }
-//                
-//                // Clear button (X)
-//                if !text.isEmpty {
-//                    Button(action: {
-//                        text = ""
-//                    }) {
-//                        Image(systemName: "xmark.circle.fill")
-//                            .foregroundColor(.gray)
-//                            .font(.system(size: 16))
-//                    }
-//                    .buttonStyle(PlainButtonStyle())
-//                    .transition(.opacity.combined(with: .scale))
-//                    .accessibilityLabel("Clear text")
-//                    .accessibilityHint("Tap to clear the text field")
-//                }
-//            }
-//            .frame(maxWidth: .infinity)
-//        }
-//        .onChange(of: highlightInputField) { _, newValue in
-//            // Debounce highlight changes to prevent multiple updates per frame
-//            DispatchQueue.main.async {
-//                if newValue {
-//                    withAnimation(.default) {
-//                        shakeOffset = -10
-//                    }
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
-//                        withAnimation(.default) { shakeOffset = 10 }
-//                    }
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
-//                        withAnimation(.default) { shakeOffset = -6 }
-//                    }
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.21) {
-//                        withAnimation(.default) { shakeOffset = 6 }
-//                    }
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-//                        withAnimation(.default) { shakeOffset = 0 }
-//                    }
-//                }
-//            }
-//        }
-//        .onDisappear {
-//            // Clean up work items when view disappears
-//            textChangeWorkItem?.cancel()
-//        }
-//    }
-    
-//    // MARK: - Helper Functions
-//    private func updateTextFieldHeight(for text: String) {
-//        // Fixed height for 4 lines
-//        let estimatedHeight: CGFloat = 100 // 4 lines × 20 points + 20 points padding
-//        
-//        withAnimation(.easeInOut(duration: 0.2)) {
-//            textFieldHeight = estimatedHeight
-//        }
-//    }
-//}
 
 // MARK: - Single Line Text Field Component
 struct SingleLineTextField: View {
@@ -147,7 +13,6 @@ struct SingleLineTextField: View {
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     var backgroundColor: Color = Color.textFieldBackground
-    var textColor: Color = .white
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textChangeWorkItem: DispatchWorkItem?
@@ -172,7 +37,7 @@ struct SingleLineTextField: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .frame(height: 44) // Fixed height for single line
-                        .foregroundColor(textColor)
+                        .foregroundColor(.white)
                         .background(
                             CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                 .fill(backgroundColor)
@@ -266,7 +131,7 @@ struct MultiLineTextField: View {
     @Binding var highlightInputField: Bool
     var onHeightChange: ((CGFloat) -> Void)?
     var backgroundColor: Color = Color.textFieldBackground
-    var textColor: Color = .white
+    var textColor: UIColor = .white
     
     @State private var shakeOffset: CGFloat = 0
     @State private var textFieldHeight: CGFloat = 100 // Initial height for 4 lines
@@ -286,7 +151,7 @@ struct MultiLineTextField: View {
                     }
                     
                     // Multi-line TransparentTextEditor - fixed height like original "text" type
-                    TransparentTextEditor(text: $text, textColor: UIColor(textColor))
+                    TransparentTextEditor(text: $text, textColor: textColor)
                         .frame(minHeight: 100, maxHeight: 100)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)

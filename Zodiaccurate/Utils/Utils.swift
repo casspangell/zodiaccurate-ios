@@ -22,6 +22,18 @@ func getFormattedDate(date: Date = Date()) -> String {
     return formatter.string(from: date)
 }
 
+func getTimestampString(date: Date = Date()) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd-HH-mm-ss"
+    return formatter.string(from: date)
+}
+
+func getFormattedTime(date: Date = Date()) -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mm a"
+    return formatter.string(from: date)
+}
+
 // MARK: - Safe Area Utilities
 /// Gets the safe area top inset using the modern UIWindowScene approach
 /// - Returns: The safe area top inset as CGFloat, or 0 if unable to determine

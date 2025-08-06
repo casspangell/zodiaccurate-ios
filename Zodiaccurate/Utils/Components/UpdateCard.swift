@@ -5,6 +5,22 @@ struct UpdateCard: View {
     @State private var dragOffset: CGFloat = 0
     @State private var isExpanded = false
     @State private var isDragging = false
+    @State private var currentInput = ""
+    @State private var selectedDate = Date()
+    @State private var selectedTime = Date()
+    @State private var highlightInputField = false
+    
+    // Sample conversation step for the update card
+    private var updateConversationStep: ConversationStep {
+        let timestamp = getTimestampString()
+        
+        return ConversationStep(
+            message: "How are you feeling today? Share your thoughts and let me know what's on your mind...",
+            inputType: "multiLine",
+            placeholder: "",
+            dataKey: "dailyUpdate-\(timestamp)"
+        )
+    }
     
     var body: some View {
         GeometryReader { geometry in
@@ -31,10 +47,39 @@ struct UpdateCard: View {
 //                            .padding(.bottom, 8)
                         
                         // Card content
-                        UpdateCardText()
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 20)
-                            .padding(.top, 40)
+                        VStack(spacing: 16) {
+                            // Label text
+                            UpdateCardText()
+                                .padding(.horizontal, 20)
+                                .padding(.top, 40)
+                            
+                            // Chat bubble (only when expanded)
+                            if isExpanded {
+                                ResponseChatBubble(
+                                    currentStep: updateConversationStep,
+                                    currentInput: $currentInput,
+                                    selectedDate: $selectedDate,
+                                    selectedTime: $selectedTime,
+                                    onSend: {
+                                        // Handle send action
+                                        print("Update sent: \(currentInput)")
+                                        currentInput = ""
+                                    },
+                                    onDateSelected: { _ in },
+                                    onTimeSelected: { _ in },
+                                    onUnknownTime: {},
+                                    onFrameChange: { _ in },
+                                    highlightInputField: $highlightInputField,
+                                    onHeightChange: nil,
+                                    backgroundColor: Color.clear,
+                                    bubbleColor: .clear
+                                )
+                                .padding(.horizontal, 20)
+                                .opacity(isExpanded ? 1.0 : 0.0)
+                                .animation(.easeInOut(duration: 0.3), value: isExpanded)
+                            }
+                        }
+                        .padding(.bottom, 20)
                         
                         Spacer()
                     }

@@ -94,6 +94,9 @@ struct ConsentAlertView: View {
                         // Post notification to trigger header opacity change
                         NotificationCenter.default.post(name: .consentAccepted, object: nil)
                         
+                        // Post notification to trigger onboarding completion
+                        NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+                        
                         withAnimation(.easeInOut(duration: 0.3)) {
                             showConsentAlert = false
                         }

@@ -161,51 +161,44 @@ struct ConversationalOnboardingView: View {
 
     
     var body: some View {
-        ZStack {
-            if isOnboardingComplete {
-                MainZodiacView()
-                    .transition(.opacity)
-            } else {
-                ZodiacChatView(
-                    conversationSteps: onboardingConversationSteps,
-                    profileImage: currentProfileImage,
-                    userName: $user.firstName,
-                    onUserDataUpdate: { input, step in
-                        updateUserData(input: input, step: step)
-                    },
-                    onStepComplete: { step in
-                        // Handle step completion if needed
-//                        print("👤 Completed step \(step)")
-                    },
-                    onConversationComplete: {
-                        completeOnboarding()
-                    },
-                    personalizeMessage: { message, name in
-                        // Use the user's actual name from the User instance
-                        personalizeMessage(message, with: user.firstName)
-                    },
-                    determineZodiacSign: { dateString in
-                        determineZodiacSign(from: dateString)
-                    },
-                    triggerBadgeAnimation: triggerBadgeAnimation,
-                    backgroundColor: backgroundColor,
-                    bubbleColor: bubbleColor
-                )
-            }
+        ZStack(alignment: .top) {
+            // Chat view extends full screen behind header
+            ZodiacChatView(
+                conversationSteps: onboardingConversationSteps,
+                profileImage: currentProfileImage,
+                userName: $user.firstName,
+                onUserDataUpdate: { input, step in
+                    updateUserData(input: input, step: step)
+                },
+                onStepComplete: { step in
+                    // Handle step completion if needed
+                    //                        print("👤 Completed step \(step)")
+                },
+                onConversationComplete: {
+                    completeOnboarding()
+                },
+                personalizeMessage: { message, name in
+                    // Use the user's actual name from the User instance
+                    personalizeMessage(message, with: user.firstName)
+                },
+                determineZodiacSign: { dateString in
+                    determineZodiacSign(from: dateString)
+                },
+                triggerBadgeAnimation: triggerBadgeAnimation,
+                backgroundColor: backgroundColor,
+                bubbleColor: bubbleColor
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(.all, edges: .all)
             
-            if showZodiacAlert {
-                ZodiacAlertView(
-                    title: "Horoscope Generation Failed",
-                    message: zodiacAlertMessage,
-                    primaryButtonTitle: "Try Again",
-                    primaryButtonAction: {
-                        showZodiacAlert = false
-                        // Task { await generateWelcomeHoroscope() }
-                    }
-                )
-            }
+            // Header positioned on top
+            ZodiacHeader(
+                profileImage: "logo",
+                displayMode: .initial
+            )
+            .frame(maxWidth: .infinity)
+            .ignoresSafeArea(.all, edges: .top)
             
-            // Localized stardust animation is now handled by the profile badge components
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.all, edges: .all)

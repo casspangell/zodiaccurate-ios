@@ -238,7 +238,7 @@ struct ZodiacHeader: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .consentAccepted)) { _ in
             withAnimation(.easeInOut(duration: 0.2)) {
-                setHeaderOpacity(0.0)
+  
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .setHeaderBackgroundOpacity)) { notification in
@@ -249,13 +249,8 @@ struct ZodiacHeader: View {
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .setHeaderOpacity)) { notification in
-            if let userInfo = notification.userInfo,
-               let opacity = userInfo["opacity"] as? Double {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    setHeaderOpacity(opacity)
-                }
-            }
+        .onReceive(NotificationCenter.default.publisher(for: .setHeaderOpacityZero)) { notification in
+            setHeaderOpacity(0.0)
         }
     }
     

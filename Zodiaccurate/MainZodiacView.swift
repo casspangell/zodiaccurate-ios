@@ -9,31 +9,16 @@ struct MainZodiacView: View {
     @State private var hasTriggeredStardustAnimation = false
     @State private var headerDisplayMode: ZodiacHeaderDisplayMode = .initial
     
-    let completedOnboarding: Bool
+    @State var completedOnboarding: Bool
     
     init(completedOnboarding: Bool = false) {
-        self.completedOnboarding = completedOnboarding
+        self._completedOnboarding = State(initialValue: completedOnboarding)
     }
     
     var body: some View {
         ZStack {
             VerticleAuroraBackgroundView()
-            // Clear rectangle at top for users coming from HoroscopeSplashView to ensure background visibility
-            if cameFromHoroscopeSplash {
-                VStack {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: getSafeAreaTop())
-                        .frame(maxWidth: .infinity, alignment: .top)
-                        .ignoresSafeArea(.all, edges: .top)
-                        .zIndex(999) // Add high z-index to ensure it's visible
-                        .onAppear {
-                        }
-                    Spacer()
-                }
-                .zIndex(999) // Also add z-index to the VStack
-            }
-            
+
             VStack(spacing: 0) {
                 // Main content area
                 HoroscopeSplashView(
@@ -45,6 +30,8 @@ struct MainZodiacView: View {
                     },
                     onConsentDismissed: {
                         print("Consent alert dismissed in MainZodiacView")
+                        self.completedOnboarding = true
+                        
                     },
                     completedOnboarding: completedOnboarding
                 )
@@ -79,8 +66,21 @@ struct MainZodiacView: View {
                     }
                 }
             }
-            if splashViewDismissed || completedOnboarding {
-                UpdateCard()
+            if completedOnboarding {
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .fill(Color.red)
+                        .frame(height: 1)
+                        .frame(maxWidth: .infinity)
+                    
+                    ZodiacHeader(
+                        profileImage: "logo",
+                        displayMode: .main
+                    )
+                    .frame(maxWidth: .infinity)
+                    
+                    UpdateCard()
+                }
             }
         }
         .sheet(isPresented: $showingSettings) {

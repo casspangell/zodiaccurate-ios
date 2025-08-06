@@ -127,6 +127,7 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showLogin = false
     @State private var shouldStartWithRegistration = false
+    @State private var showMain: Bool = false
 
     
     var body: some View {
@@ -149,16 +150,12 @@ struct RootView: View {
             }
 
             if showOnboarding {
-                ZStack {
+//                ZStack {
                     ConversationalOnboardingView(
                         onComplete: {
-                            withAnimation(.easeInOut(duration: 0.7)) {
-//                        // Save onboarding completion flag
-                                hasCompletedOnboarding = true
-//                        showOnboarding = false
-////                        showLogin = true
-////                        shouldStartWithRegistration = true
-                            }
+                            // Onboarding completion is now handled via notification from consent
+                            print("🔄 ConversationalOnboardingView completed")
+                            showMain = true
                         },
                         triggerBadgeAnimation: { newAssetName in
                             // Post notification to trigger badge animation
@@ -169,20 +166,10 @@ struct RootView: View {
                             )
                         }
                     )
-                    
-                    VStack {
-                        ZodiacHeader(
-                            profileImage: "logo",
-                            displayMode: .initial
-                        )
-                        .ignoresSafeArea(.all, edges: .top)
-                        
-                        Spacer()
-                    }
                 }
-                .ignoresSafeArea(.all, edges: .top)
-                .transition(.opacity)
-            }
+//                .ignoresSafeArea(.all, edges: .top)
+//                .transition(.opacity)
+//            }
 //            
 //            if showLogin && !authManager.isAuthenticated {
 //                LoginView(isRegistering: shouldStartWithRegistration)
@@ -191,22 +178,13 @@ struct RootView: View {
 //            
 //            // If user is already authenticated and has completed onboarding, show main view
 //            if authManager.isAuthenticated && hasCompletedOnboarding {
-            else if hasCompletedOnboarding {
+            if hasCompletedOnboarding || showMain {
                 ZStack {
                     MainZodiacView(completedOnboarding: true)
                         .transition(.opacity)
                         .onAppear {
                             print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
                         }
-                    VStack {
-                        ZodiacHeader(
-                            profileImage: "logo",
-                            displayMode: .main
-                        )
-                        .ignoresSafeArea(.all, edges: .top)
-                        
-                        Spacer()
-                    }
                 }
             }
 //            else if authManager.shouldShowOnboardingHoroscope && !hasCompletedOnboarding {
@@ -229,6 +207,12 @@ struct RootView: View {
         .animation(.easeInOut(duration: 0.7), value: showLogin)
         .animation(.easeInOut(duration: 0.7), value: authManager.isAuthenticated)
         .animation(.easeInOut(duration: 0.7), value: authManager.shouldShowOnboardingHoroscope)
+        .onReceive(NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
+            withAnimation(.easeInOut(duration: 0.7)) {
+                hasCompletedOnboarding = true
+                print("✅ Onboarding completed via consent notification")
+            }
+        }
         .onChange(of: authManager.isAuthenticated) { oldValue, newValue in
             // Handle logout - when user goes from authenticated to not authenticated
             if oldValue == true && newValue == false {

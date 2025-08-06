@@ -43,7 +43,6 @@ struct UpdateCard: View {
                     .cornerRadius(24)
                 }
                 .offset(y: dragOffset)
-                .animation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0), value: cardHeight)
             }
             .gesture(
                 DragGesture()

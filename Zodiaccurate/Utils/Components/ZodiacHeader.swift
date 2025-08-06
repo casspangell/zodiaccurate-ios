@@ -63,7 +63,7 @@ struct ZodiacHeader: View {
     let sparkleOpacity: Double
     let stardustPoints: Int
     let badgeSize: CGFloat?
-    let horoscopeDate: String
+    let todaysDate: String
     let onSettingsTap: (() -> Void)?
     let displayMode: ZodiacHeaderDisplayMode
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
@@ -74,6 +74,11 @@ struct ZodiacHeader: View {
     /// Returns the height of the profile badge
     static func profileBadgeHeight() -> CGFloat {
         return UIScreen.main.bounds.width * 0.5
+    }
+    
+    /// Formats the current date in the required format
+    static func formatCurrentDate() -> String {
+        return "\(getDayOfWeek())\n\(getFormattedDate())"
     }
     
     /// Changes the opacity of the header
@@ -94,7 +99,7 @@ struct ZodiacHeader: View {
         sparkleOpacity: Double = 0,
         stardustPoints: Int = 0,
         badgeSize: CGFloat? = nil,
-        horoscopeDate: String = "Monday\nJanuary 5, 2025",
+        todaysDate: String = ZodiacHeader.formatCurrentDate(),
         onSettingsTap: (() -> Void)? = nil,
         displayMode: ZodiacHeaderDisplayMode = .initial
     ) {
@@ -108,7 +113,7 @@ struct ZodiacHeader: View {
         self.sparkleOpacity = sparkleOpacity
         self.stardustPoints = stardustPoints
         self.badgeSize = badgeSize
-        self.horoscopeDate = horoscopeDate
+        self.todaysDate = todaysDate
         self.onSettingsTap = onSettingsTap
         self.displayMode = displayMode
     }
@@ -216,7 +221,7 @@ struct ZodiacHeader: View {
         .onAppear {
             print("🎯 ZodiacHeaderMain: Header appeared")
             print("   🎭 Profile image: \(profileImage)")
-            print("   📅 Horoscope date: \(horoscopeDate)")
+            print("   📅 Today's date: \(todaysDate)")
             print("   🎛️ Display mode: \(displayMode)")
             
             // Initialize BadgeAnimationManager with the initial profile image
@@ -272,7 +277,7 @@ struct ZodiacHeader: View {
             }
             
             // Date display
-            HoroscopeDateText(date: horoscopeDate)
+            HoroscopeDateText(date: todaysDate)
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
         .offset(x: displayMode == .main ? 0 : 200) // Slide in from off-screen
@@ -296,7 +301,7 @@ struct ZodiacHeader: View {
                 cosmicParticlesOpacity: 0.6,
                 sparkleOpacity: 0.8,
                 badgeSize: nil,
-                horoscopeDate: "Monday\nJanuary 5, 2025",
+                todaysDate: ZodiacHeader.formatCurrentDate(),
                 onSettingsTap: {
                     print("Settings button tapped")
                 },
@@ -313,7 +318,7 @@ struct ZodiacHeader: View {
                 cosmicParticlesOpacity: 0.6,
                 sparkleOpacity: 0.8,
                 badgeSize: nil,
-                horoscopeDate: "Monday\nJanuary 5, 2025",
+                todaysDate: ZodiacHeader.formatCurrentDate(),
                 onSettingsTap: {
                     print("Settings button tapped")
                 },
@@ -380,7 +385,7 @@ struct AnimatedHeaderDemo: View {
             }
             
             // Date display
-            HoroscopeDateText(date: "Monday\nJanuary 5, 2025")
+            HoroscopeDateText(date: ZodiacHeader.formatCurrentDate())
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
         .offset(x: displayMode == .main ? 0 : 200) // Slide in from off-screen
@@ -441,8 +446,8 @@ struct AnimatedHeaderDemo: View {
                                     print("Settings tapped")
                                 }
                                 
-                                // Date display
-                                HoroscopeDateText(date: "Monday\nJanuary 5, 2025")
+                                            // Date display
+            HoroscopeDateText(date: ZodiacHeader.formatCurrentDate())
                             }
                             .frame(maxWidth: .infinity, alignment: .trailing)
                             .transition(.move(edge: .trailing).combined(with: .opacity))

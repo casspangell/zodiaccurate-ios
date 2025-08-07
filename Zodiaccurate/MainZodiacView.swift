@@ -80,6 +80,12 @@ struct MainZodiacView: View {
                         }, displayMode: .main
                     )
                     .frame(maxWidth: .infinity)
+                    
+                    // FlipBook Gallery
+                    FlipBook()
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                    
                     UpdateCard()
                     .zIndex(9999)
                 }

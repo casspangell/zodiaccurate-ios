@@ -23,6 +23,7 @@ struct GPTDailyUpdate {
     
     // MARK: - ChatGPT API Integration
     static func generatePersonalizedResponse(for userUpdate: String) async -> (line1: String, line2: String, line3: String) {
+        print("🤖 GPTDailyUpdate: Starting API call for user update: '\(userUpdate)'")
         let prompt = """
         Based on this daily update from a user, generate a personalized response with three parts separated by "|||":
         
@@ -30,8 +31,8 @@ struct GPTDailyUpdate {
         
         Generate a response that:
         1. Acknowledges their sharing (header - 2-4 words)
-        2. Shows understanding/support (subtext - 3-6 words) 
-        3. Offers encouragement (smaller bit - 2-4 words)
+        2. Small response regarding the message (subtext - 3-6 words) 
+        3. Shows understanding/support (smaller bit - 2-4 words)
         
         Use the tone and style of these examples as a guide:
         - "Thanks for sharing!|||I'm here for you|||Keep being amazing"
@@ -69,12 +70,17 @@ struct GPTDailyUpdate {
                 ChatGPTMessage(role: "user", content: prompt)
             ],
             temperature: APIConfig.defaultTemperature,
-            maxTokens: APIConfig.maxTokens
+            max_tokens: APIConfig.maxTokens
         )
         
         do {
             let jsonData = try JSONEncoder().encode(requestBody)
             request.httpBody = jsonData
+            
+            // Log the request for debugging
+            if let requestString = String(data: jsonData, encoding: .utf8) {
+                print("🤖 ChatGPT API Request: \(requestString)")
+            }
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
@@ -83,6 +89,10 @@ struct GPTDailyUpdate {
             }
             
             guard httpResponse.statusCode == 200 else {
+                // Log the error response body for debugging
+                if let errorString = String(data: data, encoding: .utf8) {
+                    print("🤖 ChatGPT API Error Response: \(errorString)")
+                }
                 throw APIError.httpError(statusCode: httpResponse.statusCode)
             }
             
@@ -104,7 +114,14 @@ struct GPTDailyUpdate {
         let model: String
         let messages: [ChatGPTMessage]
         let temperature: Double
-        let maxTokens: Int
+        let max_tokens: Int
+        
+        enum CodingKeys: String, CodingKey {
+            case model
+            case messages
+            case temperature
+            case max_tokens
+        }
     }
     
     private struct ChatGPTMessage: Codable {

@@ -73,7 +73,18 @@ struct UpdateCard: View {
                                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                                             
                                             // Handle send action
-                                            print("Update sent: \(currentInput)")
+                                            let userUpdate = currentInput
+                                            print("Update sent: \(userUpdate)")
+                                            
+                                            // Call GPTDailyUpdate and log the response
+                                            Task {
+                                                let response = await GPTDailyUpdate.generatePersonalizedResponse(for: userUpdate)
+                                                print("🤖 GPTDailyUpdate Response:")
+                                                print("   Line 1: \(response.line1)")
+                                                print("   Line 2: \(response.line2)")
+                                                print("   Line 3: \(response.line3)")
+                                            }
+                                            
                                             currentInput = ""
                                             
                                             // Collapse card to dismissed state

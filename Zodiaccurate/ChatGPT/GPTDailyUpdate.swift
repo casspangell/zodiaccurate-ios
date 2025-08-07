@@ -30,8 +30,8 @@ struct GPTDailyUpdate {
         User's update: "\(userUpdate)"
         
         Generate a response that:
-        1. Acknowledges their sharing (header - 2-4 words)
-        2. Small sentiment regarding the message (subtext - 3-6 words)
+        1. Acknowledges their sharing (header - 1-2 words)
+        2. Small sentiment regarding the message (subtext - no more than 240 characters)
         
         Use the tone and style of these examples as a guide:
         - "Thanks for sharing!|||Sounds like a lot"

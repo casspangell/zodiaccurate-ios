@@ -137,6 +137,7 @@ struct UpdateCard: View {
                     .frame(height: geometry.size.height * cardHeight)
                     .background(Color.black)
                     .cornerRadius(24)
+                    .ignoresSafeArea(.all, edges: .bottom)
                 }
                 .offset(y: dragOffset)
             }

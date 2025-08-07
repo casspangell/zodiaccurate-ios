@@ -46,16 +46,18 @@ struct UpdateCardText: View {
         VStack(alignment: .leading) {
             Text(line1)
                 .dmSansSemiboldGradient(size: 38)
-                .lineLimit(1)
             
             Text(line2)
                 .font(Font.dmSansMedium(size: 32))
                 .foregroundColor(.white)
-                .lineLimit(1)
+                .fixedSize(horizontal: false, vertical: true)
             
             Text(line3)
                 .font(Font.dmSansMedium(size: 24))
                 .foregroundColor(.white)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(3)
+                .minimumScaleFactor(0.4)
         }
     }
 }

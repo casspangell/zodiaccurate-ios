@@ -21,7 +21,9 @@ final class DailyUpdate {
     // MARK: - Initializer
     init(content: String, mood: String? = nil, tags: [String] = [], isCompleted: Bool = false) {
         let now = Date()
-        self.id = "dailyUpdate-\(getTimestampString(date: now))-\(UUID().uuidString.prefix(8))"
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        self.id = "dailyUpdate-\(formatter.string(from: now))"
         self.content = content
         self.timestamp = now
         self.mood = mood

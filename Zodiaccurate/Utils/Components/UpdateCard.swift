@@ -69,9 +69,18 @@ struct UpdateCard: View {
                                     UpdateBubble(
                                         currentInput: $currentInput,
                                         onSend: {
+                                            // Dismiss keyboard first
+                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                            
                                             // Handle send action
                                             print("Update sent: \(currentInput)")
                                             currentInput = ""
+                                            
+                                            // Collapse card to dismissed state
+                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                                                cardHeight = cardHeightDismissed
+                                                isExpanded = false
+                                            }
                                         },
                                         onFrameChange: { _ in },
                                         highlightInputField: .constant(false)

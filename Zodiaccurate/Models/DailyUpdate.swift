@@ -20,9 +20,10 @@ final class DailyUpdate {
     
     // MARK: - Initializer
     init(content: String, mood: String? = nil, tags: [String] = [], isCompleted: Bool = false) {
-        self.id = getTimestampString()
+        let now = Date()
+        self.id = "dailyUpdate-\(getTimestampString(date: now))-\(UUID().uuidString.prefix(8))"
         self.content = content
-        self.timestamp = Date()
+        self.timestamp = now
         self.mood = mood
         self.tags = tags
         self.isCompleted = isCompleted

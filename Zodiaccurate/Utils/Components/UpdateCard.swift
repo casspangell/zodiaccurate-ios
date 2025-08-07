@@ -19,6 +19,10 @@ struct UpdateCard: View {
     @State private var hasShownTutorial = false
     @State private var hasDismissedTutorial = false
     @State private var isKeyboardVisible = false
+    @State private var isLoading = false
+    @State private var gptResponse: (line1: String, line2: String)?
+    @State private var resetTimer: Timer?
+    @State private var showGreenBackground = false
     
     // Sample conversation step for the update card
     private var updateConversationStep: ConversationStep {
@@ -52,10 +56,20 @@ struct UpdateCard: View {
                         
                         // Card content
                         VStack(spacing: 16) {
-                            // Label text
-                            UpdateCardText()
+                            // Label text or loading spinner
+                            if isLoading {
+                                Spacer()
+                                ZodiacLoadingSpinner(size: .medium)
+                                Spacer()
+                            } else {
+                                UpdateCardText(
+                                    line1: gptResponse?.line1 ?? "Hey there!",
+                                    line2: gptResponse?.line2 ?? "How is everything?",
+                                    line3: gptResponse != nil ? "" : "What's the latest?"
+                                )
                                 .padding(.horizontal, 20)
                                 .padding(.top, 40)
+                            }
                             
                             // Chat bubble (only when expanded)
                             if isExpanded {
@@ -70,21 +84,42 @@ struct UpdateCard: View {
                                             let userUpdate = currentInput
                                             print("Update sent: \(userUpdate)")
                                             
-                                            // Call GPTDailyUpdate and log the response
+                                            // Start loading state and collapse card
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                isLoading = true
+                                            }
+                                            onCardDismiss()
+                                            
+                                            // Call GPTDailyUpdate and handle the response
                                             Task {
                                                 let response = await GPTDailyUpdate.generatePersonalizedResponse(for: userUpdate)
                                                 print("🤖 GPTDailyUpdate Response:")
                                                 print("   Line 1: \(response.line1)")
                                                 print("   Line 2: \(response.line2)")
+                                                
+                                                // Update UI on main thread
+                                                await MainActor.run {
+                                                    withAnimation(.easeInOut(duration: 0.5)) {
+                                                        gptResponse = response
+                                                        isLoading = false
+                                                    }
+                                                    
+                                                    // Trigger green background after loading spinner dismisses
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                                        triggerTransistionAnimation()
+                                                    }
+                                                    
+                                                    // Start timer to reset to default text after 5 seconds
+                                                    resetTimer?.invalidate()
+                                                    resetTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
+                                                        withAnimation(.easeInOut(duration: 0.5)) {
+                                                            gptResponse = nil
+                                                        }
+                                                    }
+                                                }
                                             }
                                             
                                             currentInput = ""
-                                            
-                                            // Collapse card to dismissed state
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                                cardHeight = cardHeightDismissed
-                                                isExpanded = false
-                                            }
                                         },
                                         onFrameChange: { _ in },
                                         highlightInputField: .constant(false)
@@ -120,7 +155,9 @@ struct UpdateCard: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: geometry.size.height * cardHeight)
-                    .background(Color.black)
+                    .background(
+                        showGreenBackground ? Color.green : Color.black
+                    )
                     .cornerRadius(24)
                 }
                 .offset(y: dragOffset)
@@ -220,6 +257,8 @@ struct UpdateCard: View {
         }
         .onDisappear {
             removeKeyboardObservers()
+            resetTimer?.invalidate()
+            resetTimer = nil
         }
     }
     
@@ -260,6 +299,53 @@ struct UpdateCard: View {
     private func removeKeyboardObservers() {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    // MARK: - Card State Management
+    private func onCardDismiss() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+            cardHeight = cardHeightDismissed
+            isExpanded = false
+            dragOffset = 0
+        }
+    }
+    
+    private func onCardExpanded() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+            if !hasDismissedTutorial {
+                cardHeight = cardHeightExpandedWithTutorial
+                isExpanded = true
+                
+                // Show tutorial on first expansion
+                if !hasShownTutorial {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showTutorialBubble = true
+                            hasShownTutorial = true
+                        }
+                    }
+                }
+            } else {
+                cardHeight = cardHeightExpanded
+                isExpanded = true
+            }
+            dragOffset = 0
+        }
+    }
+    
+    // MARK: - Green Background Animation
+    func triggerTransistionAnimation() {
+        // Show green background
+        withAnimation(.easeInOut(duration: 0.5)) {
+            showGreenBackground = true
+        }
+        
+        // Return to black background after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showGreenBackground = false
+            }
+        }
     }
 }
 

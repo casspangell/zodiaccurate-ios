@@ -11,6 +11,7 @@ struct Tutorial {
     let title: String
     let subtitle: String
     let arrow: String // Direction or type of arrow
+    let icon: String // Icon to display in the tutorial bubble
 }
 
 struct ConversationStep {
@@ -40,7 +41,8 @@ let onboardingConversationSteps: [ConversationStep] = [
         tutorial: Tutorial(
             title: "Use Your Voice!",
             subtitle: "Tap the microphone icon on the keyboard to speak your response.",
-            arrow: "up"
+            arrow: "up",
+            icon: "mic.fill"
         )
     ),
     ConversationStep(

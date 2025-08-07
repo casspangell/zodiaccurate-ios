@@ -17,6 +17,7 @@ public struct TutorialPopUp: View {
     public var arrowPosition: ArrowPosition
     public var title: String = "🎤 Try voice input!"
     public var subtitle: String = "Tap the microphone button to use speech-to-text"
+    public var icon: String = "mic.fill"
     public var bodyColor: Color = Color.deepBlue.opacity(0.95)
     public var arrowColor: Color = Color.accentGold
     public var glowColor: Color = Color.accentGold.opacity(0.2)
@@ -59,7 +60,7 @@ public struct TutorialPopUp: View {
     private var content: some View {
         VStack(spacing: 6) {
             HStack(spacing: 8) {
-                Image(systemName: "mic.fill")
+                Image(systemName: icon)
                     .foregroundColor(.accentGold)
                     .font(.system(size: mainTextSize))
                 Text(title)

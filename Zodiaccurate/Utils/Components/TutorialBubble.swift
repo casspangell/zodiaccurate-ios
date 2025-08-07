@@ -151,6 +151,7 @@ struct TutorialBubble: View {
                 arrowPosition: arrowPosition,
                 title: type.title,
                 subtitle: type.subtitle,
+                icon: type.icon,
                 bodyColor: style.bodyColor,
                 arrowColor: style.arrowColor,
                 glowColor: style.glowColor,

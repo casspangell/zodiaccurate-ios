@@ -82,7 +82,6 @@ struct UpdateCard: View {
                                                 print("🤖 GPTDailyUpdate Response:")
                                                 print("   Line 1: \(response.line1)")
                                                 print("   Line 2: \(response.line2)")
-                                                print("   Line 3: \(response.line3)")
                                             }
                                             
                                             currentInput = ""

@@ -885,7 +885,7 @@ struct ChatInputView: View {
                     TutorialBubble.custom(
                         title: tutorial.title,
                         subtitle: tutorial.subtitle,
-                        icon: "sparkles",
+                        icon: tutorial.icon,
                         arrowPosition: TutorialBubble.getArrowPosition(from: tutorial.arrow),
                         pulse: true,
                         onDismiss: {

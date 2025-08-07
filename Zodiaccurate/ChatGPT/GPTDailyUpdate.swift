@@ -10,36 +10,35 @@ import Foundation
 // MARK: - Response Bank for Daily Updates
 struct GPTDailyUpdate {
     // MARK: - Fallback Response Generator
-    static func getRandomResponse() -> (line1: String, line2: String, line3: String) {
+    static func getRandomResponse() -> (line1: String, line2: String) {
         let fallbackResponses = [
-            ("Thanks for sharing!", "I'm here for you", "Keep being amazing"),
-            ("Got it!", "Your voice matters", "Stay strong"),
-            ("I hear you!", "You're doing great", "Keep going"),
-            ("Noted!", "You've got this", "Stay positive"),
-            ("Received!", "You're not alone", "Keep shining")
+            ("Thanks for sharing!", "I'm here for you"),
+            ("Got it!", "Your voice matters"),
+            ("I hear you!", "You're doing great"),
+            ("Noted!", "You've got this"),
+            ("Received!", "You're not alone")
         ]
         return fallbackResponses.randomElement() ?? fallbackResponses[0]
     }
     
     // MARK: - ChatGPT API Integration
-    static func generatePersonalizedResponse(for userUpdate: String) async -> (line1: String, line2: String, line3: String) {
+    static func generatePersonalizedResponse(for userUpdate: String) async -> (line1: String, line2: String) {
         print("🤖 GPTDailyUpdate: Starting API call for user update: '\(userUpdate)'")
         let prompt = """
-        Based on this daily update from a user, generate a personalized response with three parts separated by "|||":
+        Based on this daily update from a user, generate a personalized response with two parts separated by "|||":
         
         User's update: "\(userUpdate)"
         
         Generate a response that:
         1. Acknowledges their sharing (header - 2-4 words)
-        2. Small response regarding the message (subtext - 3-6 words) 
-        3. Shows understanding/support (smaller bit - 2-4 words)
+        2. Small response regarding the message (subtext - 3-6 words)
         
         Use the tone and style of these examples as a guide:
-        - "Thanks for sharing!|||I'm here for you|||Keep being amazing"
-        - "Got it!|||Your voice matters|||Stay strong"
-        - "I hear you!|||You're doing great|||Keep going"
+        - "Thanks for sharing!|||I'm here for you"
+        - "Got it!|||Your voice matters"
+        - "I hear you!|||You're doing great"
         
-        Keep each part concise and warm. Respond with only the three parts separated by "|||".
+        Keep each part concise and warm. Respond with only the two parts separated by "|||".
         """
         
         do {
@@ -162,17 +161,16 @@ struct GPTDailyUpdate {
     }
     
     // MARK: - Response Parser
-    private static func parseResponse(_ response: String) -> (line1: String, line2: String, line3: String) {
+    private static func parseResponse(_ response: String) -> (line1: String, line2: String) {
         let parts = response.components(separatedBy: "|||")
         
-        guard parts.count >= 3 else {
+        guard parts.count >= 2 else {
             return getRandomResponse()
         }
         
         return (
             line1: parts[0].trimmingCharacters(in: .whitespacesAndNewlines),
-            line2: parts[1].trimmingCharacters(in: .whitespacesAndNewlines),
-            line3: parts[2].trimmingCharacters(in: .whitespacesAndNewlines)
+            line2: parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
         )
     }
 }

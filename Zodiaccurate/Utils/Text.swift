@@ -57,7 +57,7 @@ struct UpdateCardText: View {
             Text(line3)
                 .font(Font.dmSansMedium(size: 24))
                 .foregroundColor(.white)
-                .lineLimit(3)
+                .lineLimit(1)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

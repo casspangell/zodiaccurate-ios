@@ -82,6 +82,7 @@ struct MainZodiacView: View {
                     .frame(maxWidth: .infinity)
                     
                     UpdateCard()
+                        .zIndex(1000)
                 }
             }
         }

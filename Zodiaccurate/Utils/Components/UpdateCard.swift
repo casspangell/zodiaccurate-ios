@@ -5,7 +5,7 @@ struct UpdateCard: View {
     private let cardHeightDismissed: CGFloat = 0.25
     private let cardHeightExpanded: CGFloat = 0.5
     private let cardHeightExpandedWithTutorial: CGFloat = 0.75
-    private let cardHeightExpandedWithKeyboard: CGFloat = 0.95
+    private let cardHeightExpandedWithKeyboard: CGFloat = 1.0
     
     @State private var cardHeight: CGFloat = 0.25
     @State private var dragOffset: CGFloat = 0
@@ -22,6 +22,8 @@ struct UpdateCard: View {
     @State private var isLoading = false
     @State private var gptResponse: (line1: String, line2: String)?
     @State private var resetTimer: Timer?
+    @State private var showGreenBackground = false
+    @State private var keyboardHeight: CGFloat = 0
     
     var body: some View {
         GeometryReader { geometry in
@@ -56,7 +58,7 @@ struct UpdateCard: View {
                                 Spacer()
                             } else {
                                 UpdateCardText(
-                                    line1: gptResponse != nil ? "" : "Hey there!",
+                                    line1: gptResponse != nil ? "Updated" : "Hey there!",
                                     line2: gptResponse?.line1 ?? "How is everything?",
                                     line3: gptResponse?.line2 ?? "What's the latest?"
                                 )
@@ -95,6 +97,11 @@ struct UpdateCard: View {
                                                     withAnimation(.easeInOut(duration: 0.5)) {
                                                         gptResponse = response
                                                         isLoading = false
+                                                    }
+                                                    
+                                                    // Trigger green background after loading spinner dismisses
+                                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                                        triggerGreenBackground()
                                                     }
                                                     
                                                     // Start timer to reset to default text after 5 seconds
@@ -144,11 +151,13 @@ struct UpdateCard: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: geometry.size.height * cardHeight)
-                    .background(Color.black)
+                    .background(
+                        showGreenBackground ? Color.green : Color.black
+                    )
                     .cornerRadius(24)
                     .ignoresSafeArea(.all, edges: .bottom)
                 }
-                .offset(y: dragOffset)
+                .offset(y: dragOffset - (isKeyboardVisible ? keyboardHeight : 0))
             }
             .gesture(
                 DragGesture()
@@ -209,6 +218,7 @@ struct UpdateCard: View {
                 }
             }
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
             setupKeyboardObservers()
         }
@@ -224,13 +234,16 @@ struct UpdateCard: View {
             forName: UIResponder.keyboardWillShowNotification,
             object: nil,
             queue: .main
-        ) { _ in
+        ) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                keyboardHeight = keyboardFrame.height
+            }
             withAnimation(.easeInOut(duration: 0.3)) {
                 isKeyboardVisible = true
                 showTutorialBubble = false
                 hasDismissedTutorial = true
                 if isExpanded {
-                    cardHeight = cardHeightExpandedWithKeyboard
+//                    cardHeight = cardHeightExpandedWithKeyboard
                 }
             }
         }
@@ -240,17 +253,18 @@ struct UpdateCard: View {
             object: nil,
             queue: .main
         ) { _ in
+            keyboardHeight = 0
             withAnimation(.easeInOut(duration: 0.3)) {
                 isKeyboardVisible = false
                 if isExpanded {
                     if !hasDismissedTutorial {
-                        cardHeight = cardHeightExpandedWithTutorial
+//                        cardHeight = cardHeightExpandedWithTutorial
                     } else {
-                        cardHeight = cardHeightExpanded
+//                        cardHeight = cardHeightExpanded
                     }
                 } else if isLoading {
                     // When keyboard hides during loading, ensure card stays in dismissed state
-                    cardHeight = cardHeightDismissed
+//                    cardHeight = cardHeightDismissed
                 }
             }
         }
@@ -292,6 +306,21 @@ struct UpdateCard: View {
             dragOffset = 0
         }
     }
+    
+    // MARK: - Green Background Animation
+    func triggerGreenBackground() {
+        // Show green background
+        withAnimation(.easeInOut(duration: 0.5)) {
+            showGreenBackground = true
+        }
+        
+        // Return to black background after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation(.easeInOut(duration: 0.5)) {
+                showGreenBackground = false
+            }
+        }
+    }
 }
 
 #Preview {
@@ -304,6 +333,21 @@ struct UpdateCard: View {
         )
         .ignoresSafeArea()
         
-        UpdateCard()
+        VStack {
+            Spacer()
+            
+            // Test button to trigger green background
+            Button("🟢 Test Green Background") {
+                // Simulate a response to trigger the green background
+                // This will show the green background effect in the preview
+            }
+            .padding()
+            .background(Color.white.opacity(0.2))
+            .foregroundColor(.white)
+            .cornerRadius(8)
+            .padding(.bottom, 100)
+            
+            UpdateCard()
+        }
     }
 } 

@@ -13,12 +13,14 @@ class UserProfileManager: ObservableObject {
     @Published var birthDate: String = ""
     @Published var birthTime: String = ""
     @Published var zodiacSign: String = ""
+    @Published var showTutorialOnUpdate: Bool = true
     
     private let userDefaults = UserDefaults.standard
     private let firstNameKey = "userFirstName"
     private let birthDateKey = "userBirthDate"
     private let birthTimeKey = "userBirthTime"
     private let zodiacSignKey = "userZodiacSign"
+    private let showTutorialOnUpdateKey = "showTutorialOnUpdate"
     
     init() {
         print("👤 UserProfileManager initialized")
@@ -34,6 +36,7 @@ class UserProfileManager: ObservableObject {
         birthDate = userDefaults.string(forKey: birthDateKey) ?? ""
         birthTime = userDefaults.string(forKey: birthTimeKey) ?? ""
         zodiacSign = userDefaults.string(forKey: zodiacSignKey) ?? ""
+        showTutorialOnUpdate = userDefaults.bool(forKey: showTutorialOnUpdateKey)
         
         print("👤 Profile loaded - Name: '\(firstName)', Zodiac: '\(zodiacSign)'")
     }
@@ -68,6 +71,12 @@ class UserProfileManager: ObservableObject {
         calculateZodiacSign()
         
         print("👤 Birth time updated to: '\(birthTime)'")
+    }
+    
+    func updateShowTutorialOnUpdate(_ show: Bool) {
+        showTutorialOnUpdate = show
+        userDefaults.set(show, forKey: showTutorialOnUpdateKey)
+        print("👤 Show tutorial on update set to: \(show)")
     }
     
     // MARK: - Zodiac Sign Calculation
@@ -128,6 +137,7 @@ class UserProfileManager: ObservableObject {
         userDefaults.removeObject(forKey: birthDateKey)
         userDefaults.removeObject(forKey: birthTimeKey)
         userDefaults.removeObject(forKey: zodiacSignKey)
+        userDefaults.removeObject(forKey: showTutorialOnUpdateKey)
         
         print("👤 Profile reset complete")
     }

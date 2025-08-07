@@ -1,6 +1,11 @@
 import SwiftUI
 
 struct UpdateCard: View {
+    // Card height constants
+    private let cardHeightDismissed: CGFloat = 0.25
+    private let cardHeightExpanded: CGFloat = 0.5
+    private let cardHeightExpandedWithTutorial: CGFloat = 0.75
+    
     @State private var cardHeight: CGFloat = 0.25
     @State private var dragOffset: CGFloat = 0
     @State private var isExpanded = false
@@ -9,6 +14,9 @@ struct UpdateCard: View {
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
     @State private var highlightInputField = false
+    @State private var showTutorialBubble = false
+    @State private var hasShownTutorial = false
+    @State private var hasDismissedTutorial = false
     
     // Sample conversation step for the update card
     private var updateConversationStep: ConversationStep {
@@ -55,16 +63,37 @@ struct UpdateCard: View {
                             
                             // Chat bubble (only when expanded)
                             if isExpanded {
-                                UpdateBubble(
-                                    currentInput: $currentInput,
-                                    onSend: {
-                                        // Handle send action
-                                        print("Update sent: \(currentInput)")
-                                        currentInput = ""
-                                    },
-                                    onFrameChange: { _ in },
-                                    highlightInputField: .constant(false)
-                                )
+                                VStack(spacing: 16) {
+                                    UpdateBubble(
+                                        currentInput: $currentInput,
+                                        onSend: {
+                                            // Handle send action
+                                            print("Update sent: \(currentInput)")
+                                            currentInput = ""
+                                        },
+                                        onFrameChange: { _ in },
+                                        highlightInputField: .constant(false)
+                                    )
+                                    
+                                    // Tutorial bubble (show on first expansion)
+                                    if showTutorialBubble {
+                                        TutorialBubble.custom(
+                                            title: "Share Your Day",
+                                            subtitle: "Tell me how you're feeling and what's on your mind. Your daily updates help me understand you better.",
+                                            icon: "heart.fill",
+                                            arrowPosition: .top,
+                                            pulse: true,
+                                            onDismiss: {
+                                                withAnimation(.easeInOut(duration: 0.3)) {
+                                                    showTutorialBubble = false
+                                                    hasDismissedTutorial = true
+                                                    cardHeight = cardHeightExpanded
+                                                }
+                                            }
+                                        )
+                                        .transition(.opacity)
+                                    }
+                                }
                                 .padding(.horizontal, 20)
                                 .opacity(isExpanded ? 1.0 : 0.0)
                                 .animation(.easeInOut(duration: 0.3), value: isExpanded)
@@ -89,8 +118,8 @@ struct UpdateCard: View {
                         let screenHeight = geometry.size.height
                         
                         // Calculate new height based on drag
-                        let newHeight = isExpanded ? 0.5 : 0.25
-                        let heightDifference = (0.5 - 0.25) * screenHeight
+                        let newHeight = isExpanded ? cardHeightExpanded : cardHeightDismissed
+                        let heightDifference = (cardHeightExpanded - cardHeightDismissed) * screenHeight
                         
                         // Limit drag to reasonable bounds
                         let maxDrag = heightDifference * 0.3
@@ -107,10 +136,25 @@ struct UpdateCard: View {
                         
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                             if shouldExpand && !isExpanded {
-                                cardHeight = 0.5
-                                isExpanded = true
+                                if !hasDismissedTutorial {
+                                    cardHeight = cardHeightExpandedWithTutorial
+                                    isExpanded = true
+                                    
+                                    // Show tutorial on first expansion
+                                    if !hasShownTutorial {
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                showTutorialBubble = true
+                                                hasShownTutorial = true
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    cardHeight = cardHeightExpanded
+                                    isExpanded = true
+                                }
                             } else if shouldCollapse && isExpanded {
-                                cardHeight = 0.25
+                                cardHeight = cardHeightDismissed
                                 isExpanded = false
                             }
                             dragOffset = 0
@@ -122,11 +166,26 @@ struct UpdateCard: View {
             .onTapGesture {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                     if isExpanded {
-                        cardHeight = 0.25
+                        cardHeight = cardHeightDismissed
                         isExpanded = false
                     } else {
-                        cardHeight = 0.5
-                        isExpanded = true
+                        if !hasDismissedTutorial {
+                            cardHeight = cardHeightExpandedWithTutorial
+                            isExpanded = true
+                            
+                            // Show tutorial on first expansion
+                            if !hasShownTutorial {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        showTutorialBubble = true
+                                        hasShownTutorial = true
+                                    }
+                                }
+                            }
+                        } else {
+                            cardHeight = cardHeightExpanded
+                            isExpanded = true
+                        }
                     }
                     dragOffset = 0
                 }

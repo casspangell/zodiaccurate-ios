@@ -52,10 +52,13 @@ struct UpdateCardText: View {
                 .font(Font.dmSansMedium(size: 32))
                 .foregroundColor(.white)
                 .lineLimit(1)
+                .fixedSize(horizontal: false, vertical: true)
             
             Text(line3)
                 .font(Font.dmSansMedium(size: 24))
                 .foregroundColor(.white)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

@@ -58,14 +58,13 @@ struct UpdateCard: View {
                         VStack(spacing: 16) {
                             // Label text or loading spinner
                             if isLoading {
-                                Spacer()
                                 ZodiacLoadingSpinner(size: .medium)
-                                Spacer()
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                             } else {
                                 UpdateCardText(
-                                    line1: gptResponse?.line1 ?? "Hey there!",
-                                    line2: gptResponse?.line2 ?? "How is everything?",
-                                    line3: gptResponse != nil ? "" : "What's the latest?"
+                                    line1: gptResponse != nil ? "" : "Hey there!",
+                                    line2: gptResponse?.line1 ?? "How is everything?",
+                                    line3: gptResponse?.line2 ?? "What's the latest?"
                                 )
                                 .padding(.horizontal, 20)
                                 .padding(.top, 40)

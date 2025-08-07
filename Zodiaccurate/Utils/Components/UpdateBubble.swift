@@ -50,7 +50,6 @@ struct UpdateBubble: View {
         }
         .clipShape(AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)))
         .onChange(of: currentInput) { _, newValue in
-            print("Text changed: '\(newValue)'")
             if !newValue.isEmpty && currentInput.isEmpty {
                 print("typing")
             }

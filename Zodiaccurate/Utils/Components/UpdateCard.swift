@@ -49,12 +49,6 @@ struct UpdateCard: View {
                     Spacer()
                     
                     VStack(spacing: 0) {
-                        // Draggable indicator
-//                        RoundedRectangle(cornerRadius: 8)
-//                            .fill(Color.white.opacity(0.6))
-//                            .frame(width: 40, height: 4)
-//                            .padding(.top, 24)
-//                            .padding(.bottom, 8)
                         
                         // Card content
                         VStack(spacing: 16) {
@@ -100,7 +94,7 @@ struct UpdateCard: View {
                                     if showTutorialBubble {
                                         TutorialBubble.custom(
                                             title: "Share Your Day",
-                                            subtitle: "Tell me how you're feeling and what's on your mind. Your daily updates help me understand you better.",
+                                            subtitle: "Tell me how you're feeling and what's on your mind.",
                                             icon: "heart.fill",
                                             arrowPosition: .top,
                                             pulse: true,

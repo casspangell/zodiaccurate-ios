@@ -80,8 +80,8 @@ struct MainZodiacView: View {
                         }, displayMode: .main
                     )
                     .frame(maxWidth: .infinity)
-                    
                     UpdateCard()
+                    .zIndex(9999)
                 }
             }
         }

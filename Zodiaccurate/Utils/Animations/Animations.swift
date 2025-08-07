@@ -1,5 +1,133 @@
 import SwiftUI
 
+// MARK: - Glistening Background Component
+struct GlisteningBackground: View {
+    @State private var shimmerOffset: CGFloat
+    @State private var sparkleOpacity: Double = 0.0
+    @State private var isAnimating: Bool = false
+    
+    // Optional parameters with default values
+    let shimmerStartOffset: CGFloat
+    let shimmerEndOffset: CGFloat
+    let shimmerDuration: Double
+    let shimmerWidth: CGFloat
+    let shimmerHeight: CGFloat
+    let repeatForever: Bool
+    let autoStart: Bool
+    let triggerAnimation: Binding<Bool>?
+    
+    init(
+        shimmerStartOffset: CGFloat = -1000,
+        shimmerEndOffset: CGFloat = 600,
+        shimmerDuration: Double = 2.5,
+        shimmerWidth: CGFloat = 150,
+        shimmerHeight: CGFloat = 500,
+        repeatForever: Bool = true,
+        autoStart: Bool = true,
+        triggerAnimation: Binding<Bool>? = nil
+    ) {
+        self.shimmerStartOffset = shimmerStartOffset
+        self.shimmerEndOffset = shimmerEndOffset
+        self.shimmerDuration = shimmerDuration
+        self.shimmerWidth = shimmerWidth
+        self.shimmerHeight = shimmerHeight
+        self.repeatForever = repeatForever
+        self.autoStart = autoStart
+        self.triggerAnimation = triggerAnimation
+        self._shimmerOffset = State(initialValue: shimmerStartOffset)
+    }
+    
+    var body: some View {
+        ZStack {
+            // Base background
+            Color.black
+            
+            // Angled shimmer effect
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.clear,
+                            Color.white.opacity(0.1),
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0.1),
+                            Color.clear
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: shimmerWidth, height: shimmerHeight)
+                .rotationEffect(.degrees(45))
+                .offset(x: shimmerOffset, y: shimmerOffset)
+//                .blur(radius: 0)
+            
+            // Sparkle effects
+            ForEach(0..<8, id: \.self) { index in
+                Circle()
+                    .fill(Color.white.opacity(0.2))
+                    .frame(width: 5, height: 2)
+                    .offset(
+                        x: CGFloat.random(in: -150...150),
+                        y: CGFloat.random(in: -100...100)
+                    )
+                    .opacity(sparkleOpacity)
+                    .animation(
+                        .easeInOut(duration: 0.3)
+                        .repeatForever(autoreverses: true)
+                        .delay(Double(index) * 0.3),
+                        value: sparkleOpacity
+                    )
+            }
+        }
+        .onAppear {
+            if autoStart {
+                fireGlisteningBackground()
+            }
+        }
+        .onChange(of: isAnimating) { _ in
+            if isAnimating && autoStart {
+                // Only start auto animation if autoStart is true
+                let animation = repeatForever ? 
+                    Animation.linear(duration: shimmerDuration).repeatForever(autoreverses: false) :
+                    Animation.linear(duration: shimmerDuration)
+                
+                withAnimation(animation) {
+                    shimmerOffset = shimmerEndOffset
+                }
+            }
+        }
+        .onChange(of: triggerAnimation?.wrappedValue ?? false) { shouldTrigger in
+            if shouldTrigger {
+                fireGlisteningBackground()
+                triggerAnimation?.wrappedValue = false
+            }
+        }
+    }
+    
+    // MARK: - Public Functions
+    func fireGlisteningBackground() {
+        isAnimating = true
+        sparkleOpacity = 1.0
+        startShimmerAnimation()
+    }
+    
+    // MARK: - Private Functions
+    private func startShimmerAnimation() {
+        // When fired manually, always use non-repeating animation
+        let animation = Animation.linear(duration: shimmerDuration)
+        
+        withAnimation(animation) {
+            shimmerOffset = shimmerEndOffset
+        }
+        
+        // Reset shimmer position after animation completes
+        DispatchQueue.main.asyncAfter(deadline: .now() + shimmerDuration) {
+            shimmerOffset = shimmerStartOffset
+        }
+    }
+}
+
 // MARK: - Shooting Stars Components
 
 // MARK: - Shooting Stars Components

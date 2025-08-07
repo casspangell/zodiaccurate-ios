@@ -22,7 +22,7 @@ struct UpdateCard: View {
     @State private var isLoading = false
     @State private var gptResponse: (line1: String, line2: String)?
     @State private var resetTimer: Timer?
-    @State private var showGreenBackground = false
+    @State private var triggerGlistening = false
     
     // Sample conversation step for the update card
     private var updateConversationStep: ConversationStep {
@@ -105,7 +105,7 @@ struct UpdateCard: View {
                                                     
                                                     // Trigger green background after loading spinner dismisses
                                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                                                        triggerTransistionAnimation()
+                                                        fireGlisteningBackground()
                                                     }
                                                     
                                                     // Start timer to reset to default text after 5 seconds
@@ -155,7 +155,12 @@ struct UpdateCard: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: geometry.size.height * cardHeight)
                     .background(
-                        showGreenBackground ? Color.green : Color.black
+                        Group {
+                            GlisteningBackground(
+                                autoStart: false,
+                                triggerAnimation: $triggerGlistening
+                            )
+                        }
                     )
                     .cornerRadius(24)
                 }
@@ -253,6 +258,9 @@ struct UpdateCard: View {
         }
         .onAppear {
             setupKeyboardObservers()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                fireGlisteningBackground()
+            }
         }
         .onDisappear {
             removeKeyboardObservers()
@@ -333,18 +341,23 @@ struct UpdateCard: View {
     }
     
     // MARK: - Green Background Animation
-    func triggerTransistionAnimation() {
-        // Show green background
-        withAnimation(.easeInOut(duration: 0.5)) {
-            showGreenBackground = true
-        }
-        
-        // Return to black background after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            withAnimation(.easeInOut(duration: 0.5)) {
-                showGreenBackground = false
-            }
-        }
+//    func triggerTransistionAnimation() {
+//        // Show green background
+//        withAnimation(.easeInOut(duration: 0.5)) {
+//            showGreenBackground = true
+//        }
+//        
+//        // Return to black background after 2 seconds
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+//            withAnimation(.easeInOut(duration: 0.5)) {
+//                showGreenBackground = false
+//            }
+//        }
+//    }
+    
+    // MARK: - Glistening Animation
+    func fireGlisteningBackground() {
+        triggerGlistening = true
     }
 }
 

@@ -19,18 +19,8 @@ struct UpdateCard: View {
     @State private var hasShownTutorial = false
     @State private var hasDismissedTutorial = false
     @State private var isKeyboardVisible = false
-    
-    // Sample conversation step for the update card
-    private var updateConversationStep: ConversationStep {
-        let timestamp = getTimestampString()
-        
-        return ConversationStep(
-            message: "How are you feeling today? Share your thoughts and let me know what's on your mind...",
-            inputType: "multiLine",
-            placeholder: "",
-            dataKey: "dailyUpdate-\(timestamp)"
-        )
-    }
+    @State private var isLoading = false
+    @State private var gptResponse: (line1: String, line2: String)?
     
     var body: some View {
         GeometryReader { geometry in
@@ -58,10 +48,20 @@ struct UpdateCard: View {
                         
                         // Card content
                         VStack(spacing: 16) {
-                            // Label text
-                            UpdateCardText()
+                            // Label text or loading spinner
+                            if isLoading {
+                                Spacer()
+                                ZodiacLoadingSpinner(size: .medium)
+                                Spacer()
+                            } else {
+                                UpdateCardText(
+                                    line1: gptResponse != nil ? "" : "Hey there!",
+                                    line2: gptResponse?.line1 ?? "How is everything?",
+                                    line3: gptResponse?.line2 ?? "What's the latest?"
+                                )
                                 .padding(.horizontal, 20)
                                 .padding(.top, 40)
+                            }
                             
                             // Chat bubble (only when expanded)
                             if isExpanded {
@@ -76,21 +76,29 @@ struct UpdateCard: View {
                                             let userUpdate = currentInput
                                             print("Update sent: \(userUpdate)")
                                             
-                                            // Call GPTDailyUpdate and log the response
+                                            // Start loading state and collapse card
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                isLoading = true
+                                            }
+                                            onCardDismiss()
+                                            
+                                            // Call GPTDailyUpdate and handle the response
                                             Task {
                                                 let response = await GPTDailyUpdate.generatePersonalizedResponse(for: userUpdate)
                                                 print("🤖 GPTDailyUpdate Response:")
                                                 print("   Line 1: \(response.line1)")
                                                 print("   Line 2: \(response.line2)")
+                                                
+                                                // Update UI on main thread
+                                                await MainActor.run {
+                                                    withAnimation(.easeInOut(duration: 0.5)) {
+                                                        gptResponse = response
+                                                        isLoading = false
+                                                    }
+                                                }
                                             }
                                             
                                             currentInput = ""
-                                            
-                                            // Collapse card to dismissed state
-                                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                                cardHeight = cardHeightDismissed
-                                                isExpanded = false
-                                            }
                                         },
                                         onFrameChange: { _ in },
                                         highlightInputField: .constant(false)
@@ -117,6 +125,7 @@ struct UpdateCard: View {
                                 }
                                 .padding(.horizontal, 20)
                                 .opacity(isExpanded ? 1.0 : 0.0)
+                                .offset(y: isExpanded ? 0 : 50)
                                 .animation(.easeInOut(duration: 0.3), value: isExpanded)
                             }
                         }
@@ -157,26 +166,9 @@ struct UpdateCard: View {
                         
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                             if shouldExpand && !isExpanded {
-                                if !hasDismissedTutorial {
-                                    cardHeight = cardHeightExpandedWithTutorial
-                                    isExpanded = true
-                                    
-                                    // Show tutorial on first expansion
-                                    if !hasShownTutorial {
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                            withAnimation(.easeInOut(duration: 0.3)) {
-                                                showTutorialBubble = true
-                                                hasShownTutorial = true
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    cardHeight = cardHeightExpanded
-                                    isExpanded = true
-                                }
+                                onCardExpanded()
                             } else if shouldCollapse && isExpanded {
-                                cardHeight = cardHeightDismissed
-                                isExpanded = false
+                                onCardDismiss()
                             }
                             dragOffset = 0
                         }
@@ -191,33 +183,10 @@ struct UpdateCard: View {
                     
                     // Then animate card collapse
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                            cardHeight = cardHeightDismissed
-                            isExpanded = false
-                            dragOffset = 0
-                        }
+                        onCardDismiss()
                     }
                 } else {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                        if !hasDismissedTutorial {
-                            cardHeight = cardHeightExpandedWithTutorial
-                            isExpanded = true
-                            
-                            // Show tutorial on first expansion
-                            if !hasShownTutorial {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        showTutorialBubble = true
-                                        hasShownTutorial = true
-                                    }
-                                }
-                            }
-                        } else {
-                            cardHeight = cardHeightExpanded
-                            isExpanded = true
-                        }
-                        dragOffset = 0
-                    }
+                    onCardExpanded()
                 }
             }
         }
@@ -258,6 +227,9 @@ struct UpdateCard: View {
                     } else {
                         cardHeight = cardHeightExpanded
                     }
+                } else if isLoading {
+                    // When keyboard hides during loading, ensure card stays in dismissed state
+                    cardHeight = cardHeightDismissed
                 }
             }
         }
@@ -266,6 +238,38 @@ struct UpdateCard: View {
     private func removeKeyboardObservers() {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    // MARK: - Card State Management
+    private func onCardDismiss() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+            cardHeight = cardHeightDismissed
+            isExpanded = false
+            dragOffset = 0
+        }
+    }
+    
+    private func onCardExpanded() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+            if !hasDismissedTutorial {
+                cardHeight = cardHeightExpandedWithTutorial
+                isExpanded = true
+                
+                // Show tutorial on first expansion
+                if !hasShownTutorial {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showTutorialBubble = true
+                            hasShownTutorial = true
+                        }
+                    }
+                }
+            } else {
+                cardHeight = cardHeightExpanded
+                isExpanded = true
+            }
+            dragOffset = 0
+        }
     }
 }
 

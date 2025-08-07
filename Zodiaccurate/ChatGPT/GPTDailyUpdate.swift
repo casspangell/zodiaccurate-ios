@@ -65,7 +65,7 @@ struct GPTDailyUpdate {
         let requestBody = ChatGPTRequest(
             model: APIConfig.defaultModel,
             messages: [
-                ChatGPTMessage(role: "system", content: "You are a supportive AI assistant that responds to daily updates with a creative honest response or acknowledgment."),
+                ChatGPTMessage(role: "system", content: "You are a supportive AI assistant that responds to daily updates with a creative honest response and acknowledgment."),
                 ChatGPTMessage(role: "user", content: prompt)
             ],
             temperature: APIConfig.defaultTemperature,

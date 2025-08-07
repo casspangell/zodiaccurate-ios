@@ -32,20 +32,34 @@ struct HoroscopeDateText: View {
 }
 
 struct UpdateCardText: View {
+    let line1: String
+    let line2: String
+    let line3: String
+    
+    init(line1: String = "Hey there!", line2: String = "How is everything?", line3: String = "What's the latest?") {
+        self.line1 = line1
+        self.line2 = line2
+        self.line3 = line3
+    }
+    
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Hey there!")
+            Text(line1)
                 .dmSansSemiboldGradient(size: 38)
                 .lineLimit(1)
+                .minimumScaleFactor(0.5)
             
-            Text("How is everything?")
+            Text(line2)
                 .font(Font.dmSansMedium(size: 32))
                 .foregroundColor(.white)
                 .lineLimit(1)
+                .minimumScaleFactor(0.5)
             
-            Text("What's the latest?")
+            Text(line3)
                 .font(Font.dmSansMedium(size: 24))
                 .foregroundColor(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
         }
     }
 }

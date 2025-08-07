@@ -21,6 +21,7 @@ struct UpdateCard: View {
     @State private var isKeyboardVisible = false
     @State private var isLoading = false
     @State private var gptResponse: (line1: String, line2: String)?
+    @State private var resetTimer: Timer?
     
     var body: some View {
         GeometryReader { geometry in
@@ -95,6 +96,14 @@ struct UpdateCard: View {
                                                         gptResponse = response
                                                         isLoading = false
                                                     }
+                                                    
+                                                    // Start timer to reset to default text after 5 seconds
+                                                    resetTimer?.invalidate()
+                                                    resetTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
+                                                        withAnimation(.easeInOut(duration: 0.5)) {
+                                                            gptResponse = nil
+                                                        }
+                                                    }
                                                 }
                                             }
                                             
@@ -144,6 +153,9 @@ struct UpdateCard: View {
             .gesture(
                 DragGesture()
                     .onChanged { value in
+                        // Only allow drag when response is not displaying
+                        guard gptResponse == nil else { return }
+                        
                         isDragging = true
                         let translation = value.translation.height
                         let screenHeight = geometry.size.height
@@ -157,6 +169,9 @@ struct UpdateCard: View {
                         dragOffset = max(-maxDrag, min(translation, maxDrag))
                     }
                     .onEnded { value in
+                        // Only allow drag when response is not displaying
+                        guard gptResponse == nil else { return }
+                        
                         let translation = value.translation.height
                         let velocity = value.velocity.height
                         let screenHeight = geometry.size.height
@@ -178,6 +193,9 @@ struct UpdateCard: View {
                     }
             )
             .onTapGesture {
+                // Only allow tap when response is not displaying
+                guard gptResponse == nil else { return }
+                
                 if isExpanded {
                     // Dismiss keyboard first
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -196,6 +214,8 @@ struct UpdateCard: View {
         }
         .onDisappear {
             removeKeyboardObservers()
+            resetTimer?.invalidate()
+            resetTimer = nil
         }
     }
     

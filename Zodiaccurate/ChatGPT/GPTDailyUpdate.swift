@@ -31,11 +31,11 @@ struct GPTDailyUpdate {
         
         Generate a response that:
         1. Acknowledges their sharing (header - 2-4 words)
-        2. Small response regarding the message (subtext - 3-6 words)
+        2. Small sentiment regarding the message (subtext - 3-6 words)
         
         Use the tone and style of these examples as a guide:
-        - "Thanks for sharing!|||I'm here for you"
-        - "Got it!|||Your voice matters"
+        - "Thanks for sharing!|||Sounds like a lot"
+        - "Got it!|||Sounds frustrating"
         - "I hear you!|||You're doing great"
         
         Keep each part concise and warm. Respond with only the two parts separated by "|||".
@@ -65,7 +65,7 @@ struct GPTDailyUpdate {
         let requestBody = ChatGPTRequest(
             model: APIConfig.defaultModel,
             messages: [
-                ChatGPTMessage(role: "system", content: "You are a supportive AI assistant that responds to daily updates with warm, encouraging messages."),
+                ChatGPTMessage(role: "system", content: "You are a supportive AI assistant that responds to daily updates with a creative honest response or acknowledgment."),
                 ChatGPTMessage(role: "user", content: prompt)
             ],
             temperature: APIConfig.defaultTemperature,

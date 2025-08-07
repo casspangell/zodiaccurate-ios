@@ -2,7 +2,7 @@ import SwiftUI
 
 struct UpdateCard: View {
     // Card height constants
-    private let cardHeightDismissed: CGFloat = 0.25
+    private let cardHeightDismissed: CGFloat = 0.35
     private let cardHeightExpanded: CGFloat = 0.5
     private let cardHeightExpandedWithTutorial: CGFloat = 0.75
     private let cardHeightExpandedWithKeyboard: CGFloat = 1.0
@@ -28,17 +28,8 @@ struct UpdateCard: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Black rectangle covering safe area at bottom (static)
-                VStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color.black)
-                        .frame(maxWidth: .infinity, maxHeight: 100)
-                        .ignoresSafeArea(.container, edges: .bottom)
-                }
-                .ignoresSafeArea(.container, edges: .bottom)
                 
-                VStack {
+                VStack() {
                     Spacer()
                     
                     VStack(spacing: 0) {
@@ -49,6 +40,7 @@ struct UpdateCard: View {
 //                            .padding(.top, 24)
 //                            .padding(.bottom, 8)
                         
+                        Spacer()
                         // Card content
                         VStack(spacing: 16) {
                             // Label text or loading spinner
@@ -58,7 +50,7 @@ struct UpdateCard: View {
                                 Spacer()
                             } else {
                                 UpdateCardText(
-                                    line1: gptResponse != nil ? "Updated" : "Hey there!",
+                                    line1: gptResponse != nil ? "" : "Hey there!",
                                     line2: gptResponse?.line1 ?? "How is everything?",
                                     line3: gptResponse?.line2 ?? "What's the latest?"
                                 )
@@ -124,7 +116,7 @@ struct UpdateCard: View {
                                     if showTutorialBubble {
                                         TutorialBubble.custom(
                                             title: "Share Your Day",
-                                            subtitle: "Tell me how you're feeling and what's on your mind. Your daily updates help me understand you better.",
+                                            subtitle: "Tell me how you're feeling and what's on your mind.",
                                             icon: "heart.fill",
                                             arrowPosition: .top,
                                             pulse: true,
@@ -144,8 +136,9 @@ struct UpdateCard: View {
                                 .offset(y: isExpanded ? 0 : 50)
                                 .animation(.easeInOut(duration: 0.3), value: isExpanded)
                             }
+                            
                         }
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 80)
                         
                         Spacer()
                     }
@@ -155,8 +148,9 @@ struct UpdateCard: View {
                         showGreenBackground ? Color.green : Color.black
                     )
                     .cornerRadius(24)
-                    .ignoresSafeArea(.all, edges: .bottom)
+                    
                 }
+                .ignoresSafeArea(.all, edges: .bottom)
                 .offset(y: dragOffset - (isKeyboardVisible ? keyboardHeight : 0))
             }
             .gesture(
@@ -221,6 +215,7 @@ struct UpdateCard: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onAppear {
             setupKeyboardObservers()
+            onCardDismiss()
         }
         .onDisappear {
             removeKeyboardObservers()

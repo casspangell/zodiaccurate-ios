@@ -77,10 +77,10 @@ public struct TutorialPopUp: View {
         .background(
             ZStack {
                 // Glow effect
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(glowColor)
-                    .blur(radius: 8)
-                    .scaleEffect(1.1)
+//                RoundedRectangle(cornerRadius: 16)
+//                    .fill(glowColor)
+//                    .blur(radius: 8)
+//                    .scaleEffect(1.1)
                 // Main bubble
                 RoundedRectangle(cornerRadius: 16)
                     .fill(bodyColor)

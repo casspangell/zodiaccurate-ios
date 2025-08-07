@@ -5,6 +5,7 @@ struct UpdateCard: View {
     private let cardHeightDismissed: CGFloat = 0.25
     private let cardHeightExpanded: CGFloat = 0.5
     private let cardHeightExpandedWithTutorial: CGFloat = 0.75
+    private let cardHeightExpandedWithKeyboard: CGFloat = 0.95
     
     @State private var cardHeight: CGFloat = 0.25
     @State private var dragOffset: CGFloat = 0
@@ -17,6 +18,7 @@ struct UpdateCard: View {
     @State private var showTutorialBubble = false
     @State private var hasShownTutorial = false
     @State private var hasDismissedTutorial = false
+    @State private var isKeyboardVisible = false
     
     // Sample conversation step for the update card
     private var updateConversationStep: ConversationStep {
@@ -164,11 +166,20 @@ struct UpdateCard: View {
                     }
             )
             .onTapGesture {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                    if isExpanded {
-                        cardHeight = cardHeightDismissed
-                        isExpanded = false
-                    } else {
+                if isExpanded {
+                    // Dismiss keyboard first
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    
+                    // Then animate card collapse
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                            cardHeight = cardHeightDismissed
+                            isExpanded = false
+                            dragOffset = 0
+                        }
+                    }
+                } else {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                         if !hasDismissedTutorial {
                             cardHeight = cardHeightExpandedWithTutorial
                             isExpanded = true
@@ -186,11 +197,56 @@ struct UpdateCard: View {
                             cardHeight = cardHeightExpanded
                             isExpanded = true
                         }
+                        dragOffset = 0
                     }
-                    dragOffset = 0
                 }
             }
         }
+        .onAppear {
+            setupKeyboardObservers()
+        }
+        .onDisappear {
+            removeKeyboardObservers()
+        }
+    }
+    
+    private func setupKeyboardObservers() {
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillShowNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isKeyboardVisible = true
+                showTutorialBubble = false
+                hasDismissedTutorial = true
+                if isExpanded {
+                    cardHeight = cardHeightExpandedWithKeyboard
+                }
+            }
+        }
+        
+        NotificationCenter.default.addObserver(
+            forName: UIResponder.keyboardWillHideNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isKeyboardVisible = false
+                if isExpanded {
+                    if !hasDismissedTutorial {
+                        cardHeight = cardHeightExpandedWithTutorial
+                    } else {
+                        cardHeight = cardHeightExpanded
+                    }
+                }
+            }
+        }
+    }
+    
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 

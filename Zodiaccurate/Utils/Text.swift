@@ -32,9 +32,9 @@ struct HoroscopeDateText: View {
 }
 
 struct UpdateCardText: View {
-    let line1: String
-    let line2: String
-    let line3: String
+    var line1: String
+    var line2: String
+    var line3: String
     
     init(line1: String = "Hey there!", line2: String = "How is everything?", line3: String = "What's the latest?") {
         self.line1 = line1
@@ -47,19 +47,15 @@ struct UpdateCardText: View {
             Text(line1)
                 .dmSansSemiboldGradient(size: 38)
                 .lineLimit(1)
-                .minimumScaleFactor(0.5)
             
             Text(line2)
                 .font(Font.dmSansMedium(size: 32))
                 .foregroundColor(.white)
                 .lineLimit(1)
-                .minimumScaleFactor(0.5)
             
             Text(line3)
                 .font(Font.dmSansMedium(size: 24))
                 .foregroundColor(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
         }
     }
 }

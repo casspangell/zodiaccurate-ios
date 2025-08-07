@@ -19,7 +19,6 @@ struct UpdateCard: View {
     @State private var hasShownTutorial = false
     @State private var hasDismissedTutorial = false
     @State private var isKeyboardVisible = false
-    @State private var isSubmitting = false
     
     // Sample conversation step for the update card
     private var updateConversationStep: ConversationStep {

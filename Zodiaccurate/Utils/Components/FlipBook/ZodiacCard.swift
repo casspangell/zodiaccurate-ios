@@ -23,7 +23,7 @@ struct ZodiacCard: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color.bubbleMist.opacity(0.8))

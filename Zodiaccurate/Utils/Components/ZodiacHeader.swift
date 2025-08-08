@@ -216,7 +216,6 @@ struct ZodiacHeader: View {
             }
         }
         .opacity(headerOpacity)
-        .ignoresSafeArea(.all, edges: .top)
         .zIndex(2)
         .onAppear {
             print("🎯 ZodiacHeaderMain: Header appeared")

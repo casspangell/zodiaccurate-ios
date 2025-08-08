@@ -68,12 +68,14 @@ struct MainZodiacView: View {
             }
             if completedOnboarding {
                 ZStack {
+                    // Background layer (implicit z-index 0)
+                    
+                    // FlipBook layer
+                    FlipBook()
+                        .zIndex(1)
+                    
                     VStack(spacing: 0) {
-                        Rectangle()
-                            .fill(Color.clear)
-                            .frame(height: 1)
-                            .frame(maxWidth: .infinity)
-                        
+                        // Header layer - pinned to top
                         ZodiacHeader(
                             profileImage: "logo",
                             onSettingsTap: {
@@ -81,12 +83,14 @@ struct MainZodiacView: View {
                             }, displayMode: .main
                         )
                         .frame(maxWidth: .infinity)
-                        
-                        UpdateCard()
-                            .zIndex(9999)
+                        .zIndex(2)
+                        Spacer()
                     }
+                    
+                    // UpdateCard layer (topmost)
+                    UpdateCard()
+                        .zIndex(3)
                 }
-                FlipBook()
             }
         }
         .sheet(isPresented: $showingSettings) {

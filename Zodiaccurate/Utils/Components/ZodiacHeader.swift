@@ -240,11 +240,6 @@ struct ZodiacHeader: View {
                 badgeAnimationManager.triggerBadgeAnimation(andSwapTo: newAssetName)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .consentAccepted)) { _ in
-            withAnimation(.easeInOut(duration: 0.2)) {
-  
-            }
-        }
         .onReceive(NotificationCenter.default.publisher(for: .setHeaderBackgroundOpacity)) { notification in
             if let userInfo = notification.userInfo,
                let opacity = userInfo["opacity"] as? Double {

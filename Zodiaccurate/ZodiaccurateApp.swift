@@ -210,6 +210,8 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: .onboardingCompleted)) { _ in
             withAnimation(.easeInOut(duration: 0.7)) {
                 hasCompletedOnboarding = true
+                // Trigger tutorial bubbles after onboarding completes
+                NotificationCenter.default.post(name: .showTutorialBubbles, object: nil)
                 print("✅ Onboarding completed via consent notification")
             }
         }

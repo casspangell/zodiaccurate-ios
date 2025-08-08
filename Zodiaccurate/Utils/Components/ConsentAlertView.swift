@@ -92,7 +92,7 @@ struct ConsentAlertView: View {
                         print("✅ User accepted consent policies, flag saved")
                         
                         // Post notification to trigger header opacity change
-                        NotificationCenter.default.post(name: .consentAccepted, object: nil)
+//                        NotificationCenter.default.post(name: .consentAccepted, object: nil)
                         
                         // Post notification to trigger onboarding completion
                         NotificationCenter.default.post(name: .onboardingCompleted, object: nil)

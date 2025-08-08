@@ -152,15 +152,11 @@ struct ConversationalOnboardingView: View {
         // Load stardust data from SwiftData for animation
         stardustManager?.loadFromSwiftData(stardust)
         
-        // Trigger stardust animation
-        stardustManager?.earnStardust(
-            amount: 25,
-            type: .achievement,
-            description: "Completed onboarding and received your first horoscope"
-        )
+        // Don't trigger stardust animation immediately - it will be triggered after tutorial dismissal
+        // The animation will be handled in MainZodiacView after the stardust tutorial is dismissed
         
-        // Delay the view switch to allow stardust animation to complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        // Delay the view switch to allow for tutorial display
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             // Mark onboarding as complete and transition to MainZodiacView
             withAnimation(.easeInOut(duration: 0.7)) {
                 isOnboardingComplete = true

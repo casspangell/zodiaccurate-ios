@@ -65,14 +65,8 @@ struct MainZodiacView: View {
                         )
                     }
                     
-                    // Always trigger stardust animation when MainZodiacView loads (with 3-second delay)
-                    if !hasTriggeredStardustAnimation {
-                        print("🎯 MainZodiacView: Scheduling stardust animation with 3-second delay")
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            triggerStardustAnimation()
-                            hasTriggeredStardustAnimation = true
-                        }
-                    }
+                    // Don't trigger stardust animation automatically - wait for tutorial dismissal
+                    // Animation will be triggered after stardust tutorial is dismissed
                 }
             }
             if completedOnboarding {
@@ -103,6 +97,17 @@ struct MainZodiacView: View {
                                             withAnimation(.easeInOut(duration: 0.3)) {
                                                 showStardustTutorial = false
                                                 hasShownStardustTutorial = true
+                                            }
+                                            
+                                            // Trigger stardust earning animation after tutorial is dismissed
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                // Earn the stardust that was supposed to be earned after onboarding
+                                                stardustManager?.earnStardust(
+                                                    amount: 25,
+                                                    type: .achievement,
+                                                    description: "Completed onboarding and received your first horoscope"
+                                                )
+                                                hasTriggeredStardustAnimation = true
                                             }
                                         },
                                         showArrow: false
@@ -144,8 +149,9 @@ struct MainZodiacView: View {
                         .allowsHitTesting(hasAcceptedConsentPolicies)
                         .zIndex(3)
                         .onAppear {
-                            // Show tutorial popup regardless of first run
-                            if hasAcceptedConsentPolicies {
+                            // Show tutorial popups for users who just completed onboarding or have accepted consent
+                            let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+                            if hasAcceptedConsentPolicies || hasCompletedOnboarding {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                                     withAnimation(.easeInOut(duration: 0.5)) {
                                         showUpdateTutorial = true
@@ -189,6 +195,20 @@ struct MainZodiacView: View {
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .showTutorialBubbles)) { _ in
+            // Show both tutorial bubbles when notified
+            DispatchQueue.main.async {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showUpdateTutorial = true
+                }
+                // Slight delay to stagger the appearance
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        showStardustTutorial = true
+                    }
+                }
+            }
         }
     }
     

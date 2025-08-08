@@ -12,9 +12,6 @@ struct MainZodiacView: View {
     @State private var headerDisplayMode: ZodiacHeaderDisplayMode = .initial
     @AppStorage("hasAcceptedConsentPolicies") private var hasAcceptedConsentPolicies = false
     @State private var welcomeHoroscope: Horoscope?
-    @State private var showingExpandedCard = false
-    @State private var expandedCardTitle = ""
-    @State private var expandedCardContent = ""
     
     @State var completedOnboarding: Bool
     
@@ -104,18 +101,7 @@ struct MainZodiacView: View {
                 }
             }
             
-            // Expanded Card Overlay
-            if showingExpandedCard {
-                ExpandedCard(
-                    title: expandedCardTitle,
-                    content: expandedCardContent,
-                    onCollapse: { showingExpandedCard = false }
-                )
-                .transition(.opacity.combined(with: .scale))
-                .zIndex(4)
-            }
         }
-        .animation(.easeInOut(duration: 0.3), value: showingExpandedCard)
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
@@ -159,12 +145,7 @@ struct MainZodiacView: View {
         if let welcomeHoroscope = fetchWelcomeHoroscope() {
             cards.append(ZodiacCard(
                 title: welcomeHoroscope.title,
-                content: welcomeHoroscope.message,
-                onExpand: {
-                    expandedCardTitle = welcomeHoroscope.title
-                    expandedCardContent = welcomeHoroscope.message
-                    showingExpandedCard = true
-                }
+                content: welcomeHoroscope.message
             ))
         }
         
@@ -172,30 +153,15 @@ struct MainZodiacView: View {
         cards.append(contentsOf: [
             ZodiacCard(
                 title: "Daily Horoscope",
-                content: "Discover what the stars have in store for you today",
-                onExpand: {
-                    expandedCardTitle = "Daily Horoscope"
-                    expandedCardContent = "Discover what the stars have in store for you today"
-                    showingExpandedCard = true
-                }
+                content: "Discover what the stars have in store for you today"
             ),
             ZodiacCard(
                 title: "Weekly Forecast",
-                content: "Plan your week with cosmic guidance",
-                onExpand: {
-                    expandedCardTitle = "Weekly Forecast"
-                    expandedCardContent = "Plan your week with cosmic guidance"
-                    showingExpandedCard = true
-                }
+                content: "Plan your week with cosmic guidance"
             ),
             ZodiacCard(
                 title: "Monthly Insights",
-                content: "Deep dive into your monthly astrological journey",
-                onExpand: {
-                    expandedCardTitle = "Monthly Insights"
-                    expandedCardContent = "Deep dive into your monthly astrological journey"
-                    showingExpandedCard = true
-                }
+                content: "Deep dive into your monthly astrological journey"
             )
         ])
         

@@ -160,37 +160,118 @@ struct ClearButton: View {
     }
 }
 
-// MARK: - Expand Button Component
-struct ExpandButton: View {
-    let onExpand: () -> Void
-    let isExpanded: Bool
+
+
+// MARK: - Audio Playback Button Component
+struct AudioPlaybackButton: View {
+    let isPlaying: Bool
+    let onToggle: () -> Void
     let size: CGFloat
-    let color: Color
+    let showLabel: Bool
     
-    init(onExpand: @escaping () -> Void, isExpanded: Bool = false, size: CGFloat = 24, color: Color = .accentGold) {
-        self.onExpand = onExpand
-        self.isExpanded = isExpanded
+    init(isPlaying: Bool = false, onToggle: @escaping () -> Void, size: CGFloat = 56, showLabel: Bool = false) {
+        self.isPlaying = isPlaying
+        self.onToggle = onToggle
         self.size = size
-        self.color = color
+        self.showLabel = showLabel
     }
     
     var body: some View {
-        Button(action: onExpand) {
-            Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
-                .foregroundColor(color)
-                .font(.system(size: size, weight: .medium))
-                .frame(width: 44, height: 44)
-                .background(
+        Button(action: onToggle) {
+            VStack(spacing: 8) {
+                ZStack {
+                    // Background gradient
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.accentGold, Color.accentPurple]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .frame(width: size, height: size)
+                    .clipShape(Circle())
+                    
+                    // Icon
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                        .font(.system(size: size * 0.4, weight: .medium))
+                        .foregroundColor(.white)
+                        .offset(x: isPlaying ? 0 : 2) // Slight offset for play icon to center it
+                }
+                .overlay(
                     Circle()
-                        .fill(Color.white.opacity(0.1))
-                        .opacity(0.6)
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2
+                        )
                 )
-                .scaleEffect(1.0)
-                .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 3)
+                .scaleEffect(isPlaying ? 0.95 : 1.0)
+                .animation(.easeInOut(duration: 0.2), value: isPlaying)
+                
+                if showLabel {
+                    Text(isPlaying ? "Pause" : "Play")
+                        .poppinsMediumButton(size: 12)
+                        .foregroundColor(.white)
+                        .opacity(0.9)
+                }
+            }
         }
         .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel(isExpanded ? "Collapse" : "Expand")
-        .accessibilityHint("Tap to \(isExpanded ? "collapse" : "expand") content")
+        .accessibilityLabel(isPlaying ? "Pause audio" : "Play audio")
+        .accessibilityHint("Tap to \(isPlaying ? "pause" : "play") the audio content")
+    }
+}
+
+// MARK: - Audio Control Button Component (Smaller variant)
+struct AudioControlButton: View {
+    let isPlaying: Bool
+    let onToggle: () -> Void
+    let size: CGFloat
+    
+    init(isPlaying: Bool = false, onToggle: @escaping () -> Void, size: CGFloat = 44) {
+        self.isPlaying = isPlaying
+        self.onToggle = onToggle
+        self.size = size
+    }
+    
+    var body: some View {
+        Button(action: onToggle) {
+            ZStack {
+                // Background gradient
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.accentGold, Color.accentPurple]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .frame(width: size, height: size)
+                .clipShape(Circle())
+                
+                // Icon
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: size * 0.35, weight: .medium))
+                    .foregroundColor(.white)
+                    .offset(x: isPlaying ? 0 : 1) // Slight offset for play icon
+            }
+            .overlay(
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+            .scaleEffect(isPlaying ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isPlaying)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel(isPlaying ? "Pause audio" : "Play audio")
+        .accessibilityHint("Tap to \(isPlaying ? "pause" : "play") the audio content")
     }
 }
 
@@ -268,26 +349,34 @@ struct PrimaryGradientButton_Previews: PreviewProvider {
                 }
             }
             
+
+            
             VStack(spacing: 16) {
-                Text("Expand Button")
+                Text("Audio Playback Buttons")
                     .font(.caption)
                     .foregroundColor(.gray)
                 
                 HStack(spacing: 20) {
-                    ExpandButton(
-                        onExpand: {},
-                        isExpanded: false
+                    AudioPlaybackButton(
+                        isPlaying: false,
+                        onToggle: {},
+                        showLabel: true
                     )
                     
-                    ExpandButton(
-                        onExpand: {},
-                        isExpanded: true
+                    AudioPlaybackButton(
+                        isPlaying: true,
+                        onToggle: {},
+                        showLabel: true
                     )
                     
-                    ExpandButton(
-                        onExpand: {},
-                        isExpanded: false,
-                        color: .accentPurple
+                    AudioControlButton(
+                        isPlaying: false,
+                        onToggle: {}
+                    )
+                    
+                    AudioControlButton(
+                        isPlaying: true,
+                        onToggle: {}
                     )
                 }
             }

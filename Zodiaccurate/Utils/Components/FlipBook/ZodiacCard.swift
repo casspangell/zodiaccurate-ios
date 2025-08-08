@@ -3,12 +3,10 @@ import SwiftUI
 struct ZodiacCard: View {
     let title: String
     let content: String
-    let onExpand: (() -> Void)?
     
-    init(title: String, content: String, onExpand: (() -> Void)? = nil) {
+    init(title: String, content: String) {
         self.title = title
         self.content = content
-        self.onExpand = onExpand
     }
     
     var body: some View {
@@ -40,13 +38,13 @@ struct ZodiacCard: View {
             )
             .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
             
-            // Expand Button in upper right corner
-            ExpandButton(
-                onExpand: { onExpand?() },
-                isExpanded: false,
-                size: 18,
-                color: .whiteCustom
-            )
+            // Audio Playback Button in upper right corner
+            CircleIconButton(
+                systemName: "speaker.wave.2",
+                accessibilityLabel: "Play audio"
+            ) {
+                // Audio playback action will be implemented here
+            }
             .padding(.top, 12)
             .padding(.trailing, 12)
             .zIndex(1)

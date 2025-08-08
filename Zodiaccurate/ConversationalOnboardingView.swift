@@ -125,6 +125,20 @@ struct ConversationalOnboardingView: View {
             print("❌ Failed to save user and stardust to SwiftData: \(error)")
         }
         
+        // Generate welcome horoscope
+        Task {
+            let horoscope = await GPTOnboarding.generateWelcomeHoroscope(for: user)
+            
+            // Save horoscope to SwiftData
+            do {
+                modelContext.insert(horoscope)
+                try modelContext.save()
+                print("✅ Welcome horoscope saved to SwiftData successfully")
+            } catch {
+                print("❌ Failed to save horoscope to SwiftData: \(error)")
+            }
+        }
+        
         // Initialize StardustManager for animation
         if stardustManager == nil {
             stardustManager = StardustManager()
@@ -157,6 +171,8 @@ struct ConversationalOnboardingView: View {
     // Note: Using global functions from Utils.swift:
     // - personalizeMessage(_:with:) 
     // - determineZodiacSign(from:)
+    
+
     
 
     

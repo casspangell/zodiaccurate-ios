@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct MainZodiacView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @Environment(\.modelContext) private var modelContext
     @State private var stardustManager: StardustManager?
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
@@ -9,6 +11,7 @@ struct MainZodiacView: View {
     @State private var hasTriggeredStardustAnimation = false
     @State private var headerDisplayMode: ZodiacHeaderDisplayMode = .initial
     @AppStorage("hasAcceptedConsentPolicies") private var hasAcceptedConsentPolicies = false
+    @State private var welcomeHoroscope: Horoscope?
     
     @State var completedOnboarding: Bool
     
@@ -83,7 +86,7 @@ struct MainZodiacView: View {
                         
                         // FlipBook layer directly under header (gated by consent)
                         if hasAcceptedConsentPolicies {
-                            FlipBook()
+                            FlipBook(pages: createFlipBookCards())
                                 .padding(.top, 40)
                         }
                         
@@ -129,6 +132,51 @@ struct MainZodiacView: View {
             )
         } else {
             print("🎯 MainZodiacView: No stardust animation needed - onboarding: \(hasCompletedOnboarding), balance: \(stardustManager.currentBalance)")
+        }
+    }
+    
+    // MARK: - FlipBook Cards
+    
+    private func createFlipBookCards() -> [ZodiacCard] {
+        var cards: [ZodiacCard] = []
+        
+        // Add welcome horoscope as first card if available
+        if let welcomeHoroscope = fetchWelcomeHoroscope() {
+            cards.append(ZodiacCard(
+                title: welcomeHoroscope.title,
+                content: welcomeHoroscope.message
+            ))
+        }
+        
+        // Add default cards
+        cards.append(contentsOf: [
+            ZodiacCard(
+                title: "Daily Horoscope",
+                content: "Discover what the stars have in store for you today"
+            ),
+            ZodiacCard(
+                title: "Weekly Forecast",
+                content: "Plan your week with cosmic guidance"
+            ),
+            ZodiacCard(
+                title: "Monthly Insights",
+                content: "Deep dive into your monthly astrological journey"
+            )
+        ])
+        
+        return cards
+    }
+    
+    private func fetchWelcomeHoroscope() -> Horoscope? {
+        do {
+            let descriptor = FetchDescriptor<Horoscope>(
+                predicate: #Predicate<Horoscope> { $0.key == "welcome" }
+            )
+            let horoscopes = try modelContext.fetch(descriptor)
+            return horoscopes.first
+        } catch {
+            print("❌ Failed to fetch welcome horoscope: \(error)")
+            return nil
         }
     }
 }

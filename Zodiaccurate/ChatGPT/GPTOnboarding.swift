@@ -65,5 +65,80 @@ struct GPTOnboarding {
             return message
         }
     }
+    
+    // MARK: - Welcome Horoscope Generation
+    
+    static func generateWelcomeHoroscope(for userData: User) async -> Horoscope {
+        print("✨ Generating welcome horoscope for \(userData.firstName)...")
+        
+        let systemMessage = """
+        You are a mystical, captivating astrologer who creates deeply personal and enchanting horoscopes. 
+        Your mission is to create a short, magical welcome horoscope for a new user.
+        Keep the tone warm and personal but not overly flowery.
+        Make it feel like the universe is speaking directly to them.
+        """
+        
+        let userPrompt = """
+        Create a personalized welcome horoscope for a new user with a title and message:
+        
+        User Information:
+        - Name: \(userData.firstName)
+        - Zodiac Sign: \(userData.zodiacSign)
+        - Birth Date: \(userData.birthDate)
+        - Birth Time: \(userData.birthTime)
+        
+        TASK: Create a welcome horoscope with two parts separated by "|||":
+        1. TITLE: A short, captivating title (3-6 words)
+        2. MESSAGE: A concise, personalized welcome horoscope in 2-3 short paragraphs (2-3 sentences each)
+        
+        Address the user by name, reference their zodiac sign and birth details. 
+        Make it feel magical and personal, as if the universe is speaking directly to them.
+        Keep it warm and encouraging without being overly mystical.
+        
+        Format: "Title|||Message"
+        """
+        
+        do {
+            let response = try await ChatGPT.callChatGPTAPI(
+                with: userPrompt,
+                systemMessage: systemMessage
+            )
+            
+            // Clean the response
+            let cleanedResponse = response
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+            
+            // Parse the title and message
+            let parts = cleanedResponse.components(separatedBy: "|||")
+            let title = parts.count > 0 ? parts[0].trimmingCharacters(in: .whitespacesAndNewlines) : "Welcome to Your Cosmic Journey"
+            let message = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespacesAndNewlines) : cleanedResponse
+            
+            let horoscope = Horoscope(title: title, message: message, key: "welcome")
+            
+            print("✨ Generated welcome horoscope:")
+            print("Title: \(horoscope.title)")
+            print("Message: \(horoscope.message)")
+            
+            return horoscope
+            
+        } catch {
+            print("❌ Failed to generate welcome horoscope: \(error)")
+            
+            // Return a fallback horoscope
+            let fallbackTitle = "Welcome to Your Cosmic Journey"
+            let fallbackMessage = """
+            Welcome to your cosmic journey, \(userData.firstName)! 
+            
+            As a \(userData.zodiacSign), you carry unique gifts that the universe has bestowed upon you. Your birth on \(userData.birthDate) at \(userData.birthTime) has created a special alignment that will guide you through life's adventures.
+            
+            The stars are ready to share their wisdom with you. Your personalized horoscopes will help you navigate life's twists and turns with confidence and grace.
+            """
+            
+            let fallbackHoroscope = Horoscope(title: fallbackTitle, message: fallbackMessage, key: "welcome")
+            print("✅ Using fallback horoscope")
+            return fallbackHoroscope
+        }
+    }
 }
 

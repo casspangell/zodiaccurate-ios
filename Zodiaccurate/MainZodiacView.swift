@@ -13,6 +13,8 @@ struct MainZodiacView: View {
     @AppStorage("hasAcceptedConsentPolicies") private var hasAcceptedConsentPolicies = false
     @State private var welcomeHoroscope: Horoscope?
     @State private var isWelcomeHoroscopeLoaded = false
+    @AppStorage("hasShownUpdateTutorial") private var hasShownUpdateTutorial = false
+    @State private var showUpdateTutorial = false
     
     @State var completedOnboarding: Bool
     
@@ -114,6 +116,40 @@ struct MainZodiacView: View {
                     UpdateCard()
                         .allowsHitTesting(hasAcceptedConsentPolicies)
                         .zIndex(3)
+                        .onAppear {
+                            // Show tutorial popup regardless of first run
+                            if hasAcceptedConsentPolicies {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                    withAnimation(.easeInOut(duration: 0.5)) {
+                                        showUpdateTutorial = true
+                                    }
+                                }
+                            }
+                        }
+                    
+                    // Tutorial popup at bottom of screen
+                    if showUpdateTutorial {
+                        VStack {
+                            Spacer()
+                            
+                            TutorialBubble.custom(
+                                title: "Instant Life Updates",
+                                subtitle: "Share your thoughts and receive stardust rewards for your daily reflections",
+                                icon: "sparkles",
+                                arrowPosition: .top,
+                                pulse: true,
+                                onDismiss: {
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        showUpdateTutorial = false
+                                        hasShownUpdateTutorial = true
+                                    }
+                                }
+                            )
+                            .padding(.bottom, 20) // Position at bottom of screen
+                            .transition(.opacity.combined(with: .scale))
+                        }
+                        .zIndex(4)
+                    }
                 }
             }
             

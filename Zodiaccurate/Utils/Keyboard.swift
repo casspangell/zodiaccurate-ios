@@ -120,7 +120,7 @@ func calculateKeyboardOffset(
 
     if viewableAreaDiff < 0 {
         let offset = viewableArea - keyboardHeight + lastResponseBubbleHeight + 24 //padding
-        print("OFFSET: \(offset) ///viewableArea \(viewableArea) - keyboardHeight \(keyboardHeight) + lastResponseBubbleHeight \(lastResponseBubbleHeight) + 24")
+//        print("OFFSET: \(offset) ///viewableArea \(viewableArea) - keyboardHeight \(keyboardHeight) + lastResponseBubbleHeight \(lastResponseBubbleHeight) + 24")
         return offset
     } else {
         return 0

@@ -649,7 +649,7 @@ struct ZodiacChatView: View {
     }
     
     private func scrollToBottom(animated: Bool) {
-        print("scrollToBottom")
+//        print("scrollToBottom")
         guard !shouldScrollToBottom else { return }
         
         // Trigger scroll by updating state
@@ -662,7 +662,7 @@ struct ZodiacChatView: View {
     }
     
     private func handleKeyboardHeightChange(_ keyboardHeight: CGFloat) {
-        print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
+//        print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
         
         // Dismiss tutorial bubble when keyboard appears
         if keyboardHeight > 0 {

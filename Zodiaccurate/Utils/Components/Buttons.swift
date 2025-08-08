@@ -182,7 +182,7 @@ struct AudioPlaybackButton: View {
                 ZStack {
                     // Background gradient
                     LinearGradient(
-                        gradient: Gradient(colors: [Color.accentGold, Color.accentPurple]),
+                        gradient: Gradient(colors: [Color.clear, Color.clear]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -241,7 +241,7 @@ struct AudioControlButton: View {
             ZStack {
                 // Background gradient
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.accentGold, Color.accentPurple]),
+                    gradient: Gradient(colors: [Color.clear, Color.clear]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

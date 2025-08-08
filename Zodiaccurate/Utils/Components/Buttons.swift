@@ -160,6 +160,40 @@ struct ClearButton: View {
     }
 }
 
+// MARK: - Expand Button Component
+struct ExpandButton: View {
+    let onExpand: () -> Void
+    let isExpanded: Bool
+    let size: CGFloat
+    let color: Color
+    
+    init(onExpand: @escaping () -> Void, isExpanded: Bool = false, size: CGFloat = 24, color: Color = .accentGold) {
+        self.onExpand = onExpand
+        self.isExpanded = isExpanded
+        self.size = size
+        self.color = color
+    }
+    
+    var body: some View {
+        Button(action: onExpand) {
+            Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
+                .foregroundColor(color)
+                .font(.system(size: size, weight: .medium))
+                .frame(width: 44, height: 44)
+                .background(
+                    Circle()
+                        .fill(Color.white.opacity(0.1))
+                        .opacity(0.6)
+                )
+                .scaleEffect(1.0)
+                .animation(.easeInOut(duration: 0.2), value: isExpanded)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel(isExpanded ? "Collapse" : "Expand")
+        .accessibilityHint("Tap to \(isExpanded ? "collapse" : "expand") content")
+    }
+}
+
 // Preview
 struct PrimaryGradientButton_Previews: PreviewProvider {
     static var previews: some View {
@@ -231,6 +265,30 @@ struct PrimaryGradientButton_Previews: PreviewProvider {
                         assetName: "Gemini",
                         accessibilityLabel: "Gemini Sign"
                     ) {}
+                }
+            }
+            
+            VStack(spacing: 16) {
+                Text("Expand Button")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                HStack(spacing: 20) {
+                    ExpandButton(
+                        onExpand: {},
+                        isExpanded: false
+                    )
+                    
+                    ExpandButton(
+                        onExpand: {},
+                        isExpanded: true
+                    )
+                    
+                    ExpandButton(
+                        onExpand: {},
+                        isExpanded: false,
+                        color: .accentPurple
+                    )
                 }
             }
         }

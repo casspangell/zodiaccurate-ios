@@ -9,8 +9,14 @@ import SwiftUI
 
 struct FlipBook: View {
     @State private var currentIndex: Int = 0
-    private let pageCount = 3
+    private let pageCount: Int
     private let pageSpacing: CGFloat = 20
+    private let pages: [FlipBookPageContent]
+    
+    init(pages: [FlipBookPageContent] = []) {
+        self.pages = pages.isEmpty ? FlipBook.defaultPages : pages
+        self.pageCount = self.pages.count
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -22,16 +28,16 @@ struct FlipBook: View {
                             Spacer()
                                 .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
                             
-                            ForEach(0..<pageCount, id: \.self) { index in
-                                FlipBookPage(index: index)
-                                    .frame(width: geometry.size.width - 40)
-                                    .id(index)
-                                    .scrollTransition(.animated, axis: .horizontal) { content, phase in
-                                        content
-                                            .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
-                                            .opacity(phase.isIdentity ? 1.0 : 0.7)
-                                    }
-                            }
+                        ForEach(Array(pages.enumerated()), id: \.offset) { index, pageContent in
+                            FlipBookPage(pageContent: pageContent, index: index)
+                                .frame(width: geometry.size.width - 40)
+                                .id(index)
+                                .scrollTransition(.animated, axis: .horizontal) { content, phase in
+                                    content
+                                        .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
+                                        .opacity(phase.isIdentity ? 1.0 : 0.7)
+                                }
+                        }
                             
                             // Add trailing spacer for centering
                             Spacer()
@@ -58,41 +64,70 @@ struct FlipBook: View {
     }
 }
 
-struct FlipBookPage: View {
-    let index: Int
+// MARK: - FlipBook Page Content Structure
+struct FlipBookPageContent {
+    let title: String
+    let subtitle: String
+    let color: Color
+    let zodiacCard: ZodiacCard?
     
-    private var pageData: (title: String, subtitle: String, color: Color, icon: String) {
-        switch index {
-        case 0:
-            return ("Daily Horoscope", "Discover what the stars have in store for you today", Color.accentPurple, "🌟")
-        case 1:
-            return ("Weekly Forecast", "Plan your week with cosmic guidance", Color.accentBlue, "📅")
-        case 2:
-            return ("Monthly Insights", "Deep dive into your monthly astrological journey", Color.accentGold, "✨")
-        default:
-            return ("", "", Color.clear, "")
-        }
+    init(title: String, subtitle: String, color: Color, zodiacCard: ZodiacCard? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+        self.color = color
+        self.zodiacCard = zodiacCard
     }
+}
+
+// MARK: - Default Pages
+extension FlipBook {
+    static let defaultPages: [FlipBookPageContent] = [
+        FlipBookPageContent(
+            title: "Daily Horoscope",
+            subtitle: "Discover what the stars have in store for you today",
+            color: Color.accentPurple
+        ),
+        FlipBookPageContent(
+            title: "Weekly Forecast",
+            subtitle: "Plan your week with cosmic guidance",
+            color: Color.accentBlue
+        ),
+        FlipBookPageContent(
+            title: "Monthly Insights",
+            subtitle: "Deep dive into your monthly astrological journey",
+            color: Color.accentGold
+        )
+    ]
+}
+
+struct FlipBookPage: View {
+    let pageContent: FlipBookPageContent
+    let index: Int
     
     var body: some View {
         VStack(spacing: 20) {
-            // Icon
-            Text(pageData.icon)
-                .font(.system(size: 48))
-                .padding(.top, 20)
-            
             // Title
-            Text(pageData.title)
+            Text(pageContent.title)
                 .font(.dmSansSemibold(size: 24))
                 .foregroundColor(.whiteCustom)
                 .multilineTextAlignment(.center)
+                .padding(.top, 20)
             
             // Subtitle
-            Text(pageData.subtitle)
+            Text(pageContent.subtitle)
                 .font(.dmSansMedium(size: 16))
                 .foregroundColor(.whiteCustom.opacity(0.8))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
+            
+            // ZodiacCard if provided
+            if let zodiacCard = pageContent.zodiacCard {
+                ScrollView {
+                    zodiacCard
+                        .padding(.horizontal, 10)
+                }
+                .frame(maxHeight: 200)
+            }
             
             Spacer()
             
@@ -108,7 +143,7 @@ struct FlipBookPage: View {
                     .frame(height: 44)
                     .background(
                         LinearGradient(
-                            gradient: Gradient(colors: [pageData.color, pageData.color.opacity(0.7)]),
+                            gradient: Gradient(colors: [pageContent.color, pageContent.color.opacity(0.7)]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -124,10 +159,10 @@ struct FlipBookPage: View {
                 .fill(Color.backgroundSecondary.opacity(0.8))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(pageData.color.opacity(0.3), lineWidth: 1)
+                        .stroke(pageContent.color.opacity(0.3), lineWidth: 1)
                 )
         )
-        .shadow(color: pageData.color.opacity(0.2), radius: 10, x: 0, y: 5)
+        .shadow(color: pageContent.color.opacity(0.2), radius: 10, x: 0, y: 5)
     }
         
 }
@@ -154,7 +189,39 @@ struct FlipBookPageIndicator: View {
 #Preview {
     ZStack {
         Color.backgroundPrimary.ignoresSafeArea()
-        FlipBook()
+        VStack {
+            // Example with custom pages including ZodiacCard
+            FlipBook(pages: [
+                FlipBookPageContent(
+                    title: "Daily Horoscope",
+                    subtitle: "Discover what the stars have in store for you today",
+                    color: Color.accentPurple,
+                    zodiacCard: ZodiacCard(
+                        title: "Today's Reading",
+                        content: "The stars align in your favor today. Mercury's influence brings clarity to your thoughts, while Venus enhances your relationships. Focus on communication and trust your intuition."
+                    )
+                ),
+                FlipBookPageContent(
+                    title: "Weekly Forecast",
+                    subtitle: "Plan your week with cosmic guidance",
+                    color: Color.accentBlue,
+                    zodiacCard: ZodiacCard(
+                        title: "This Week's Energy",
+                        content: "A powerful week ahead with Jupiter's expansion energy. New opportunities arise mid-week. Stay open to unexpected connections and trust the universe's timing."
+                    )
+                ),
+                FlipBookPageContent(
+                    title: "Monthly Insights",
+                    subtitle: "Deep dive into your monthly astrological journey",
+                    color: Color.accentGold
+                )
+            ])
+            
+            Spacer()
+            
+            // Default FlipBook for comparison
+            FlipBook()
+        }
     }
 }
 

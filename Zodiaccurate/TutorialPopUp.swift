@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Arrow Position Enum
 public enum ArrowPosition {
-    case top, bottom, left, right
+    case top, bottom, left, right, topleft, topright
 }
 
 // MARK: - Flexible Tutorial PopUp
@@ -48,6 +48,24 @@ public struct TutorialPopUp: View {
                     HStack(spacing: 0) {
                         content
                         ArrowView(position: .right, color: arrowColor, pulse: pulse)
+                    }
+                case .topleft:
+                    VStack(spacing: 0) {
+                        HStack {
+                            ArrowView(position: .top, color: arrowColor, pulse: pulse)
+                                .padding(.leading, 40)
+                            Spacer()
+                        }
+                        content
+                    }
+                case .topright:
+                    VStack(spacing: 0) {
+                        HStack {
+                            Spacer()
+                            ArrowView(position: .top, color: arrowColor, pulse: pulse)
+                                .padding(.trailing, 40)
+                        }
+                        content
                     }
                 }
             } else {
@@ -104,24 +122,42 @@ struct ArrowView: View {
                     .fill(color)
                     .frame(width: 20, height: 14)
                     .scaleEffect(scale)
+                    .rotationEffect(.degrees(180))
                     .animation(pulse ? Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .default, value: scale)
             case .bottom:
                 Triangle()
                     .fill(color)
                     .frame(width: 20, height: 14)
                     .scaleEffect(scale)
+                    .rotationEffect(.degrees(180))
                     .animation(pulse ? Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .default, value: scale)
             case .left:
                 TriangleLeft()
                     .fill(color)
                     .frame(width: 14, height: 20)
                     .scaleEffect(scale)
+                    .rotationEffect(.degrees(180))
                     .animation(pulse ? Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .default, value: scale)
             case .right:
                 TriangleRight()
                     .fill(color)
                     .frame(width: 14, height: 20)
                     .scaleEffect(scale)
+                    .rotationEffect(.degrees(180))
+                    .animation(pulse ? Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .default, value: scale)
+            case .topleft:
+                TriangleUpward()
+                    .fill(color)
+                    .frame(width: 20, height: 14)
+                    .scaleEffect(scale)
+                    .rotationEffect(.degrees(180))
+                    .animation(pulse ? Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .default, value: scale)
+            case .topright:
+                TriangleUpward()
+                    .fill(color)
+                    .frame(width: 20, height: 14)
+                    .scaleEffect(scale)
+                    .rotationEffect(.degrees(180))
                     .animation(pulse ? Animation.easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .default, value: scale)
             }
         }
@@ -218,6 +254,8 @@ class TutorialManager: ObservableObject {
         TutorialPopUp(arrowPosition: .top)
         TutorialPopUp(arrowPosition: .left)
         TutorialPopUp(arrowPosition: .right)
+        TutorialPopUp(arrowPosition: .topleft)
+        TutorialPopUp(arrowPosition: .topright)
     }
     .padding()
     .background(Color.black)

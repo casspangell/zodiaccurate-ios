@@ -209,6 +209,12 @@ struct TutorialBubble: View {
         case .right:
             // Arrow points right, text goes to the left
             return CGSize(width: -80, height: 0)
+        case .topleft:
+            // Arrow points up from top left, text goes below
+            return CGSize(width: 0, height: 60)
+        case .topright:
+            // Arrow points up from top left, text goes below
+            return CGSize(width: 0, height: 60)
         }
     }
     
@@ -305,6 +311,10 @@ extension TutorialBubble {
             return .left
         case "right":
             return .right
+        case "topleft":
+            return .topleft
+        case "topright":
+            return .topright
         default:
             return .bottom
         }
@@ -317,55 +327,3 @@ struct SpeechTutorialBubble: View {
         TutorialBubble.speech()
     }
 }
-
-/*
- MARK: - Usage Examples
- 
- // Basic speech tutorial
- TutorialBubble.speech(arrowPosition: .bottom, pulse: true)
- 
- // Voice tutorial with custom style
- TutorialBubble.voice(arrowPosition: .top, pulse: true, style: .info)
- 
- // Info tutorial with custom colors
- TutorialBubble.info(
-     title: "New Feature!",
-     subtitle: "Try the voice input",
-     arrowPosition: .bottom
- )
- 
- // Success tutorial
- TutorialBubble.success(
-     title: "Great job!",
-     subtitle: "You've completed the tutorial",
-     arrowPosition: .top
- )
- 
- // Warning tutorial
- TutorialBubble.warning(
-     title: "⚠️ Important",
-     subtitle: "Please enable microphone access",
-     arrowPosition: .bottom
- )
- 
- // Purple themed tutorial
- TutorialBubble.purple(
-     title: "✨ Magic Feature",
-     subtitle: "Discover hidden powers",
-     arrowPosition: .left
- )
- 
- // Custom styled tutorial with specific text sizes and colors
- TutorialBubble.customStyled(
-     title: "🎯 Custom Tutorial",
-     subtitle: "With custom styling",
-     icon: "target",
-     arrowPosition: .right,
-     mainTextSize: 18,
-     subTextSize: 14,
-     bodyColor: Color.accentPurple.opacity(0.95),
-     arrowColor: Color.magenta,
-     glowColor: Color.magenta.opacity(0.3)
- )
- */
-

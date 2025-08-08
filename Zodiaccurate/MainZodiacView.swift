@@ -15,6 +15,8 @@ struct MainZodiacView: View {
     @State private var isWelcomeHoroscopeLoaded = false
     @AppStorage("hasShownUpdateTutorial") private var hasShownUpdateTutorial = false
     @State private var showUpdateTutorial = false
+    @AppStorage("hasShownStardustTutorial") private var hasShownStardustTutorial = false
+    @State private var showStardustTutorial = false
     
     @State var completedOnboarding: Bool
     
@@ -79,13 +81,39 @@ struct MainZodiacView: View {
                     
                     VStack(spacing: 0) {
                         // Header layer - pinned to top
-                        ZodiacHeader(
-                            profileImage: "logo",
-                            onSettingsTap: {
-                                showingSettings = true
-                            }, displayMode: .main
-                        )
-                        .frame(maxWidth: .infinity)
+                        ZStack {
+                            ZodiacHeader(
+                                profileImage: "logo",
+                                onSettingsTap: {
+                                    showingSettings = true
+                                }, displayMode: .main
+                            )
+                            .frame(maxWidth: .infinity)
+                            
+                            // Stardust tutorial popup below profile badge
+                            if showStardustTutorial {
+                                Spacer()
+                                VStack {
+                                    
+                                    TutorialBubble.custom(
+                                        title: "Stardust Rewards",
+                                        subtitle: "Your earned stardust points appear here on your profile badge",
+                                        icon: "sparkles",
+                                        arrowPosition: .topleft,
+                                        pulse: true,
+                                        onDismiss: {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                showStardustTutorial = false
+                                                hasShownStardustTutorial = true
+                                            }
+                                        }
+                                    )
+                                    .padding(.top, 80) // Position below profile badge
+                                    .transition(.opacity.combined(with: .scale))
+                                }
+                                .zIndex(5)
+                            }
+                        }
                         
                         // FlipBook layer directly under header (gated by consent)
                         if hasAcceptedConsentPolicies {
@@ -122,6 +150,13 @@ struct MainZodiacView: View {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                                     withAnimation(.easeInOut(duration: 0.5)) {
                                         showUpdateTutorial = true
+                                    }
+                                }
+                                
+                                // Show stardust tutorial popup
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                    withAnimation(.easeInOut(duration: 0.5)) {
+                                        showStardustTutorial = true
                                     }
                                 }
                             }

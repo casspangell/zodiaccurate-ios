@@ -3,17 +3,20 @@ import SwiftUI
 struct ZodiacCard: View {
     let horoscope: Horoscope?
     let isLoading: Bool
+    let onTap: (() -> Void)?
     @StateObject private var audioManager = AudioManager.shared
     
-    init(horoscope: Horoscope?, isLoading: Bool = false) {
+    init(horoscope: Horoscope?, isLoading: Bool = false, onTap: (() -> Void)? = nil) {
         self.horoscope = horoscope
         self.isLoading = isLoading
+        self.onTap = onTap
     }
     
     // Convenience initializer for backward compatibility
-    init(title: String, content: String) {
+    init(title: String, content: String, onTap: (() -> Void)? = nil) {
         self.horoscope = Horoscope(title: title, message: content, key: "temp")
         self.isLoading = false
+        self.onTap = onTap
     }
     
     var body: some View {
@@ -102,6 +105,10 @@ struct ZodiacCard: View {
                 )
                 .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
             }
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .onTapGesture {
+            onTap?()
         }
     }
 }

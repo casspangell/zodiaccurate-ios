@@ -17,6 +17,8 @@ struct MainZodiacView: View {
     @State private var showUpdateTutorial = false
     @AppStorage("hasShownStardustTutorial") private var hasShownStardustTutorial = false
     @State private var showStardustTutorial = false
+    @State private var showWellnessConversation = false
+    @State private var wellnessDisplayName: String = ""
     
     @State var completedOnboarding: Bool
     
@@ -200,6 +202,18 @@ struct MainZodiacView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $showWellnessConversation) {
+            ConversationView(
+                conversationSteps: wellnessConversationSteps,
+                displayName: $wellnessDisplayName,
+                onResponse: { input, step in
+                    print("[Wellness Response] \(step.dataKey): \(input)")
+                },
+                onComplete: {
+                    showWellnessConversation = false
+                }
+            )
+        }
         .onReceive(NotificationCenter.default.publisher(for: .showTutorialBubbles)) { _ in
             // Respect persisted dismissal flags when showing tutorials via notification
             DispatchQueue.main.async {
@@ -270,7 +284,16 @@ struct MainZodiacView: View {
             ))
         }
         
-        // Add default cards
+        // Add Wellness card as the 2nd card in the stack
+        cards.append(
+            ZodiacCard(
+                title: "Wellness",
+                content: "Start your personal wellness intake",
+                onTap: { showWellnessConversation = true }
+            )
+        )
+        
+        // Add remaining default cards
         cards.append(contentsOf: [
             ZodiacCard(
                 title: "Daily Horoscope",

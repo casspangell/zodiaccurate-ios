@@ -1,0 +1,102 @@
+//
+//  ConversationView.swift
+//  Zodiaccurate
+//
+//  Created by Cass Pangell on 8/8/25.
+//
+
+import SwiftUI
+
+/// A reusable conversation view identical to onboarding, but driven by injected steps and save handlers
+struct ConversationView: View {
+    // MARK: - Configuration
+    let conversationSteps: [ConversationStep]
+    let profileImage: String
+    @Binding var displayName: String
+    let onResponse: (String, ConversationStep) -> Void
+    let onStepComplete: (Int) -> Void
+    let onComplete: () -> Void
+    let triggerBadgeAnimation: (String) -> Void
+    let backgroundColor: Color?
+    let bubbleColor: ChatBubbleColor?
+    
+    // MARK: - Internal user placeholder (required by ZodiacChatView for personalization/GPT hooks)
+    @State private var placeholderUser = User()
+    
+    init(
+        conversationSteps: [ConversationStep],
+        profileImage: String = "logo",
+        displayName: Binding<String> = .constant(""),
+        onResponse: @escaping (String, ConversationStep) -> Void,
+        onStepComplete: @escaping (Int) -> Void = { _ in },
+        onComplete: @escaping () -> Void = {},
+        triggerBadgeAnimation: @escaping (String) -> Void = { _ in },
+        backgroundColor: Color? = nil,
+        bubbleColor: ChatBubbleColor? = nil
+    ) {
+        self.conversationSteps = conversationSteps
+        self.profileImage = profileImage
+        self._displayName = displayName
+        self.onResponse = onResponse
+        self.onStepComplete = onStepComplete
+        self.onComplete = onComplete
+        self.triggerBadgeAnimation = triggerBadgeAnimation
+        self.backgroundColor = backgroundColor
+        self.bubbleColor = bubbleColor
+    }
+    
+    var body: some View {
+        ZStack(alignment: .top) {
+            ZodiacChatView(
+                conversationSteps: conversationSteps,
+                profileImage: profileImage,
+                userName: $displayName,
+                userData: placeholderUser,
+                onUserDataUpdate: { input, step in
+                    onResponse(input, step)
+                },
+                onStepComplete: { idx in
+                    onStepComplete(idx)
+                },
+                onConversationComplete: {
+                    onComplete()
+                },
+                personalizeMessage: { message, name in
+                    personalizeMessage(message, with: name)
+                },
+                determineZodiacSign: { dateString in
+                    determineZodiacSign(from: dateString)
+                },
+                triggerBadgeAnimation: triggerBadgeAnimation,
+                backgroundColor: backgroundColor,
+                bubbleColor: bubbleColor
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(.all, edges: .all)
+            
+            ZodiacHeader(
+                profileImage: profileImage,
+                displayMode: .initial
+            )
+            .frame(maxWidth: .infinity)
+            .ignoresSafeArea(.all, edges: .top)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(.all, edges: .all)
+        .onAppear {
+            // Fresh placeholder user to scope this conversation session (not persisted)
+            placeholderUser = User(createdAt: Date(), updatedAt: Date())
+        }
+    }
+}
+
+#if DEBUG
+#Preview {
+    ConversationView(
+        conversationSteps: exampleConversationSteps,
+        displayName: .constant("Cass"),
+        onResponse: { _, _ in }
+    )
+}
+#endif
+

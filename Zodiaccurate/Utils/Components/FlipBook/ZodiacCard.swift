@@ -45,14 +45,18 @@ struct ZodiacCard: View {
                         .foregroundColor(.whiteCustom)
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
-                    
-                    // Content
-                    Text(horoscope.message)
-                        .font(.dmSansMedium(size: 16))
-                        .foregroundColor(.whiteCustom.opacity(0.8))
-                        .lineSpacing(4)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 20)
+
+                    // Scrollable Content (message)
+                    ScrollView(.vertical, showsIndicators: true) {
+                        Text(horoscope.message)
+                            .font(.dmSansMedium(size: 16))
+                            .foregroundColor(.whiteCustom.opacity(0.8))
+                            .lineSpacing(4)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 20)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(

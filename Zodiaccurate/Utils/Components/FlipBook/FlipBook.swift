@@ -56,7 +56,7 @@ struct FlipBook: View {
                         }))
                     }
                 }
-                .frame(height: 300)
+                .frame(height: 400)
                 
                 // Page Indicator
                 FlipBookPageIndicator(currentIndex: currentIndex, pageCount: pageCount)

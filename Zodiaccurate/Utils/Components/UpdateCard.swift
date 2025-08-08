@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UpdateCard: View {
     // Card height constants
+    private let cardHeightMinimized: CGFloat = 0.05
     private let cardHeightDismissed: CGFloat = 0.25
     private let cardHeightExpanded: CGFloat = 0.5
     private let cardHeightExpandedWithTutorial: CGFloat = 0.55
@@ -10,6 +11,7 @@ struct UpdateCard: View {
     @State private var cardHeight: CGFloat = 0.25
     @State private var dragOffset: CGFloat = 0
     @State private var isExpanded = false
+    @State private var isMinimized = false
     @State private var isDragging = false
     @State private var currentInput = ""
     @State private var selectedDate = Date()
@@ -62,12 +64,12 @@ struct UpdateCard: View {
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                             } else {
                                 UpdateCardText(
-                                    line1: gptResponse != nil ? "" : "Hey there!",
-                                    line2: gptResponse?.line1 ?? "How is everything?",
+                                    line1: isMinimized ? "" : (gptResponse != nil ? "" : "Hey there!"),
+                                    line2: isMinimized ? "" : (gptResponse?.line1 ?? "How is everything?"),
                                     line3: gptResponse?.line2 ?? "What's the latest?"
                                 )
                                 .padding(.horizontal, 20)
-                                .padding(.top, 40)
+                                .padding(.top, isMinimized ? 0 : 40)
                             }
                             
                             // Chat bubble (only when expanded)
@@ -153,7 +155,7 @@ struct UpdateCard: View {
                         Spacer()
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: geometry.size.height * cardHeight)
+                    .frame(height: geometry.size.height * (isMinimized ? cardHeightMinimized : cardHeight))
                     .background(
                         ZStack {
                             Color.red
@@ -174,47 +176,73 @@ struct UpdateCard: View {
                         let translation = value.translation.height
                         let screenHeight = geometry.size.height
                         
-                        // Calculate new height based on drag
-                        let newHeight = isExpanded ? cardHeightExpanded : cardHeightDismissed
-                        let heightDifference = (cardHeightExpanded - cardHeightDismissed) * screenHeight
-                        
-                        // Limit drag to reasonable bounds
-                        let maxDrag = heightDifference * 0.3
-                        dragOffset = max(-maxDrag, min(translation, maxDrag))
+                        if isExpanded {
+                            // When expanded, allow normal drag behavior
+                            let heightDifference = (cardHeightExpanded - cardHeightDismissed) * screenHeight
+                            let maxDrag = heightDifference * 0.3
+                            dragOffset = max(-maxDrag, min(translation, maxDrag))
+                        } else {
+                            // When dismissed, allow swiping down to minimize further
+                            let heightDifference = (cardHeightDismissed - cardHeightMinimized) * screenHeight
+                            let maxDrag = heightDifference * 0.5
+                            dragOffset = max(0, min(translation, maxDrag))
+                        }
                     }
                     .onEnded { value in
                         let translation = value.translation.height
                         let velocity = value.velocity.height
                         let screenHeight = geometry.size.height
                         
-                        // Determine if we should expand or collapse based on drag and velocity
-                        let shouldExpand = translation < -50 || velocity < -500
-                        let shouldCollapse = translation > 50 || velocity > 500
-                        
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                            if shouldExpand && !isExpanded {
-                                if !hasDismissedTutorial {
-                                    cardHeight = cardHeightExpandedWithTutorial
-                                    isExpanded = true
-                                    
-                                    // Show tutorial on first expansion
-                                    if !hasShownTutorial {
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                            withAnimation(.easeInOut(duration: 0.3)) {
-                                                showTutorialBubble = true
-                                                hasShownTutorial = true
+                        if isExpanded {
+                            // When expanded, determine if we should expand or collapse
+                            let shouldExpand = translation < -50 || velocity < -500
+                            let shouldCollapse = translation > 50 || velocity > 500
+                            
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                                if shouldCollapse && isExpanded {
+                                    cardHeight = cardHeightDismissed
+                                    isExpanded = false
+                                    isMinimized = false
+                                }
+                                dragOffset = 0
+                            }
+                        } else {
+                            // When dismissed, determine if we should minimize or return to dismissed
+                            let shouldMinimize = translation > 30 || velocity > 300
+                            let shouldReturnToDismissed = translation < -30 || velocity < -300
+                            
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                                if shouldMinimize && !isMinimized {
+                                    cardHeight = cardHeightMinimized
+                                    isMinimized = true
+                                } else if shouldReturnToDismissed && isMinimized {
+                                    cardHeight = cardHeightDismissed
+                                    isMinimized = false
+                                } else if !isMinimized {
+                                    // Check if we should expand from dismissed state
+                                    let shouldExpand = translation < -50 || velocity < -500
+                                    if shouldExpand {
+                                        if !hasDismissedTutorial {
+                                            cardHeight = cardHeightExpandedWithTutorial
+                                            isExpanded = true
+                                            
+                                            // Show tutorial on first expansion
+                                            if !hasShownTutorial {
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                                        showTutorialBubble = true
+                                                        hasShownTutorial = true
+                                                    }
+                                                }
                                             }
+                                        } else {
+                                            cardHeight = cardHeightExpanded
+                                            isExpanded = true
                                         }
                                     }
-                                } else {
-                                    cardHeight = cardHeightExpanded
-                                    isExpanded = true
                                 }
-                            } else if shouldCollapse && isExpanded {
-                                cardHeight = cardHeightDismissed
-                                isExpanded = false
+                                dragOffset = 0
                             }
-                            dragOffset = 0
                         }
                         
                         isDragging = false
@@ -230,8 +258,16 @@ struct UpdateCard: View {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                             cardHeight = cardHeightDismissed
                             isExpanded = false
+                            isMinimized = false
                             dragOffset = 0
                         }
+                    }
+                } else if isMinimized {
+                    // Tap to return to dismissed state from minimized
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                        cardHeight = cardHeightDismissed
+                        isMinimized = false
+                        dragOffset = 0
                     }
                 } else {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
@@ -314,6 +350,7 @@ struct UpdateCard: View {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
             cardHeight = cardHeightDismissed
             isExpanded = false
+            isMinimized = false
             dragOffset = 0
         }
     }
@@ -337,6 +374,7 @@ struct UpdateCard: View {
                 cardHeight = cardHeightExpanded
                 isExpanded = true
             }
+            isMinimized = false
             dragOffset = 0
         }
     }

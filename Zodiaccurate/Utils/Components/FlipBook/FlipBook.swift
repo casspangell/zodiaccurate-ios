@@ -120,7 +120,7 @@ struct FlipBookPageIndicator: View {
 
 #Preview {
     ZStack {
-        Color.backgroundPrimary.ignoresSafeArea()
+        VerticleAuroraBackgroundView()
         VStack {
             // Example with custom ZodiacCards
             FlipBook(pages: [

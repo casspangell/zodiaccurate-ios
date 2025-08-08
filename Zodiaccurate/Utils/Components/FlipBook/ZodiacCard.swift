@@ -27,7 +27,7 @@ struct ZodiacCard: View {
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.backgroundSecondary.opacity(0.8))
+                    .fill(Color.bubbleMist.opacity(0.8))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
@@ -51,7 +51,6 @@ struct ZodiacCard: View {
 
 #Preview {
     ZStack {
-        Color.backgroundPrimary.ignoresSafeArea()
         ZodiacCard(
             title: "Parenting",
             content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas venenatis eros ut pretium tincidunt. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nulla facilisi. Sed vitae ex vitae nisi varius venenatis. Praesent commodo urna at nisi finibus varius. Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec vehicula sapien vitae massa tincidunt efficitur. Duis vestibulum mauris ac lectus tincidunt, in volutpat lorem efficitur. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."

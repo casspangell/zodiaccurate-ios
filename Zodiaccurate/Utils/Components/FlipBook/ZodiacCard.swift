@@ -3,7 +3,13 @@ import SwiftUI
 struct ZodiacCard: View {
     let title: String
     let content: String
-    @State var isExpanded: Bool = false
+    let onExpand: (() -> Void)?
+    
+    init(title: String, content: String, onExpand: (() -> Void)? = nil) {
+        self.title = title
+        self.content = content
+        self.onExpand = onExpand
+    }
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -36,8 +42,8 @@ struct ZodiacCard: View {
             
             // Expand Button in upper right corner
             ExpandButton(
-                onExpand: { isExpanded.toggle() },
-                isExpanded: isExpanded,
+                onExpand: { onExpand?() },
+                isExpanded: false,
                 size: 18,
                 color: .whiteCustom
             )

@@ -217,105 +217,108 @@ struct ResponseChatBubble: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            // Conditional input based on step type
-            if currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
-                // Text input - choose appropriate component
-                if currentStep.inputType == "singleLine" {
-                    SingleLineTextField(
-                        text: $currentInput,
-                        placeholder: currentStep.placeholder,
-                        isFocused: $isTextFieldFocused,
-                        onSubmit: onSend,
-                        highlightInputField: $highlightInputField,
-                        onHeightChange: onHeightChange
-                    )
-                    .onTapGesture {
-                        isTextFieldFocused = true
+            Spacer(minLength: 0)
+            HStack(spacing: 0) {
+                // Conditional input based on step type
+                if currentStep.inputType == "text" || currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
+                    // Text input - choose appropriate component
+                    if currentStep.inputType == "singleLine" {
+                        SingleLineTextField(
+                            text: $currentInput,
+                            placeholder: currentStep.placeholder,
+                            isFocused: $isTextFieldFocused,
+                            onSubmit: onSend,
+                            highlightInputField: $highlightInputField,
+                            onHeightChange: onHeightChange
+                        )
+                        .onTapGesture {
+                            isTextFieldFocused = true
+                        }
+                    } else { //if currentStep.inputType == "multiLine"
+                        MultiLineTextField(
+                            text: $currentInput,
+                            placeholder: currentStep.placeholder,
+                            isFocused: $isTextFieldFocused,
+                            onSubmit: onSend,
+                            highlightInputField: $highlightInputField,
+                            onHeightChange: onHeightChange
+                        )
+                        .onTapGesture {
+                            isTextFieldFocused = true
+                        }
                     }
-                } else { //if currentStep.inputType == "multiLine"
-                    MultiLineTextField(
-                        text: $currentInput,
-                        placeholder: currentStep.placeholder,
-                        isFocused: $isTextFieldFocused,
-                        onSubmit: onSend,
-                        highlightInputField: $highlightInputField,
-                        onHeightChange: onHeightChange
+                } else if currentStep.inputType == "date" || currentStep.inputType == "time" {
+                    // Interactive picker
+                    InteractivePickerView(
+                        step: currentStep,
+                        selectedDate: $selectedDate,
+                        selectedTime: $selectedTime,
+                        onDateSelected: onDateSelected,
+                        onTimeSelected: onTimeSelected,
+                        onUnknownTime: onUnknownTime
                     )
-                    .onTapGesture {
-                        isTextFieldFocused = true
+                } else if currentStep.inputType == "singlechoice" {
+                    // Single choice radio button picker
+                    RadioButtonPicker(
+                        title: nil,
+                        options: currentStep.options ?? [],
+                        selected: $singleChoiceSelection,
+                        onSelect: { newValue in
+                            currentInput = newValue ?? ""
+                        },
+                        showSubmitButton: true,
+                        submitTitle: "Submit",
+                        onSubmit: {
+                            onSend()
+                        }
+                    )
+                    .onAppear {
+                        if !currentInput.isEmpty {
+                            singleChoiceSelection = currentInput
+                        }
+                    }
+                } else if currentStep.inputType == "multichoice" {
+                    // Multi choice checkbox picker
+                    CheckboxMultiPicker(
+                        title: nil,
+                        options: currentStep.options ?? [],
+                        selections: $multiChoiceSelections,
+                        maxSelections: nil,
+                        onChange: { newSelections in
+                            currentInput = Array(newSelections).sorted().joined(separator: ", ")
+                        },
+                        showSubmitButton: true,
+                        submitTitle: "Submit",
+                        onSubmit: {
+                            onSend()
+                        }
+                    )
+                    .onAppear {
+                        if !currentInput.isEmpty {
+                            let parts = currentInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                            multiChoiceSelections = Set(parts)
+                        }
                     }
                 }
-            } else if currentStep.inputType == "date" || currentStep.inputType == "time" {
-                // Interactive picker
-                InteractivePickerView(
-                    step: currentStep,
-                    selectedDate: $selectedDate,
-                    selectedTime: $selectedTime,
-                    onDateSelected: onDateSelected,
-                    onTimeSelected: onTimeSelected,
-                    onUnknownTime: onUnknownTime
-                )
-            } else if currentStep.inputType == "singlechoice" {
-                // Single choice radio button picker
-                RadioButtonPicker(
-                    title: nil,
-                    options: currentStep.options ?? [],
-                    selected: $singleChoiceSelection,
-                    onSelect: { newValue in
-                        currentInput = newValue ?? ""
-                    },
-                    showSubmitButton: true,
-                    submitTitle: "Submit",
-                    onSubmit: {
-                        onSend()
-                    }
-                )
-                .onAppear {
-                    if !currentInput.isEmpty {
-                        singleChoiceSelection = currentInput
-                    }
-                }
-            } else if currentStep.inputType == "multichoice" {
-                // Multi choice checkbox picker
-                CheckboxMultiPicker(
-                    title: nil,
-                    options: currentStep.options ?? [],
-                    selections: $multiChoiceSelections,
-                    maxSelections: nil,
-                    onChange: { newSelections in
-                        currentInput = Array(newSelections).sorted().joined(separator: ", ")
-                    },
-                    showSubmitButton: true,
-                    submitTitle: "Submit",
-                    onSubmit: {
-                        onSend()
-                    }
-                )
-                .onAppear {
-                    if !currentInput.isEmpty {
-                        let parts = currentInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                        multiChoiceSelections = Set(parts)
-                    }
+                
+                // Send button (only show for text input types)
+                if currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
+                    Spacer()
+                    SendButton(
+                        onSend: onSend,
+                        isEnabled: !currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    )
                 }
             }
-            
-            // Send button (only show for text input types)
-            if currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" {
-                Spacer()
-                SendButton(
-                    onSend: onSend,
-                    isEnabled: !currentInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                )
-            }
+            .padding(.horizontal, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice") ? 16 : 0)
+            .padding(.vertical, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine") ? 12 : 0)
+            .background((currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice") ? finalBackgroundColor : Color.clear)
+            .clipShape(
+                (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice")
+                    ? AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
+                    : AnyShape(Rectangle())
+            )
         }
-        .padding(.horizontal, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice") ? 16 : 0)
-        .padding(.vertical, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine") ? 12 : 0)
-        .background((currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice") ? finalBackgroundColor : Color.clear)
-        .clipShape(
-            (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice")
-                ? AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
-                : AnyShape(Rectangle())
-        )
     }
 }
 

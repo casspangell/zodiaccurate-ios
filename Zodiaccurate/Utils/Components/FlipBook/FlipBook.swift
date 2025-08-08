@@ -9,24 +9,48 @@ import SwiftUI
 
 struct FlipBook: View {
     @State private var currentIndex: Int = 0
+    @State private var dragOffset: CGFloat = 0
+    @State private var isDragging = false
     
     private let pageCount = 3
+    private let pageSpacing: CGFloat = 20
     
     var body: some View {
         GeometryReader { geometry in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 20) {
-                    ForEach(0..<pageCount, id: \.self) { index in
-                        FlipBookPage(index: index)
-                            .frame(width: geometry.size.width - 40)
-                    }
+            HStack(spacing: pageSpacing) {
+                ForEach(0..<pageCount, id: \.self) { index in
+                    FlipBookPage(index: index)
+                        .frame(width: geometry.size.width - 40)
+                        .scaleEffect(currentIndex == index ? 1.0 : 0.9)
+                        .opacity(currentIndex == index ? 1.0 : 0.7)
                 }
-                .padding(.horizontal, 20)
             }
-            .scrollTargetBehavior(.paging)
-            .scrollTargetLayout()
+            .offset(x: -CGFloat(currentIndex) * (geometry.size.width - 40 + pageSpacing) + dragOffset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        isDragging = true
+                        dragOffset = value.translation.width
+                    }
+                    .onEnded { value in
+                        isDragging = false
+                        let threshold = geometry.size.width * 0.3
+                        let velocity = value.predictedEndLocation.x - value.location.x
+                        
+                        if abs(value.translation.width) > threshold || abs(velocity) > 500 {
+                            if value.translation.width > 0 && currentIndex > 0 {
+                                currentIndex -= 1
+                            } else if value.translation.width < 0 && currentIndex < pageCount - 1 {
+                                currentIndex += 1
+                            }
+                        }
+                        
+                        dragOffset = 0
+                    }
+            )
         }
         .frame(height: 300)
+        .clipped()
     }
 }
 
@@ -101,6 +125,7 @@ struct FlipBookPage: View {
         )
         .shadow(color: pageData.color.opacity(0.2), radius: 10, x: 0, y: 5)
     }
+        
 }
 
 // Page Indicator
@@ -125,7 +150,10 @@ struct FlipBookPageIndicator: View {
 #Preview {
     ZStack {
         Color.backgroundPrimary.ignoresSafeArea()
-        FlipBook()
+        VStack {
+            FlipBook()
+            FlipBookPageIndicator(currentIndex: 0, pageCount: 3)
+        }
     }
 }
 

@@ -67,28 +67,26 @@ struct MainZodiacView: View {
                 }
             }
             if completedOnboarding {
-                VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: 1)
+                ZStack {
+                    VStack(spacing: 0) {
+                        Rectangle()
+                            .fill(Color.clear)
+                            .frame(height: 1)
+                            .frame(maxWidth: .infinity)
+                        
+                        ZodiacHeader(
+                            profileImage: "logo",
+                            onSettingsTap: {
+                                showingSettings = true
+                            }, displayMode: .main
+                        )
                         .frame(maxWidth: .infinity)
-                    
-                    ZodiacHeader(
-                        profileImage: "logo",
-                        onSettingsTap: {
-                            showingSettings = true
-                        }, displayMode: .main
-                    )
-                    .frame(maxWidth: .infinity)
-                    
-                    // FlipBook Gallery
-                    FlipBook()
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                    
-                    UpdateCard()
-                    .zIndex(9999)
+                        
+                        UpdateCard()
+                            .zIndex(9999)
+                    }
                 }
+                FlipBook()
             }
         }
         .sheet(isPresented: $showingSettings) {

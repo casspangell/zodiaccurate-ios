@@ -155,7 +155,8 @@ struct UpdateCard: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: geometry.size.height * cardHeight)
                     .background(
-                        Group {
+                        ZStack {
+                            Color.red
                             GlisteningBackground(
                                 autoStart: false,
                                 triggerAnimation: $triggerGlistening

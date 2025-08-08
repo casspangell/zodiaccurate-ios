@@ -128,7 +128,7 @@ struct ConsentAlertView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .zIndex(101)
+        .zIndex(9999)
     }
 }
 

@@ -8,6 +8,7 @@ struct MainZodiacView: View {
     @State private var cameFromHoroscopeSplash = false
     @State private var hasTriggeredStardustAnimation = false
     @State private var headerDisplayMode: ZodiacHeaderDisplayMode = .initial
+    @AppStorage("hasAcceptedConsentPolicies") private var hasAcceptedConsentPolicies = false
     
     @State var completedOnboarding: Bool
     
@@ -80,16 +81,19 @@ struct MainZodiacView: View {
                         )
                         .frame(maxWidth: .infinity)
                         
-                        // FlipBook layer directly under header
-                        FlipBook()
-                            .padding(.top, 40)
+                        // FlipBook layer directly under header (gated by consent)
+                        if hasAcceptedConsentPolicies {
+                            FlipBook()
+                                .padding(.top, 40)
+                        }
                         
                         Spacer()
                     }
                     .zIndex(2)
                     
-                    // UpdateCard layer (topmost)
+                    // UpdateCard layer (topmost) - disable interaction until consent is accepted
                     UpdateCard()
+                        .allowsHitTesting(hasAcceptedConsentPolicies)
                         .zIndex(3)
                 }
             }

@@ -18,6 +18,7 @@ struct UpdateCard: View {
     @State private var selectedTime = Date()
     @State private var highlightInputField = false
     @State private var showTutorialBubble = false
+    @AppStorage("hasDismissedUpdateCardTutorial") private var hasDismissedUpdateCardTutorial: Bool = false
     @State private var hasShownTutorial = false
     @State private var hasDismissedTutorial = false
     @State private var isKeyboardVisible = false
@@ -138,6 +139,7 @@ struct UpdateCard: View {
                                                 withAnimation(.easeInOut(duration: 0.3)) {
                                                     showTutorialBubble = false
                                                     hasDismissedTutorial = true
+                                                    hasDismissedUpdateCardTutorial = true
                                                     cardHeight = cardHeightExpanded
                                                 }
                                             }
@@ -222,12 +224,12 @@ struct UpdateCard: View {
                                     // Check if we should expand from dismissed state
                                     let shouldExpand = translation < -50 || velocity < -500
                                     if shouldExpand {
-                                        if !hasDismissedTutorial {
+                                     if !hasDismissedTutorial {
                                             cardHeight = cardHeightExpandedWithTutorial
                                             isExpanded = true
                                             
                                             // Show tutorial on first expansion
-                                            if !hasShownTutorial {
+                                         if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
                                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                                     withAnimation(.easeInOut(duration: 0.3)) {
                                                         showTutorialBubble = true
@@ -271,12 +273,12 @@ struct UpdateCard: View {
                     }
                 } else {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                        if !hasDismissedTutorial {
+                         if !hasDismissedTutorial {
                             cardHeight = cardHeightExpandedWithTutorial
                             isExpanded = true
                             
                             // Show tutorial on first expansion
-                            if !hasShownTutorial {
+                             if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                     withAnimation(.easeInOut(duration: 0.3)) {
                                         showTutorialBubble = true

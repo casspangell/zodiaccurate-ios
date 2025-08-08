@@ -152,16 +152,20 @@ struct MainZodiacView: View {
                             // Show tutorial popups for users who just completed onboarding or have accepted consent
                             let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
                             if hasAcceptedConsentPolicies || hasCompletedOnboarding {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                    withAnimation(.easeInOut(duration: 0.5)) {
-                                        showUpdateTutorial = true
+                                if !hasShownUpdateTutorial {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                        withAnimation(.easeInOut(duration: 0.5)) {
+                                            showUpdateTutorial = true
+                                        }
                                     }
                                 }
-                                
+
                                 // Show stardust tutorial popup
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                    withAnimation(.easeInOut(duration: 0.5)) {
-                                        showStardustTutorial = true
+                                if !hasShownStardustTutorial {
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                        withAnimation(.easeInOut(duration: 0.5)) {
+                                            showStardustTutorial = true
+                                        }
                                     }
                                 }
                             }
@@ -197,15 +201,19 @@ struct MainZodiacView: View {
             SettingsView()
         }
         .onReceive(NotificationCenter.default.publisher(for: .showTutorialBubbles)) { _ in
-            // Show both tutorial bubbles when notified
+            // Respect persisted dismissal flags when showing tutorials via notification
             DispatchQueue.main.async {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    showUpdateTutorial = true
+                if !hasShownUpdateTutorial {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        showUpdateTutorial = true
+                    }
                 }
                 // Slight delay to stagger the appearance
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        showStardustTutorial = true
+                if !hasShownStardustTutorial {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            showStardustTutorial = true
+                        }
                     }
                 }
             }

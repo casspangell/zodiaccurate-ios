@@ -166,10 +166,8 @@ struct MainZodiacView: View {
                         VStack {
                             Spacer()
                             
-                            TutorialBubble.custom(
-                                title: "Instant Life Updates",
-                                subtitle: "Share your thoughts and receive stardust rewards for your daily reflections",
-                                icon: "sparkles",
+                            TutorialBubble(
+                                type: .custom(title: "Instant Life Updates", subtitle: "Share your thoughts and receive stardust rewards for your daily reflections", icon: "sparkles"),
                                 arrowPosition: .top,
                                 pulse: true,
                                 onDismiss: {
@@ -177,7 +175,8 @@ struct MainZodiacView: View {
                                         showUpdateTutorial = false
                                         hasShownUpdateTutorial = true
                                     }
-                                }
+                                },
+                                showArrow: false
                             )
                             .padding(.bottom, 20) // Position at bottom of screen
                             .transition(.opacity.combined(with: .scale))

@@ -53,7 +53,7 @@ public struct TutorialPopUp: View {
                     VStack(spacing: 0) {
                         HStack {
                             ArrowView(position: .top, color: arrowColor, pulse: pulse)
-                                .padding(.leading, 40)
+                                .padding(.leading, 100)
                             Spacer()
                         }
                         content
@@ -63,7 +63,7 @@ public struct TutorialPopUp: View {
                         HStack {
                             Spacer()
                             ArrowView(position: .top, color: arrowColor, pulse: pulse)
-                                .padding(.trailing, 40)
+                                .padding(.trailing, 100)
                         }
                         content
                     }

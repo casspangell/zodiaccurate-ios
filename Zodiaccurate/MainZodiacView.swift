@@ -95,10 +95,8 @@ struct MainZodiacView: View {
                                 Spacer()
                                 VStack {
                                     
-                                    TutorialBubble.custom(
-                                        title: "Stardust Rewards",
-                                        subtitle: "Your earned stardust points appear here on your profile badge",
-                                        icon: "sparkles",
+                                    TutorialBubble(
+                                        type: .custom(title: "Stardust Rewards", subtitle: "Your earned stardust points appear here on your profile badge", icon: "sparkles"),
                                         arrowPosition: .topleft,
                                         pulse: true,
                                         onDismiss: {
@@ -106,7 +104,8 @@ struct MainZodiacView: View {
                                                 showStardustTutorial = false
                                                 hasShownStardustTutorial = true
                                             }
-                                        }
+                                        },
+                                        showArrow: false
                                     )
                                     .padding(.top, 80) // Position below profile badge
                                     .transition(.opacity.combined(with: .scale))

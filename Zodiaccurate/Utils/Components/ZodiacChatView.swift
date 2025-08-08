@@ -39,6 +39,7 @@ struct ZodiacChatView: View {
     let conversationSteps: [ConversationStep]
     let profileImage: String
     @Binding var userName: String
+    let userData: User
     let onUserDataUpdate: (String, ConversationStep) -> Void
     let onStepComplete: (Int) -> Void
     let onConversationComplete: () -> Void
@@ -53,6 +54,7 @@ struct ZodiacChatView: View {
         conversationSteps: [ConversationStep],
         profileImage: String = "logo",
         userName: Binding<String>,
+        userData: User,
         onUserDataUpdate: @escaping (String, ConversationStep) -> Void,
         onStepComplete: @escaping (Int) -> Void,
         onConversationComplete: @escaping () -> Void,
@@ -65,6 +67,7 @@ struct ZodiacChatView: View {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
         self._userName = userName
+        self.userData = userData
         self.onUserDataUpdate = onUserDataUpdate
         self.onStepComplete = onStepComplete
         self.onConversationComplete = onConversationComplete
@@ -611,8 +614,23 @@ struct ZodiacChatView: View {
     private func triggerNextQuestion() {
         if currentStep < conversationSteps.count {
             let nextMessage = conversationSteps[currentStep].message
-            let personalizedMessage = personalizeMessage(nextMessage, userName)
-            displayQuestionMessage(personalizedMessage)
+            
+            // Use GPTOnboarding for step 4 (intuition question)
+            if currentStep == 3 { // Step 4 (0-indexed)
+                // Show typing indicator immediately
+                isTyping = true
+                
+                Task {
+                    let gptPersonalizedMessage = await GPTOnboarding.personalizeOnboardingMessage(nextMessage, with: userData)
+                    await MainActor.run {
+                        isTyping = false
+                        displayQuestionMessage(gptPersonalizedMessage)
+                    }
+                }
+            } else {
+                let personalizedMessage = personalizeMessage(nextMessage, userName)
+                displayQuestionMessage(personalizedMessage)
+            }
         } else {
             onConversationComplete()
         }

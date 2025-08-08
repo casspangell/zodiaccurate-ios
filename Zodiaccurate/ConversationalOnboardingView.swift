@@ -167,6 +167,7 @@ struct ConversationalOnboardingView: View {
                 conversationSteps: onboardingConversationSteps,
                 profileImage: currentProfileImage,
                 userName: $user.firstName,
+                userData: user,
                 onUserDataUpdate: { input, step in
                     updateUserData(input: input, step: step)
                 },

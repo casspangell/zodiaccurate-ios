@@ -3,7 +3,7 @@ import SwiftUI
 struct ZodiacCard: View {
     let title: String
     let content: String
-    @State private var isExpanded: Bool = false
+    @State var isExpanded: Bool = false
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -22,7 +22,6 @@ struct ZodiacCard: View {
                     .lineSpacing(4)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
-                    .lineLimit(isExpanded ? nil : 3)
             }
             .frame(maxWidth: .infinity)
             .background(
@@ -48,6 +47,8 @@ struct ZodiacCard: View {
         }
     }
 }
+
+
 
 #Preview {
     ZStack {

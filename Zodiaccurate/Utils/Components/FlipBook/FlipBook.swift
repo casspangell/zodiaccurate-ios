@@ -19,47 +19,49 @@ struct FlipBook: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            GeometryReader { geometry in
-                ScrollViewReader { proxy in
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: pageSpacing) {
-                            // Add leading spacer for centering
-                            Spacer()
-                                .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
-                            
-                        ForEach(Array(pages.enumerated()), id: \.offset) { index, card in
-                            FlipBookPage(card: card, index: index)
-                                .frame(width: geometry.size.width - 40)
-                                .id(index)
-                                .scrollTransition(.animated, axis: .horizontal) { content, phase in
-                                    content
-                                        .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
-                                        .opacity(phase.isIdentity ? 1.0 : 0.7)
-                                }
-                        }
-                            
-                            // Add trailing spacer for centering
-                            Spacer()
-                                .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
-                        }
-                        .scrollTargetLayout()
-                    }
-                    .scrollTargetBehavior(.viewAligned)
-                    .scrollPosition(id: .init(get: { currentIndex }, set: { newPosition in
-                        if let newIndex = newPosition {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                currentIndex = newIndex
+        ZStack {
+            VStack(spacing: 0) {
+                GeometryReader { geometry in
+                    ScrollViewReader { proxy in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: pageSpacing) {
+                                // Add leading spacer for centering
+                                Spacer()
+                                    .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
+                                
+                            ForEach(Array(pages.enumerated()), id: \.offset) { index, card in
+                                FlipBookPage(card: card, index: index)
+                                    .frame(width: geometry.size.width - 40)
+                                    .id(index)
+                                    .scrollTransition(.animated, axis: .horizontal) { content, phase in
+                                        content
+                                            .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
+                                            .opacity(phase.isIdentity ? 1.0 : 0.7)
+                                    }
                             }
+                                
+                                // Add trailing spacer for centering
+                                Spacer()
+                                    .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
+                            }
+                            .scrollTargetLayout()
                         }
-                    }))
+                        .scrollTargetBehavior(.viewAligned)
+                        .scrollPosition(id: .init(get: { currentIndex }, set: { newPosition in
+                            if let newIndex = newPosition {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    currentIndex = newIndex
+                                }
+                            }
+                        }))
+                    }
                 }
+                .frame(height: 300)
+                
+                // Page Indicator
+                FlipBookPageIndicator(currentIndex: currentIndex, pageCount: pageCount)
+                    .padding(.top, 16)
             }
-            .frame(height: 300)
-            
-            // Page Indicator
-            FlipBookPageIndicator(currentIndex: currentIndex, pageCount: pageCount)
-                .padding(.top, 16)
         }
     }
 }
@@ -88,11 +90,8 @@ struct FlipBookPage: View {
     
     var body: some View {
         VStack {
-            ScrollView {
-                card
-                    .padding(.horizontal, 10)
-            }
-            .frame(maxHeight: .infinity)
+            card
+                .padding(.horizontal, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -117,6 +116,8 @@ struct FlipBookPageIndicator: View {
         .padding(.top, 10)
     }
 }
+
+
 
 #Preview {
     ZStack {

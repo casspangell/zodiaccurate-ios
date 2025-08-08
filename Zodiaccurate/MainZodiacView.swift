@@ -70,10 +70,6 @@ struct MainZodiacView: View {
                 ZStack {
                     // Background layer (implicit z-index 0)
                     
-                    // FlipBook layer
-                    FlipBook()
-                        .zIndex(1)
-                    
                     VStack(spacing: 0) {
                         // Header layer - pinned to top
                         ZodiacHeader(
@@ -83,9 +79,14 @@ struct MainZodiacView: View {
                             }, displayMode: .main
                         )
                         .frame(maxWidth: .infinity)
-                        .zIndex(2)
+                        
+                        // FlipBook layer directly under header
+                        FlipBook()
+                            .padding(.top, 40)
+                        
                         Spacer()
                     }
+                    .zIndex(2)
                     
                     // UpdateCard layer (topmost)
                     UpdateCard()

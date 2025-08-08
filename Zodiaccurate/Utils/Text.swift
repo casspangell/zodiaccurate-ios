@@ -19,6 +19,7 @@ struct HoroscopeDateText: View {
                     .dmSansSemiboldGradient(size: 38)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             
             if lines.count > 1 {
@@ -26,6 +27,7 @@ struct HoroscopeDateText: View {
                     .dmSansSemiboldGradient(size: 24)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

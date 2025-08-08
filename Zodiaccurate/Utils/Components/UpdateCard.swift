@@ -4,8 +4,8 @@ struct UpdateCard: View {
     // Card height constants
     private let cardHeightDismissed: CGFloat = 0.25
     private let cardHeightExpanded: CGFloat = 0.5
-    private let cardHeightExpandedWithTutorial: CGFloat = 0.75
-    private let cardHeightExpandedWithKeyboard: CGFloat = 0.95
+    private let cardHeightExpandedWithTutorial: CGFloat = 0.55
+    private let cardHeightExpandedWithKeyboard: CGFloat = 0.75
     
     @State private var cardHeight: CGFloat = 0.25
     @State private var dragOffset: CGFloat = 0

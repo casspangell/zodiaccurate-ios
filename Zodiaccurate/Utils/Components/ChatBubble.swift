@@ -186,6 +186,8 @@ struct ResponseChatBubble: View {
     let onHeightChange: ((CGFloat) -> Void)?
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
+    @State private var singleChoiceSelection: String? = nil
+    @State private var multiChoiceSelections: Set<String> = []
     
     init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
         self.currentStep = currentStep
@@ -253,6 +255,48 @@ struct ResponseChatBubble: View {
                     onTimeSelected: onTimeSelected,
                     onUnknownTime: onUnknownTime
                 )
+            } else if currentStep.inputType == "singlechoice" {
+                // Single choice radio button picker
+                RadioButtonPicker(
+                    title: nil,
+                    options: currentStep.options ?? [],
+                    selected: $singleChoiceSelection,
+                    onSelect: { newValue in
+                        currentInput = newValue ?? ""
+                    },
+                    showSubmitButton: true,
+                    submitTitle: "Submit",
+                    onSubmit: {
+                        onSend()
+                    }
+                )
+                .onAppear {
+                    if !currentInput.isEmpty {
+                        singleChoiceSelection = currentInput
+                    }
+                }
+            } else if currentStep.inputType == "multichoice" {
+                // Multi choice checkbox picker
+                CheckboxMultiPicker(
+                    title: nil,
+                    options: currentStep.options ?? [],
+                    selections: $multiChoiceSelections,
+                    maxSelections: nil,
+                    onChange: { newSelections in
+                        currentInput = Array(newSelections).sorted().joined(separator: ", ")
+                    },
+                    showSubmitButton: true,
+                    submitTitle: "Submit",
+                    onSubmit: {
+                        onSend()
+                    }
+                )
+                .onAppear {
+                    if !currentInput.isEmpty {
+                        let parts = currentInput.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        multiChoiceSelections = Set(parts)
+                    }
+                }
             }
             
             // Send button (only show for text input types)
@@ -264,11 +308,11 @@ struct ResponseChatBubble: View {
                 )
             }
         }
-        .padding(.horizontal, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? 16 : 0)
+        .padding(.horizontal, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice") ? 16 : 0)
         .padding(.vertical, (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine") ? 12 : 0)
-        .background((currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time") ? finalBackgroundColor : Color.clear)
+        .background((currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice") ? finalBackgroundColor : Color.clear)
         .clipShape(
-            (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time")
+            (currentStep.inputType == "singleLine" || currentStep.inputType == "multiLine" || currentStep.inputType == "date" || currentStep.inputType == "time" || currentStep.inputType == "singlechoice" || currentStep.inputType == "multichoice")
                 ? AnyShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 : AnyShape(Rectangle())
         )

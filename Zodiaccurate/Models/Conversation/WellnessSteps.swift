@@ -11,17 +11,25 @@ import Foundation
 let wellnessConversationSteps: [ConversationStep] = [
     // 1. Overall health rating (single selection)
     ConversationStep(
-        message: "How would you rate your overall health?\n- Excellent\n- Very Good\n- Pretty Good\n- Needs Some Improvement\n- Needs A Lot of Improvement\n- Poor",
-        inputType: "singleLine",
-        placeholder: "Type one option (e.g., Excellent, Pretty Good, Poor)",
-        dataKey: "overallHealth"
+        message: "How would you rate your overall health?",
+        inputType: "singlechoice",
+        placeholder: "Select one option",
+        dataKey: "overallHealth",
+        options: [
+            "Excellent",
+            "Very Good",
+            "Pretty Good",
+            "Needs Some Improvement",
+            "Needs A Lot of Improvement",
+            "Poor"
+        ]
     ),
     
     // 2. Physical health description
     ConversationStep(
-        message: "Describe your current physical health (e.g., arthritis, low energy, pain, digestive issues, etc.).",
+        message: "Describe your current physical health.",
         inputType: "multiLine",
-        placeholder: "Share details about your physical health...",
+        placeholder: "(e.g., arthritis, low energy, pain, digestive issues, etc.)",
         dataKey: "physicalHealthDescription"
     ),
     
@@ -35,17 +43,17 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 4. Mental health challenges
     ConversationStep(
-        message: "List any mental health challenges (e.g., negative thinking, trauma, serious conditions).",
+        message: "List any mental health challenges .",
         inputType: "multiLine",
-        placeholder: "List your mental health challenges...",
+        placeholder: "(e.g., negative thinking, trauma, serious conditions)",
         dataKey: "mentalHealthChallenges"
     ),
     
     // 5. Wellness goals
     ConversationStep(
-        message: "What are your wellness goals (e.g., lose weight, gain strength, be more flexible)?",
+        message: "What are your wellness goals?",
         inputType: "multiLine",
-        placeholder: "Describe your wellness goals...",
+        placeholder: "(e.g., lose weight, gain strength, be more flexible)",
         dataKey: "wellnessGoals"
     ),
     
@@ -53,7 +61,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     ConversationStep(
         message: "List 3–5 short or long-term goals or dreams.",
         inputType: "multiLine",
-        placeholder: "List 3–5 goals or dreams...",
+        placeholder: "(e.g., start a business, travel to Japan, write a book, buy a home)",
         dataKey: "goalsAndDreams"
     ),
     
@@ -61,7 +69,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     ConversationStep(
         message: "List 3–5 areas of your life you want to improve.",
         inputType: "multiLine",
-        placeholder: "List 3–5 areas to improve...",
+        placeholder: "(e.g., communication, career, finances, relationships, self-discipline)",
         dataKey: "areasToImprove"
     ),
     
@@ -69,7 +77,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     ConversationStep(
         message: "What are your top 3–5 sources of stress?",
         inputType: "multiLine",
-        placeholder: "List your top stressors...",
+        placeholder: "(e.g., work deadlines, finances, family conflict, health worries)",
         dataKey: "stressSources"
     ),
     
@@ -77,7 +85,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     ConversationStep(
         message: "What brings you joy and satisfaction?",
         inputType: "multiLine",
-        placeholder: "Share what brings you joy...",
+        placeholder: "(e.g., time in nature, music, creating art, helping others)",
         dataKey: "joyAndSatisfaction"
     ),
     
@@ -85,24 +93,47 @@ let wellnessConversationSteps: [ConversationStep] = [
     ConversationStep(
         message: "What family values or principles matter most to you?",
         inputType: "multiLine",
-        placeholder: "Describe the values or principles that matter most...",
+        placeholder: "(e.g., honesty, loyalty, compassion, faith, hard work)",
         dataKey: "familyValues"
     ),
     
     // 11. Sexual orientation (single selection)
     ConversationStep(
-        message: "What is your sexual orientation?\n- Not Interested\n- Prefer Male\n- Prefer Female\n- Bisexual\n- Asexual\n- Pansexual\n- Other",
-        inputType: "singleLine",
-        placeholder: "Type one option (e.g., Prefer Female, Asexual)",
-        dataKey: "sexualOrientation"
+        message: "What is your sexual orientation?",
+        inputType: "singlechoice",
+        placeholder: "Select one option",
+        dataKey: "sexualOrientation",
+        options: [
+            "Not Interested",
+            "Prefer Male",
+            "Prefer Female",
+            "Bisexual",
+            "Asexual",
+            "Pansexual",
+            "Other"
+        ]
     ),
     
     // 12. Belief system (single selection)
     ConversationStep(
-        message: "What is your belief system? (If your beliefs influence your decisions, sharing them can help personalize your guidance.)\n- Christian\n- Mormon\n- Buddhist\n- Islam\n- Jewish\n- Hindu\n- Spiritual\n- Atheist\n- Agnostic\n- Pagan\n- Other",
-        inputType: "singleLine",
-        placeholder: "Type one option (e.g., Spiritual, Agnostic)",
-        dataKey: "beliefSystem"
+        message: "What is your belief system? (If your beliefs influence your decisions, sharing them can help personalize your guidance.)",
+        inputType: "singlechoice",
+        placeholder: "Select one option",
+        dataKey: "beliefSystem",
+        isFinal: true,
+        options: [
+            "Christian",
+            "Mormon",
+            "Buddhist",
+            "Islam",
+            "Jewish",
+            "Hindu",
+            "Spiritual",
+            "Atheist",
+            "Agnostic",
+            "Pagan",
+            "Other"
+        ],
     )
 ]
 

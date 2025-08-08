@@ -19,6 +19,7 @@ struct ConversationView: View {
     let triggerBadgeAnimation: (String) -> Void
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
+    let topInsetMode: ChatTopInsetMode
     
     // MARK: - Internal user placeholder (required by ZodiacChatView for personalization/GPT hooks)
     @State private var placeholderUser = User()
@@ -32,7 +33,8 @@ struct ConversationView: View {
         onComplete: @escaping () -> Void = {},
         triggerBadgeAnimation: @escaping (String) -> Void = { _ in },
         backgroundColor: Color? = nil,
-        bubbleColor: ChatBubbleColor? = nil
+        bubbleColor: ChatBubbleColor? = nil,
+        topInsetMode: ChatTopInsetMode = .large
     ) {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
@@ -43,6 +45,7 @@ struct ConversationView: View {
         self.triggerBadgeAnimation = triggerBadgeAnimation
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
+        self.topInsetMode = topInsetMode
     }
     
     var body: some View {
@@ -69,20 +72,18 @@ struct ConversationView: View {
                 },
                 triggerBadgeAnimation: triggerBadgeAnimation,
                 backgroundColor: backgroundColor,
-                bubbleColor: bubbleColor
+                bubbleColor: bubbleColor,
+                topInsetMode: topInsetMode
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(.all, edges: .all)
             
             ZodiacHeader(
                 profileImage: profileImage,
-                displayMode: .initial
+                displayMode: .compact
             )
             .frame(maxWidth: .infinity)
-            .ignoresSafeArea(.all, edges: .top)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.all, edges: .all)
         .onAppear {
             // Fresh placeholder user to scope this conversation session (not persisted)
             placeholderUser = User(createdAt: Date(), updatedAt: Date())

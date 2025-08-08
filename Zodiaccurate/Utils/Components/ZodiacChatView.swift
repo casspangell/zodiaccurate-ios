@@ -1,6 +1,12 @@
 import SwiftUI
 import Combine
 
+// MARK: - Chat Top Inset Mode
+enum ChatTopInsetMode {
+    case compact   // For compact header (3/4 height)
+    case large     // For initial/full header height
+}
+
 /// A reusable zodiac-themed chat interface component
 struct ZodiacChatView: View {
     // MARK: - Properties
@@ -49,6 +55,7 @@ struct ZodiacChatView: View {
     let triggerBadgeAnimation: (String) -> Void
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
+    let topInsetMode: ChatTopInsetMode
     
     // MARK: - Initialization
     init(
@@ -63,7 +70,8 @@ struct ZodiacChatView: View {
         determineZodiacSign: @escaping (String) -> String,
         triggerBadgeAnimation: @escaping (String) -> Void,
         backgroundColor: Color? = nil,
-        bubbleColor: ChatBubbleColor? = nil
+        bubbleColor: ChatBubbleColor? = nil,
+        topInsetMode: ChatTopInsetMode = .large
     ) {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
@@ -77,15 +85,18 @@ struct ZodiacChatView: View {
         self.triggerBadgeAnimation = triggerBadgeAnimation
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
+        self.topInsetMode = topInsetMode
     }
     
     // MARK: - Computed Properties
-    private var contentTopSpacing: CGFloat {
-        return 0
-    }
-    
-    private var contentTopPadding: CGFloat {
-        return 0
+    private var headerTopInset: CGFloat {
+        let base = ZodiacHeader.profileBadgeHeight()
+        switch topInsetMode {
+        case .large:
+            return max(base - 10, 0)
+        case .compact:
+            return max(base * 0.75 - 10, 0)
+        }
     }
     
     private var totalScrollOffset: CGFloat {
@@ -161,7 +172,7 @@ struct ZodiacChatView: View {
     private var topAnchorView: some View {
         Color.clear
             .frame(height: 1)
-            .padding(.top, ZodiacHeader.profileBadgeHeight())
+            .padding(.top, headerTopInset)
             .id("topAnchor")
             .onAppear {
                 // User scrolled to top

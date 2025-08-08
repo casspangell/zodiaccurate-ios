@@ -16,14 +16,24 @@ struct Tutorial {
 
 struct ConversationStep {
     let message: String
-    let inputType: String // "text", "singleLine", "multiLine", "date", "time"
+    let inputType: String // "text", "singleLine", "multiLine", "date", "time", "singlechoice", "multichoice"
     let placeholder: String
     let dataKey: String
     let isFinal: Bool
     let tutorial: Tutorial?
     let aiStep: Bool
+    let options: [String]?
     
-    init(message: String, inputType: String, placeholder: String, dataKey: String, isFinal: Bool = false, tutorial: Tutorial? = nil, aiStep: Bool = false) {
+    init(
+        message: String,
+        inputType: String,
+        placeholder: String,
+        dataKey: String,
+        isFinal: Bool = false,
+        tutorial: Tutorial? = nil,
+        aiStep: Bool = false,
+        options: [String]? = nil
+    ) {
         self.message = message
         self.inputType = inputType
         self.placeholder = placeholder
@@ -31,6 +41,7 @@ struct ConversationStep {
         self.isFinal = isFinal
         self.tutorial = tutorial
         self.aiStep = aiStep
+        self.options = options
     }
 }
 

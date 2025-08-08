@@ -10,16 +10,18 @@ import SwiftUI
 /// A reusable header background component with gradient fade
 struct HeaderBackground: View {
     let opacity: Double
+    let heightMultiplier: CGFloat
     
-    init(opacity: Double = 1.0) {
+    init(opacity: Double = 1.0, heightMultiplier: CGFloat = 1.0) {
         self.opacity = opacity
+        self.heightMultiplier = heightMultiplier
     }
     
     var body: some View {
         VStack(spacing: 0) {
             Rectangle()
                 .fill(Color.deepBlue.opacity(1.0))
-                .frame(height: 75)
+                .frame(height: 75 * heightMultiplier)
             
             LinearGradient(
                 gradient: Gradient(stops: [
@@ -36,7 +38,7 @@ struct HeaderBackground: View {
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 100)
+            .frame(height: 100 * heightMultiplier)
         }
         .opacity(opacity)
         .allowsHitTesting(false)
@@ -47,6 +49,7 @@ struct HeaderBackground: View {
 /// Display modes for the ZodiacHeaderMain component
 enum ZodiacHeaderDisplayMode {
     case initial  // Default UI with centered badge only
+    case compact  // 3/4-height of initial, otherwise identical
     case main     // Full UI with buttons and date
 }
 
@@ -121,9 +124,11 @@ struct ZodiacHeader: View {
     // MARK: - Body
     var body: some View {
         ZStack {
-            // Dark header background with gradient fade (only for initial mode)
+            // Dark header background with gradient fade
             if displayMode == .initial {
-                HeaderBackground(opacity: headerBackgroundOpacity)
+                HeaderBackground(opacity: headerBackgroundOpacity, heightMultiplier: 1.0)
+            } else if displayMode == .compact {
+                HeaderBackground(opacity: headerBackgroundOpacity, heightMultiplier: 0.75)
             }
             
             // Header Content
@@ -160,18 +165,19 @@ struct ZodiacHeader: View {
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height/5, alignment: .top)
-                .padding(.top, displayMode == .main ? 10 : 36)
+                .padding(.top, 0)
                 .padding(.bottom, displayMode == .main ? 10 : 0)
                 .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
-            } else {
-                // Initial mode - only profile badge centered like ZodiacHeader
-                VStack(spacing: 8) {
+            } else if displayMode == .initial || displayMode == .compact {
+                // Initial/Compact modes - profile badge centered; compact is 3/4 height
+                let scale: CGFloat = displayMode == .compact ? 0.75 : 1.0
+                VStack(spacing: 0) {
                     ZStack {
                         if badgeAnimationManager.currentProfileImage == "logo" {
                             // Original simple white circle for logo state
                             Circle()
                                 .fill(Color.white.opacity(0.5))
-                                .frame(width: 130, height: 130)
+                                .frame(width: 130 * scale, height: 130 * scale)
                                 .scaleEffect(badgeAnimationManager.badgeScale)
                                 .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
                                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeAnimationManager.badgeScale)
@@ -180,7 +186,7 @@ struct ZodiacHeader: View {
                             Image(badgeAnimationManager.currentProfileImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 140, height: 140)
+                                .frame(width: 140 * scale, height: 140 * scale)
                                 .id(badgeAnimationManager.currentProfileImage)
                                 .scaleEffect(badgeAnimationManager.badgeScale)
                                 .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
@@ -190,14 +196,14 @@ struct ZodiacHeader: View {
                                 zodiacImage: Image(badgeAnimationManager.currentProfileImage),
                                 stardustPoints: stardustPoints
                             )
-                            .scaleEffect(badgeAnimationManager.badgeScale)
+                            .scaleEffect(badgeAnimationManager.badgeScale * scale)
                             .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
                             .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeAnimationManager.badgeScale)
                             .animation(Animation.easeInOut(duration: 0.8), value: badgeAnimationManager.badgeRotation)
                         }
                     }
-                    .frame(height: 150)
-                    .padding(.top, profileImage == "logo" ? 60 : 36)
+                    .frame(height: 150 * scale)
+                    .padding(.top, 0)
                     .frame(maxWidth: .infinity, alignment: .center)
                     
                     Text("")

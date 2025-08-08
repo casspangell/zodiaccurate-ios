@@ -211,8 +211,13 @@ struct MainZodiacView: View {
                 },
                 onComplete: {
                     showWellnessConversation = false
-                }
+                },
+                topInsetMode: .compact
             )
+            .ignoresSafeArea(.container, edges: .top)
+            .presentationDetents([.large])
+            .presentationCornerRadius(0)
+            .presentationDragIndicator(.hidden)
         }
         .onReceive(NotificationCenter.default.publisher(for: .showTutorialBubbles)) { _ in
             // Respect persisted dismissal flags when showing tutorials via notification

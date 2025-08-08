@@ -12,6 +12,7 @@ struct MainZodiacView: View {
     @State private var headerDisplayMode: ZodiacHeaderDisplayMode = .initial
     @AppStorage("hasAcceptedConsentPolicies") private var hasAcceptedConsentPolicies = false
     @State private var welcomeHoroscope: Horoscope?
+    @State private var isWelcomeHoroscopeLoaded = false
     
     @State var completedOnboarding: Bool
     
@@ -88,6 +89,21 @@ struct MainZodiacView: View {
                         if hasAcceptedConsentPolicies {
                             FlipBook(pages: createFlipBookCards())
                                 .padding(.top, 40)
+                                .onAppear {
+                                    // Check for welcome horoscope when view appears
+                                    _ = fetchWelcomeHoroscope()
+                                }
+                                .onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
+                                    // Check for welcome horoscope periodically until loaded
+                                    if !isWelcomeHoroscopeLoaded {
+                                        _ = fetchWelcomeHoroscope()
+                                    }
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: .welcomeHoroscopeReady)) { _ in
+                                    // Refresh welcome horoscope when notification is received
+                                    _ = fetchWelcomeHoroscope()
+                                }
+                                .id(isWelcomeHoroscopeLoaded) // Force re-creation when loading state changes
                         }
                         
                         Spacer()
@@ -141,11 +157,19 @@ struct MainZodiacView: View {
     private func createFlipBookCards() -> [ZodiacCard] {
         var cards: [ZodiacCard] = []
         
-        // Add welcome horoscope as first card if available
-        if let welcomeHoroscope = fetchWelcomeHoroscope() {
+        // Add welcome horoscope as first card
+        if let welcomeHoroscope = welcomeHoroscope {
+            print("🎯 MainZodiacView: Creating welcome horoscope card with content")
             cards.append(ZodiacCard(
-                title: welcomeHoroscope.title,
-                content: welcomeHoroscope.message
+                horoscope: welcomeHoroscope,
+                isLoading: false
+            ))
+        } else {
+            print("🎯 MainZodiacView: Creating welcome horoscope card with loading state")
+            // Show loading state for welcome horoscope if not available yet
+            cards.append(ZodiacCard(
+                horoscope: nil,
+                isLoading: true
             ))
         }
         
@@ -174,7 +198,21 @@ struct MainZodiacView: View {
                 predicate: #Predicate<Horoscope> { $0.key == "welcome" }
             )
             let horoscopes = try modelContext.fetch(descriptor)
-            return horoscopes.first
+            let horoscope = horoscopes.first
+            
+            // Update loading state and trigger UI refresh
+            DispatchQueue.main.async {
+                let wasLoaded = self.isWelcomeHoroscopeLoaded
+                self.welcomeHoroscope = horoscope
+                self.isWelcomeHoroscopeLoaded = horoscope != nil
+                
+                // If the loading state changed, print for debugging
+                if wasLoaded != self.isWelcomeHoroscopeLoaded {
+                    print("🎯 MainZodiacView: Welcome horoscope loading state changed to \(self.isWelcomeHoroscopeLoaded)")
+                }
+            }
+            
+            return horoscope
         } catch {
             print("❌ Failed to fetch welcome horoscope: \(error)")
             return nil

@@ -45,13 +45,13 @@ struct GPTOnboarding {
         """
         
         do {
-            let personalizedMessage = try await ChatGPT.callChatGPTAPI(
+            let response = try await ChatGPT.callChatGPTAPI(
                 with: userPrompt,
                 systemMessage: systemMessage
             )
             
             // Remove double quotes from the beginning and end of the response
-            let cleanedMessage = personalizedMessage
+            let cleanedMessage = response
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
             
@@ -99,13 +99,14 @@ struct GPTOnboarding {
         """
         
         do {
-            let response = try await ChatGPT.callChatGPTAPI(
+            let response = try await ChatGPT.callChatGPTWithTTS(
                 with: userPrompt,
-                systemMessage: systemMessage
+                systemMessage: systemMessage,
+                saveKey: "welcome"
             )
             
             // Clean the response
-            let cleanedResponse = response
+            let cleanedResponse = response.text
                 .trimmingCharacters(in: .whitespacesAndNewlines)
                 .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
             
@@ -114,18 +115,26 @@ struct GPTOnboarding {
             let title = parts.count > 0 ? parts[0].trimmingCharacters(in: .whitespacesAndNewlines) : "Welcome to Your Cosmic Journey"
             let message = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespacesAndNewlines) : cleanedResponse
             
-            let horoscope = Horoscope(title: title, message: message, key: "welcome")
+            let horoscope = Horoscope(
+                title: title, 
+                message: message, 
+                key: "welcome",
+                audioFilePath: response.audioFilePath
+            )
             
             print("✨ Generated welcome horoscope:")
             print("Title: \(horoscope.title)")
             print("Message: \(horoscope.message)")
+            if let audioPath = horoscope.audioFilePath {
+                print("🎤 TTS audio saved: \(audioPath)")
+            }
             
             return horoscope
             
         } catch {
             print("❌ Failed to generate welcome horoscope: \(error)")
             
-            // Return a fallback horoscope
+            // Return a fallback horoscope with TTS
             let fallbackTitle = "Welcome to Your Cosmic Journey"
             let fallbackMessage = """
             Welcome to your cosmic journey, \(userData.firstName)! 
@@ -135,8 +144,27 @@ struct GPTOnboarding {
             The stars are ready to share their wisdom with you. Your personalized horoscopes will help you navigate life's twists and turns with confidence and grace.
             """
             
-            let fallbackHoroscope = Horoscope(title: fallbackTitle, message: fallbackMessage, key: "welcome")
+            // Generate TTS for fallback message
+            var fallbackAudioPath: String?
+            do {
+                fallbackAudioPath = try await ChatGPT.generateAndSaveTTSAudio(
+                    from: fallbackMessage,
+                    for: "welcome"
+                )
+                print("🎤 Generated TTS audio for fallback horoscope")
+            } catch {
+                print("❌ Failed to generate TTS audio for fallback: \(error)")
+                // Continue without audio if TTS fails
+            }
+            
+            let fallbackHoroscope = Horoscope(
+                title: fallbackTitle, 
+                message: fallbackMessage, 
+                key: "welcome",
+                audioFilePath: fallbackAudioPath
+            )
             print("✅ Using fallback horoscope")
+            
             return fallbackHoroscope
         }
     }

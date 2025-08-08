@@ -134,6 +134,11 @@ struct ConversationalOnboardingView: View {
                 modelContext.insert(horoscope)
                 try modelContext.save()
                 print("✅ Welcome horoscope saved to SwiftData successfully")
+                
+                // Notify that welcome horoscope is ready
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .welcomeHoroscopeReady, object: nil)
+                }
             } catch {
                 print("❌ Failed to save horoscope to SwiftData: \(error)")
             }

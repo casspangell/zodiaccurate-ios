@@ -17,6 +17,7 @@ extension Notification.Name {
     static let setHeaderBackgroundOpacity = Notification.Name("setHeaderBackgroundOpacity")
     static let setHeaderOpacityZero = Notification.Name("setHeaderOpacityZero")
     static let onboardingCompleted = Notification.Name("onboardingCompleted")
+    static let welcomeHoroscopeReady = Notification.Name("welcomeHoroscopeReady")
 }
 
 // MARK: - Notification Manager

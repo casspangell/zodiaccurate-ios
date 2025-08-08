@@ -61,8 +61,17 @@ struct APIConfig {
     /// OpenAI API base URL
     static let openAIBaseURL = "https://api.openai.com/v1/chat/completions"
     
+    /// OpenAI TTS API base URL
+    static let openAITTSBaseURL = "https://api.openai.com/v1/audio/speech"
+    
     /// Default model to use for horoscope generation
     static let defaultModel = "gpt-4"
+    
+    /// Default TTS model to use for audio generation
+    static let defaultTTSModel = "tts-1"
+    
+    /// Default TTS voice to use
+    static let defaultTTSVoice = "alloy"
     
     /// Temperature setting for creative responses (0.0 = focused, 1.0 = creative)
     static let defaultTemperature: Double = 0.8

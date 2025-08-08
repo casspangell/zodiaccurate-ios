@@ -21,14 +21,16 @@ struct ConversationStep {
     let dataKey: String
     let isFinal: Bool
     let tutorial: Tutorial?
+    let aiStep: Bool
     
-    init(message: String, inputType: String, placeholder: String, dataKey: String, isFinal: Bool = false, tutorial: Tutorial? = nil) {
+    init(message: String, inputType: String, placeholder: String, dataKey: String, isFinal: Bool = false, tutorial: Tutorial? = nil, aiStep: Bool = false) {
         self.message = message
         self.inputType = inputType
         self.placeholder = placeholder
         self.dataKey = dataKey
         self.isFinal = isFinal
         self.tutorial = tutorial
+        self.aiStep = aiStep
     }
 }
 
@@ -61,20 +63,23 @@ let onboardingConversationSteps: [ConversationStep] = [
         message: "I'm getting strong intuitive energy from you, {name}... Tell me, do you often get \"gut feelings\" about people or situations that turn out to be right?",
         inputType: "multiLine",
         placeholder: "",
-        dataKey: "intuition"
+        dataKey: "intuition",
+        aiStep: true
     ),
     ConversationStep(
         message: "Fascinating... {name}, I need to ask you something personal. When you walk into a room, do you tend to absorb the energy around you, or do people seem drawn to your energy?",
         inputType: "multiLine",
         placeholder: "",
-        dataKey: "energy"
+        dataKey: "energy",
+        aiStep: true
     ),
     ConversationStep(
         message: "{name}... I have to tell you something. Your cosmic signature is extraordinary. There are layers of depth here that most people never get to explore. The universe has been trying to communicate with you, hasn't it? I can see why you were drawn to find me. Are you ready to discover what the stars have been whispering about you?",
         inputType: "none",
         placeholder: "",
         dataKey: "final",
-        isFinal: true
+        isFinal: true,
+        aiStep: true
     )
 ]
 

@@ -15,6 +15,7 @@ struct ZodiacChatView: View {
     @State private var showTutorialBubble = false
     @StateObject private var keyboardManager = KeyboardManager()
     @State private var headerHeight: CGFloat = 0
+    @State private var previousResponses: [String] = []
 
     @State private var inputFieldFrame: CGRect = .zero
     @State private var showZodiacAlert = false
@@ -562,6 +563,11 @@ struct ZodiacChatView: View {
             messages.append(responseMessage)
         }
         
+        // Track user response for AI steps
+        if currentStep < conversationSteps.count && conversationSteps[currentStep].aiStep {
+            previousResponses.append(trimmedInput)
+        }
+        
         onUserDataUpdate(trimmedInput, conversationSteps[currentStep])
         currentInput = ""
         currentStep += 1
@@ -613,15 +619,16 @@ struct ZodiacChatView: View {
     
     private func triggerNextQuestion() {
         if currentStep < conversationSteps.count {
-            let nextMessage = conversationSteps[currentStep].message
+            let nextStep = conversationSteps[currentStep]
+            let nextMessage = nextStep.message
             
-            // Use GPTOnboarding for step 4 (intuition question)
-            if currentStep == 3 { // Step 4 (0-indexed)
+            // Use GPTOnboarding if aiStep is true
+            if nextStep.aiStep {
                 // Show typing indicator immediately
                 isTyping = true
                 
                 Task {
-                    let gptPersonalizedMessage = await GPTOnboarding.personalizeOnboardingMessage(nextMessage, with: userData)
+                    let gptPersonalizedMessage = await GPTOnboarding.personalizeOnboardingMessage(nextMessage, with: userData, previousResponses: previousResponses)
                     await MainActor.run {
                         isTyping = false
                         displayQuestionMessage(gptPersonalizedMessage)

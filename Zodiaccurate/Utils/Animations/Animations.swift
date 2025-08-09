@@ -264,3 +264,73 @@ struct ShootingStar: View {
 }
 
  
+// MARK: - Fiery Orbit Ring
+struct FieryOrbitRing: View {
+    let size: CGFloat
+    let lineWidth: CGFloat
+    let rotationDuration: Double
+
+    @State private var rotation: Double = 0
+    @State private var glowPulse: Bool = false
+
+    init(size: CGFloat = 54, lineWidth: CGFloat = 3, rotationDuration: Double = 2.0) {
+        self.size = size
+        self.lineWidth = lineWidth
+        self.rotationDuration = rotationDuration
+    }
+
+    var body: some View {
+        ZStack {
+            // Core fiery gradient ring
+            Circle()
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: Color(hex: "FFDD55").opacity(0.9), location: 0.00),
+                            .init(color: Color(hex: "FF9900").opacity(0.95), location: 0.15),
+                            .init(color: Color(hex: "FF4D00").opacity(1.0), location: 0.30),
+                            .init(color: Color(hex: "FF2E00").opacity(0.95), location: 0.45),
+                            .init(color: Color(hex: "FF7A00").opacity(1.0), location: 0.60),
+                            .init(color: Color(hex: "FFD000").opacity(0.95), location: 0.75),
+                            .init(color: Color(hex: "FFDD55").opacity(0.9), location: 0.90),
+                            .init(color: Color(hex: "FF9900").opacity(0.95), location: 1.00),
+                        ]),
+                        center: .center
+                    ),
+                    lineWidth: lineWidth
+                )
+                .blur(radius: 0.3)
+
+            // Highlighted streaks for a lively flame effect
+            Circle()
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0.0),
+                            Color.white.opacity(0.85),
+                            Color.white.opacity(0.0),
+                        ]),
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: lineWidth * 0.6, lineCap: .round, dash: [8, 28], dashPhase: 0)
+                )
+                .blur(radius: 1.2)
+                .opacity(glowPulse ? 0.9 : 0.5)
+                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: glowPulse)
+
+            // Soft outer glow
+            Circle()
+                .stroke(Color(hex: "FF6A00").opacity(0.45), lineWidth: lineWidth)
+                .blur(radius: 4)
+        }
+        .frame(width: size, height: size)
+        .rotationEffect(.degrees(rotation))
+        .onAppear {
+            glowPulse = true
+            withAnimation(.linear(duration: rotationDuration).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+        }
+    }
+}
+

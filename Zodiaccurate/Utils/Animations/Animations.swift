@@ -272,6 +272,10 @@ struct FieryOrbitRing: View {
 
     @State private var rotation: Double = 0
     @State private var glowPulse: Bool = false
+    @State private var dashPhase: CGFloat = 0
+    @State private var flicker: Bool = false
+    @State private var sparkRotation: Double = 0
+    @State private var embers: [Ember] = []
 
     init(size: CGFloat = 54, lineWidth: CGFloat = 3, rotationDuration: Double = 2.0) {
         self.size = size
@@ -281,47 +285,115 @@ struct FieryOrbitRing: View {
 
     var body: some View {
         ZStack {
+            let innerRadius = size / 2
+
+            // Outer glow halo
+            Circle()
+                .stroke(
+                    RadialGradient(
+                        colors: [
+                            Color(hex: "FF6A00").opacity(flicker ? 0.45 : 0.35),
+                            Color(hex: "FF6A00").opacity(0.0)
+                        ],
+                        center: .center,
+                        startRadius: innerRadius * 0.85,
+                        endRadius: innerRadius * 1.35
+                    ),
+                    lineWidth: lineWidth
+                )
+                .blur(radius: 8)
+                .scaleEffect(glowPulse ? 1.02 : 1.0)
+
             // Core fiery gradient ring
             Circle()
                 .stroke(
                     AngularGradient(
                         gradient: Gradient(stops: [
-                            .init(color: Color(hex: "FFDD55").opacity(0.9), location: 0.00),
-                            .init(color: Color(hex: "FF9900").opacity(0.95), location: 0.15),
-                            .init(color: Color(hex: "FF4D00").opacity(1.0), location: 0.30),
-                            .init(color: Color(hex: "FF2E00").opacity(0.95), location: 0.45),
-                            .init(color: Color(hex: "FF7A00").opacity(1.0), location: 0.60),
-                            .init(color: Color(hex: "FFD000").opacity(0.95), location: 0.75),
-                            .init(color: Color(hex: "FFDD55").opacity(0.9), location: 0.90),
-                            .init(color: Color(hex: "FF9900").opacity(0.95), location: 1.00),
+                            .init(color: Color(hex: "FFF6A3").opacity(0.95), location: 0.00),
+                            .init(color: Color(hex: "FFB700").opacity(1.0), location: 0.12),
+                            .init(color: Color(hex: "FF6A00").opacity(1.0), location: 0.28),
+                            .init(color: Color(hex: "FF3D00").opacity(0.95), location: 0.42),
+                            .init(color: Color(hex: "FF7300").opacity(1.0), location: 0.58),
+                            .init(color: Color(hex: "FFC300").opacity(1.0), location: 0.74),
+                            .init(color: Color(hex: "FFF6A3").opacity(0.95), location: 0.88),
+                            .init(color: Color(hex: "FFB700").opacity(1.0), location: 1.00),
                         ]),
                         center: .center
                     ),
                     lineWidth: lineWidth
                 )
-                .blur(radius: 0.3)
+                .shadow(color: Color(hex: "FF8C00").opacity(0.5), radius: 4, x: 0, y: 0)
+                .blur(radius: flicker ? 0.4 : 0.9)
 
-            // Highlighted streaks for a lively flame effect
+            // Moving bright dashes (flame tongues)
             Circle()
+                .trim(from: 0, to: 1)
                 .stroke(
                     AngularGradient(
                         gradient: Gradient(colors: [
                             Color.white.opacity(0.0),
-                            Color.white.opacity(0.85),
-                            Color.white.opacity(0.0),
+                            Color.white.opacity(0.95),
+                            Color.white.opacity(0.0)
                         ]),
                         center: .center
                     ),
-                    style: StrokeStyle(lineWidth: lineWidth * 0.6, lineCap: .round, dash: [8, 28], dashPhase: 0)
+                    style: StrokeStyle(
+                        lineWidth: lineWidth * 0.7,
+                        lineCap: .round,
+                        dash: [9, 23, 5, 31],
+                        dashPhase: dashPhase
+                    )
                 )
-                .blur(radius: 1.2)
-                .opacity(glowPulse ? 0.9 : 0.5)
-                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: glowPulse)
+                .blur(radius: 1.6)
+                .opacity(glowPulse ? 1.0 : 0.6)
+                .blendMode(.screen)
 
-            // Soft outer glow
-            Circle()
-                .stroke(Color(hex: "FF6A00").opacity(0.45), lineWidth: lineWidth)
-                .blur(radius: 4)
+            // Rotating spark beads on the orbit
+            ZStack {
+                ForEach(0..<12, id: \ .self) { i in
+                    let angle = (Double(i) / 12.0) * 360.0 + sparkRotation
+                    let radians = angle * .pi / 180
+                    let radius = innerRadius
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.white, Color(hex: "FFD580")],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 6
+                            )
+                        )
+                        .frame(width: 6, height: 6)
+                        .opacity(glowPulse ? 0.95 : 0.75)
+                        .offset(x: CGFloat(cos(radians)) * radius, y: CGFloat(sin(radians)) * radius)
+                        .shadow(color: Color(hex: "FFA500").opacity(0.8), radius: 3)
+                }
+            }
+            .compositingGroup()
+            .blendMode(.screen)
+
+            // Embers emanating outward
+            ZStack {
+                ForEach(embers) { ember in
+                    let radians = ember.angle * .pi / 180
+                    let startR = innerRadius
+                    let distance = startR + CGFloat(ember.progress) * innerRadius * 0.7
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color(hex: "FFD580"), Color(hex: "FF6A00").opacity(0.0)],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 10
+                            )
+                        )
+                        .frame(width: 10, height: 10)
+                        .opacity(1.0 - ember.progress)
+                        .offset(x: CGFloat(cos(radians)) * distance, y: CGFloat(sin(radians)) * distance)
+                }
+            }
+            .blendMode(.screen)
+            .compositingGroup()
         }
         .frame(width: size, height: size)
         .rotationEffect(.degrees(rotation))
@@ -330,7 +402,50 @@ struct FieryOrbitRing: View {
             withAnimation(.linear(duration: rotationDuration).repeatForever(autoreverses: false)) {
                 rotation = 360
             }
+            withAnimation(.linear(duration: rotationDuration * 0.85).repeatForever(autoreverses: false)) {
+                sparkRotation = 360
+            }
+            withAnimation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true)) {
+                flicker.toggle()
+            }
+            withAnimation(.linear(duration: 1.4).repeatForever(autoreverses: false)) {
+                dashPhase = -68
+            }
+            startEmberEmission()
         }
+    }
+}
+
+// MARK: - Ember Model
+private struct Ember: Identifiable {
+    let id = UUID()
+    let angle: Double
+    var progress: Double
+}
+
+private extension FieryOrbitRing {
+    func startEmberEmission() {
+        // Emit small embers continuously
+        let emissionInterval: TimeInterval = 0.18
+        func spawn() {
+            let angle = Double.random(in: 0..<360)
+            var ember = Ember(angle: angle, progress: 0)
+            embers.append(ember)
+            withAnimation(.easeOut(duration: 0.8)) {
+                // advance progress
+                if let idx = embers.firstIndex(where: { $0.id == ember.id }) {
+                    embers[idx].progress = 1.0
+                }
+            }
+            // cleanup
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
+                embers.removeAll { $0.id == ember.id }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + emissionInterval) {
+                spawn()
+            }
+        }
+        spawn()
     }
 }
 

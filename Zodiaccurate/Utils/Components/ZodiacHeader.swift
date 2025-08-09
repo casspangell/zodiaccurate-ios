@@ -69,6 +69,14 @@ struct ZodiacHeader: View {
     let todaysDate: String
     let onSettingsTap: (() -> Void)?
     let displayMode: ZodiacHeaderDisplayMode
+    // Horizontal menu configuration
+    let showMenu: Bool
+    let onWellness: (() -> Void)?
+    let onRelationship: (() -> Void)?
+    let onPartner: (() -> Void)?
+    let onImportantPeople: (() -> Void)?
+    let onChildren: (() -> Void)?
+    let onEmployment: (() -> Void)?
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
     @State private var headerBackgroundOpacity: Double = 1.0
@@ -104,7 +112,14 @@ struct ZodiacHeader: View {
         badgeSize: CGFloat? = nil,
         todaysDate: String = ZodiacHeader.formatCurrentDate(),
         onSettingsTap: (() -> Void)? = nil,
-        displayMode: ZodiacHeaderDisplayMode = .initial
+        displayMode: ZodiacHeaderDisplayMode = .initial,
+        showMenu: Bool = false,
+        onWellness: (() -> Void)? = nil,
+        onRelationship: (() -> Void)? = nil,
+        onPartner: (() -> Void)? = nil,
+        onImportantPeople: (() -> Void)? = nil,
+        onChildren: (() -> Void)? = nil,
+        onEmployment: (() -> Void)? = nil
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -119,6 +134,13 @@ struct ZodiacHeader: View {
         self.todaysDate = todaysDate
         self.onSettingsTap = onSettingsTap
         self.displayMode = displayMode
+        self.showMenu = showMenu
+        self.onWellness = onWellness
+        self.onRelationship = onRelationship
+        self.onPartner = onPartner
+        self.onImportantPeople = onImportantPeople
+        self.onChildren = onChildren
+        self.onEmployment = onEmployment
     }
     
     // MARK: - Body
@@ -163,6 +185,21 @@ struct ZodiacHeader: View {
                     .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
                     
                     Spacer()
+
+                    // Horizontal Question Menu anchored at the bottom of the header
+                    if showMenu {
+                        QuestionMenu(
+                            onWellness: { onWellness?() },
+                            onRelationship: { onRelationship?() },
+                            onPartner: { onPartner?() },
+                            onImportantPeople: { onImportantPeople?() },
+                            onChildren: { onChildren?() },
+                            onEmployment: { onEmployment?() }
+                        )
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 6)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: UIScreen.main.bounds.height/5, alignment: .top)
                 .padding(.top, 0)

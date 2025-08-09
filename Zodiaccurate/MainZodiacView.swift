@@ -82,7 +82,27 @@ struct MainZodiacView: View {
                                 profileImage: "logo",
                                 onSettingsTap: {
                                     showingSettings = true
-                                }, displayMode: .main
+                                 }, displayMode: .main,
+                                 showMenu: hasAcceptedConsentPolicies,
+                                 onWellness: {
+                                     wellnessDisplayName = "Wellness"
+                                     showWellnessConversation = true
+                                 },
+                                 onRelationship: {
+                                     print("Relationship menu tapped")
+                                 },
+                                 onPartner: {
+                                     print("Partner menu tapped")
+                                 },
+                                 onImportantPeople: {
+                                     print("Important People menu tapped")
+                                 },
+                                 onChildren: {
+                                     print("Children menu tapped")
+                                 },
+                                 onEmployment: {
+                                     print("Employment menu tapped")
+                                 }
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.top, 24)
@@ -124,31 +144,6 @@ struct MainZodiacView: View {
                         
                         // FlipBook layer directly under header (gated by consent)
                         if hasAcceptedConsentPolicies {
-                            // Question menu above FlipBook
-                            QuestionMenu(
-                                onWellness: {
-                                    wellnessDisplayName = "Wellness"
-                                    showWellnessConversation = true
-                                },
-                                onRelationship: {
-                                    print("Relationship menu tapped")
-                                },
-                                onPartner: {
-                                    print("Partner menu tapped")
-                                },
-                                onImportantPeople: {
-                                    print("Important People menu tapped")
-                                },
-                                onChildren: {
-                                    print("Children menu tapped")
-                                },
-                                onEmployment: {
-                                    print("Employment menu tapped")
-                                }
-                            )
-                            .padding(.horizontal, 16)
-                            .padding(.top, 12)
-
                             // Push FlipBook toward bottom to reduce bottom gap
                             Spacer(minLength: 0)
 

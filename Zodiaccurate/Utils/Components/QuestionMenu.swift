@@ -103,13 +103,11 @@ struct QuestionMenu_Previews: PreviewProvider {
             QuestionMenu(
                 onWellness: {},
                 onRelationship: {},
-                onPartner: {},
                 onImportantPeople: {},
                 onChildren: {},
                 onEmployment: {},
                 isWellnessEnabled: true,
                 isRelationshipEnabled: true,
-                isPartnerEnabled: false,
                 isImportantPeopleEnabled: true,
                 isChildrenEnabled: false,
                 isEmploymentEnabled: true

@@ -41,39 +41,56 @@ struct CircleIconButton: View {
     let systemName: String
     let accessibilityLabel: String
     let action: () -> Void
+    let isEnabled: Bool
+
+    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, action: @escaping () -> Void) {
+        self.systemName = systemName
+        self.accessibilityLabel = accessibilityLabel
+        self.isEnabled = isEnabled
+        self.action = action
+    }
     
     var body: some View {
         Button(action: action) {
             ZStack {
-                // Background gradient
-                LinearGradient(
+                // Background
+                let background = LinearGradient(
                     gradient: Gradient(colors: [Color.indigo, Color.sapphire]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
-                .frame(width: 40, height: 40)
-                .clipShape(Circle())
+                let disabledBackground = Color.white.opacity(0.08)
+
+                (isEnabled ? AnyView(background) : AnyView(disabledBackground))
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
                 
                 // Icon
                 Image(systemName: systemName)
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(isEnabled ? .white : .white.opacity(0.6))
             }
             .overlay(
                 Circle()
                     .stroke(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 2
+                        isEnabled
+                        ? AnyShapeStyle(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        : AnyShapeStyle(Color.white.opacity(0.25)),
+                        lineWidth: isEnabled ? 2 : 1.5
                     )
             )
+            .opacity(isEnabled ? 1.0 : 0.6)
         }
         .frame(width: 40, height: 40)
-        .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+        .shadow(color: Color.black.opacity(isEnabled ? 0.3 : 0.15), radius: 4, x: 0, y: 2)
         .accessibilityLabel(accessibilityLabel)
+        .disabled(!isEnabled)
     }
 }
 

@@ -21,6 +21,10 @@ struct FlipBook: View {
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
+                // Page Indicator (moved to top)
+                FlipBookPageIndicator(currentIndex: currentIndex, pageCount: pageCount)
+                    .padding(.bottom, 16)
+                
                 GeometryReader { geometry in
                     ScrollViewReader { proxy in
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -57,10 +61,6 @@ struct FlipBook: View {
                     }
                 }
                 .frame(height: 400)
-                
-                // Page Indicator
-                FlipBookPageIndicator(currentIndex: currentIndex, pageCount: pageCount)
-                    .padding(.top, 16)
             }
         }
     }

@@ -42,55 +42,64 @@ struct CircleIconButton: View {
     let accessibilityLabel: String
     let action: () -> Void
     let isEnabled: Bool
+    let isFiery: Bool
 
-    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, action: @escaping () -> Void) {
+    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, isFiery: Bool = false, action: @escaping () -> Void) {
         self.systemName = systemName
         self.accessibilityLabel = accessibilityLabel
         self.isEnabled = isEnabled
+        self.isFiery = isFiery
         self.action = action
     }
     
     var body: some View {
-        Button(action: action) {
-            ZStack {
-                // Background
-                let background = LinearGradient(
-                    gradient: Gradient(colors: [Color.indigo, Color.sapphire]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                let disabledBackground = Color.white.opacity(0.08)
-
-                (isEnabled ? AnyView(background) : AnyView(disabledBackground))
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-                
-                // Icon
-                Image(systemName: systemName)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(isEnabled ? .white : .white.opacity(0.6))
+        ZStack {
+            if isFiery {
+                FieryOrbitRing(size: 56, lineWidth: 2.5, rotationDuration: 1.6)
+                    .allowsHitTesting(false)
             }
-            .overlay(
-                Circle()
-                    .stroke(
-                        isEnabled
-                        ? AnyShapeStyle(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        : AnyShapeStyle(Color.white.opacity(0.25)),
-                        lineWidth: isEnabled ? 2 : 1.5
+            Button(action: action) {
+                ZStack {
+                    // Background
+                    let background = LinearGradient(
+                        gradient: Gradient(colors: [Color.indigo, Color.sapphire]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
-            )
-            .opacity(isEnabled ? 1.0 : 0.6)
+                    let disabledBackground = Color.white.opacity(0.08)
+
+                    (isEnabled ? AnyView(background) : AnyView(disabledBackground))
+                        .frame(width: 40, height: 40)
+                        .clipShape(Circle())
+                    
+                    // Icon
+                    Image(systemName: systemName)
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(isEnabled ? .white : .white.opacity(0.6))
+                }
+                .overlay(
+                    Circle()
+                        .stroke(
+                            isEnabled
+                            ? AnyShapeStyle(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            : AnyShapeStyle(Color.white.opacity(0.25)),
+                            lineWidth: isEnabled ? 2 : 1.5
+                        )
+                )
+                .opacity(isEnabled ? 1.0 : 0.6)
+            }
+            .frame(width: 40, height: 40)
+            .shadow(color: Color.black.opacity(isEnabled ? 0.3 : 0.15), radius: 4, x: 0, y: 2)
+            .accessibilityLabel(accessibilityLabel)
+            .disabled(!isEnabled)
         }
-        .frame(width: 40, height: 40)
-        .shadow(color: Color.black.opacity(isEnabled ? 0.3 : 0.15), radius: 4, x: 0, y: 2)
-        .accessibilityLabel(accessibilityLabel)
-        .disabled(!isEnabled)
+        .frame(width: isFiery ? 56 : 40, height: isFiery ? 56 : 40)
     }
 }
 

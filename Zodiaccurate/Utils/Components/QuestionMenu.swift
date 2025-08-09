@@ -66,88 +66,58 @@ struct QuestionMenu: View {
     var body: some View {
         HStack(spacing: 0) {
             // Wellness
-            ZStack {
-                if isWellnessFiery {
-                    FieryOrbitRing(size: 56, lineWidth: 2.5, rotationDuration: 1.8)
-                }
-                CircleIconButton(
-                    systemName: "heart.fill",
-                    accessibilityLabel: "Wellness Questions",
-                    isEnabled: isWellnessEnabled,
-                    action: onWellness
-                )
-            }
-            .frame(width: 56, height: 56)
+            CircleIconButton(
+                systemName: "heart.fill",
+                accessibilityLabel: "Wellness Questions",
+                isEnabled: isWellnessEnabled,
+                isFiery: isWellnessFiery,
+                action: onWellness
+            )
             Spacer()
             // Relationships
-            ZStack {
-                if isRelationshipFiery {
-                    FieryOrbitRing(size: 56, lineWidth: 2.5, rotationDuration: 1.8)
-                }
-                CircleIconButton(
-                    systemName: "person.2.fill",
-                    accessibilityLabel: "Relationship Questions",
-                    isEnabled: isRelationshipEnabled,
-                    action: onRelationship
-                )
-            }
-            .frame(width: 56, height: 56)
+            CircleIconButton(
+                systemName: "person.2.fill",
+                accessibilityLabel: "Relationship Questions",
+                isEnabled: isRelationshipEnabled,
+                isFiery: isRelationshipFiery,
+                action: onRelationship
+            )
             Spacer()
             // Partner
-            ZStack {
-                if isPartnerFiery {
-                    FieryOrbitRing(size: 56, lineWidth: 2.5, rotationDuration: 1.8)
-                }
-                CircleIconButton(
-                    systemName: "link.circle.fill",
-                    accessibilityLabel: "Partner Questions",
-                    isEnabled: isPartnerEnabled,
-                    action: onPartner
-                )
-            }
-            .frame(width: 56, height: 56)
+            CircleIconButton(
+                systemName: "link.circle.fill",
+                accessibilityLabel: "Partner Questions",
+                isEnabled: isPartnerEnabled,
+                isFiery: isPartnerFiery,
+                action: onPartner
+            )
             Spacer()
             // Important People
-            ZStack {
-                if isImportantPeopleFiery {
-                    FieryOrbitRing(size: 56, lineWidth: 2.5, rotationDuration: 1.8)
-                }
-                CircleIconButton(
-                    systemName: "star.fill",
-                    accessibilityLabel: "Important People Questions",
-                    isEnabled: isImportantPeopleEnabled,
-                    action: onImportantPeople
-                )
-            }
-            .frame(width: 56, height: 56)
+            CircleIconButton(
+                systemName: "star.fill",
+                accessibilityLabel: "Important People Questions",
+                isEnabled: isImportantPeopleEnabled,
+                isFiery: isImportantPeopleFiery,
+                action: onImportantPeople
+            )
             Spacer()
             // Children
-            ZStack {
-                if isChildrenFiery {
-                    FieryOrbitRing(size: 56, lineWidth: 2.5, rotationDuration: 1.8)
-                }
-                CircleIconButton(
-                    systemName: "gamecontroller.fill",
-                    accessibilityLabel: "Children Questions",
-                    isEnabled: isChildrenEnabled,
-                    action: onChildren
-                )
-            }
-            .frame(width: 56, height: 56)
+            CircleIconButton(
+                systemName: "gamecontroller.fill",
+                accessibilityLabel: "Children Questions",
+                isEnabled: isChildrenEnabled,
+                isFiery: isChildrenFiery,
+                action: onChildren
+            )
             Spacer()
             // Employment
-            ZStack {
-                if isEmploymentFiery {
-                    FieryOrbitRing(size: 56, lineWidth: 2.5, rotationDuration: 1.8)
-                }
-                CircleIconButton(
-                    systemName: "briefcase.fill",
-                    accessibilityLabel: "Employment Questions",
-                    isEnabled: isEmploymentEnabled,
-                    action: onEmployment
-                )
-            }
-            .frame(width: 56, height: 56)
+            CircleIconButton(
+                systemName: "briefcase.fill",
+                accessibilityLabel: "Employment Questions",
+                isEnabled: isEmploymentEnabled,
+                isFiery: isEmploymentFiery,
+                action: onEmployment
+            )
         }
         .padding(.horizontal, 8)
     }

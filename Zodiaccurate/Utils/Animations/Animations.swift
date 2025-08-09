@@ -319,6 +319,7 @@ struct FieryOrbitRing: View {
                             .init(color: Color(hex: "FFB700").opacity(1.0), location: 1.00),
                         ]),
                         center: .center
+                        
                     ),
                     lineWidth: lineWidth
                 )

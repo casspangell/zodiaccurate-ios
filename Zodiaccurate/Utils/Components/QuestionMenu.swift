@@ -3,14 +3,12 @@ import SwiftUI
 struct QuestionMenu: View {
     let onWellness: () -> Void
     let onRelationship: () -> Void
-    let onPartner: () -> Void
     let onImportantPeople: () -> Void
     let onChildren: () -> Void
     let onEmployment: () -> Void
     
     let isWellnessEnabled: Bool
     let isRelationshipEnabled: Bool
-    let isPartnerEnabled: Bool
     let isImportantPeopleEnabled: Bool
     let isChildrenEnabled: Bool
     let isEmploymentEnabled: Bool
@@ -18,26 +16,23 @@ struct QuestionMenu: View {
     init(
         onWellness: @escaping () -> Void = {},
         onRelationship: @escaping () -> Void = {},
-        onPartner: @escaping () -> Void = {},
         onImportantPeople: @escaping () -> Void = {},
         onChildren: @escaping () -> Void = {},
         onEmployment: @escaping () -> Void = {},
         isWellnessEnabled: Bool = true,
         isRelationshipEnabled: Bool = true,
-        isPartnerEnabled: Bool = true,
         isImportantPeopleEnabled: Bool = true,
         isChildrenEnabled: Bool = true,
         isEmploymentEnabled: Bool = true
     ) {
         self.onWellness = onWellness
         self.onRelationship = onRelationship
-        self.onPartner = onPartner
         self.onImportantPeople = onImportantPeople
         self.onChildren = onChildren
         self.onEmployment = onEmployment
+        
         self.isWellnessEnabled = isWellnessEnabled
         self.isRelationshipEnabled = isRelationshipEnabled
-        self.isPartnerEnabled = isPartnerEnabled
         self.isImportantPeopleEnabled = isImportantPeopleEnabled
         self.isChildrenEnabled = isChildrenEnabled
         self.isEmploymentEnabled = isEmploymentEnabled
@@ -95,13 +90,11 @@ struct QuestionMenu_Previews: PreviewProvider {
             QuestionMenu(
                 onWellness: {},
                 onRelationship: {},
-                onPartner: {},
                 onImportantPeople: {},
                 onChildren: {},
                 onEmployment: {},
                 isWellnessEnabled: true,
                 isRelationshipEnabled: true,
-                isPartnerEnabled: false,
                 isImportantPeopleEnabled: true,
                 isChildrenEnabled: false,
                 isEmploymentEnabled: true

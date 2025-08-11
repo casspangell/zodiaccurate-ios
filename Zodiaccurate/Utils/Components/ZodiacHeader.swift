@@ -205,7 +205,57 @@ struct ZodiacHeader: View {
                 .padding(.top, 0)
                 .padding(.bottom, displayMode == .main ? 10 : 0)
                 .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
-            } else if displayMode == .initial || displayMode == .compact {
+            } else if displayMode == .initial {
+                // Initial/Compact modes - profile badge centered; compact is 3/4 height
+                let scale: CGFloat = displayMode == .compact ? 0.75 : 1.0
+                VStack(spacing: 0) {
+                    ZStack {
+                        if badgeAnimationManager.currentProfileImage == "logo" {
+                            // Original simple white circle for logo state
+                            Circle()
+                                .fill(Color.white.opacity(0.5))
+                                .frame(width: 130 * scale, height: 130 * scale)
+                                .scaleEffect(badgeAnimationManager.badgeScale)
+                                .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
+                                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeAnimationManager.badgeScale)
+                                .animation(Animation.easeInOut(duration: 0.8), value: badgeAnimationManager.badgeRotation)
+                            
+                            Image(badgeAnimationManager.currentProfileImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 140 * scale, height: 140 * scale)
+                                .id(badgeAnimationManager.currentProfileImage)
+                                .scaleEffect(badgeAnimationManager.badgeScale)
+                                .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
+                        } else {
+                            // Use enhanced ZodiacProfileBadge with stardust for zodiac signs
+                            ZodiacProfileBadgeWhiteWithStardust(
+                                zodiacImage: Image(badgeAnimationManager.currentProfileImage),
+                                stardustPoints: stardustPoints
+                            )
+                            .scaleEffect(badgeAnimationManager.badgeScale * scale)
+                            .rotationEffect(.degrees(badgeAnimationManager.badgeRotation))
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: badgeAnimationManager.badgeScale)
+                            .animation(Animation.easeInOut(duration: 0.8), value: badgeAnimationManager.badgeRotation)
+                        }
+                    }
+                    .frame(height: 150 * scale)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    Text("")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.bottom, 8)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, getSafeAreaTop())
+                .background(
+                    GeometryReader { headerGeometry in
+                        Color.clear
+                            .preference(key: HeaderHeightPreferenceKey.self, value: headerGeometry.size.height)
+                    }
+                )
+            } else if displayMode == .compact {
                 // Initial/Compact modes - profile badge centered; compact is 3/4 height
                 let scale: CGFloat = displayMode == .compact ? 0.75 : 1.0
                 VStack(spacing: 0) {

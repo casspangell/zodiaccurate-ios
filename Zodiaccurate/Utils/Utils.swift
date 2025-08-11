@@ -159,6 +159,86 @@ func passwordMeetsRequirements(_ password: String) -> (Bool, [Bool]) {
     return (length && upper && lower && number, [length, upper, lower, number])
 }
 
+// MARK: - Component Height Utilities
+
+/// Returns the height of the QuestionMenu component
+/// - Parameter hasFieryButtons: Whether any buttons in the menu are in fiery state (default: false)
+/// - Returns: The calculated height of the QuestionMenu
+func getQuestionMenuHeight(hasFieryButtons: Bool = false) -> CGFloat {
+    // CircleIconButton height: 40 points (normal) or 56 points (fiery)
+    let buttonHeight: CGFloat = hasFieryButtons ? 56 : 40
+    
+    // QuestionMenu has no vertical padding, so height equals button height
+    return buttonHeight
+}
+
+/// Returns the height of the UpdateCard component based on its state
+/// - Parameters:
+///   - state: The current state of the UpdateCard
+///   - screenHeight: The total screen height to calculate percentage-based heights
+/// - Returns: The calculated height of the UpdateCard
+func getUpdateCardHeight(state: UpdateCardState, screenHeight: CGFloat) -> CGFloat {
+    switch state {
+    case .minimized:
+        return screenHeight * 0.05 // 5% of screen height
+    case .dismissed:
+        return screenHeight * 0.25 // 25% of screen height
+    case .expanded:
+        return screenHeight * 0.5 // 50% of screen height
+    case .expandedWithTutorial:
+        return screenHeight * 0.55 // 55% of screen height
+    case .expandedWithKeyboard:
+        return screenHeight * 0.75 // 75% of screen height
+    }
+}
+
+/// Enum representing the different states of the UpdateCard
+enum UpdateCardState {
+    case minimized
+    case dismissed
+    case expanded
+    case expandedWithTutorial
+    case expandedWithKeyboard
+}
+
+/// Returns the available height for FlipBook cards between the indicator and UpdateCard
+/// - Parameters:
+///   - screenHeight: The total screen height
+///   - updateCardState: The current state of the UpdateCard (default: .dismissed)
+///   - indicatorHeight: The height of the FlipBook page indicator (default: 54 - 8 circles + padding)
+/// - Returns: The calculated available height for FlipBook cards
+func getFlipBookCardAvailableHeight(
+    screenHeight: CGFloat,
+    updateCardState: UpdateCardState = .dismissed,
+    indicatorHeight: CGFloat = 54
+) -> CGFloat {
+    let safeAreaTop = getSafeAreaTop()
+    let updateCardHeight = getUpdateCardHeight(state: updateCardState, screenHeight: screenHeight)
+    let safeAreaBottom = getSafeAreaBottom()
+    
+    let availableHeight = screenHeight - safeAreaTop - indicatorHeight - updateCardHeight - safeAreaBottom
+    
+    print("📐 Height Calculation:")
+    print("   Screen height: \(screenHeight)")
+    print("   Safe area top: \(safeAreaTop)")
+    print("   Indicator height: \(indicatorHeight)")
+    print("   UpdateCard height (\(updateCardState)): \(updateCardHeight)")
+    print("   Safe area bottom: \(safeAreaBottom)")
+    print("   Available height: \(availableHeight)")
+    
+    return availableHeight
+}
+
+/// Gets the safe area bottom inset using the modern UIWindowScene approach
+/// - Returns: The safe area bottom inset as CGFloat, or 0 if unable to determine
+func getSafeAreaBottom() -> CGFloat {
+    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+          let window = windowScene.windows.first else {
+        return 0
+    }
+    return window.safeAreaInsets.bottom
+}
+
 // MARK: - Preference Keys
 
 /// Preference key for header height

@@ -20,6 +20,8 @@ extension Notification.Name {
     static let welcomeHoroscopeReady = Notification.Name("welcomeHoroscopeReady")
     static let showTutorialBubbles = Notification.Name("showTutorialBubbles")
     static let flipBookMoveToTop = Notification.Name("flipBookMoveToTop")
+    static let flipBookCollapsed = Notification.Name("flipBookCollapsed")
+    static let updateCardStateChanged = Notification.Name("updateCardStateChanged")
 }
 
 // MARK: - Notification Manager

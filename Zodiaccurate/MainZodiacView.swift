@@ -19,9 +19,13 @@ struct MainZodiacView: View {
     @State private var showStardustTutorial = false
     @State private var showWellnessConversation = false
     @State private var wellnessDisplayName: String = ""
-    @State private var flipBookCardHeight: CGFloat = 0.5 // Normal height
-    @State private var isFlipBookExpanded = false
-    @State private var isFlipBookMinimized = false
+    @State private var moveFlipbookToTop: Bool = false
+    @State private var headerFlipBookSpacing: CGFloat = 50
+    @State private var headerHeight: CGFloat = 0
+    
+    var headerFlipBookSpacingDefault: CGFloat {
+        return headerHeight + getQuestionMenuHeight() //getSafeAreaTop() + headerHeight + getQuestionMenuHeight()
+    }
     
     @State var completedOnboarding: Bool
     
@@ -78,7 +82,7 @@ struct MainZodiacView: View {
                 ZStack {
                     // Background layer (implicit z-index 0)
                     
-                    VStack(spacing: 0) {
+                    VStack(spacing: headerFlipBookSpacing) {
                         // Header layer - pinned to top
                         ZStack {
                             ZodiacHeader(
@@ -109,6 +113,9 @@ struct MainZodiacView: View {
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.top, 24)
+                            .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
+                                self.headerHeight = headerHeight
+                            }
                             
                             // Stardust tutorial popup below profile badge
                             if showStardustTutorial {
@@ -148,36 +155,35 @@ struct MainZodiacView: View {
                         // FlipBook layer directly under header (gated by consent)
                         if hasAcceptedConsentPolicies {
                             // Push FlipBook toward bottom to reduce bottom gap
-                            Spacer(minLength: 0)
+//                            Spacer(minLength: 0)
 
-                            FlipBook(
-                                pages: createFlipBookCards(),
-                                onMoveToTop: moveFlipBookToTop,
-                                cardHeight: $flipBookCardHeight,
-                                isExpanded: $isFlipBookExpanded,
-                                isMinimized: $isFlipBookMinimized
-                            )
-                            .padding(.bottom, 8)
-                            .zIndex(1) // Place below QuestionMenu (which is in the main VStack with zIndex 2)
-                            .onAppear {
-                                // Check for welcome horoscope when view appears
-                                _ = fetchWelcomeHoroscope()
-                            }
-                            .onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
-                                // Check for welcome horoscope periodically until loaded
-                                if !isWelcomeHoroscopeLoaded {
+                            FlipBook(pages: createFlipBookCards())
+                                .frame(height: getSafeAreaTop() + headerHeight + getQuestionMenuHeight() + 20)
+                                .padding(.bottom, 8)
+                                .zIndex(1) // Place below QuestionMenu (which is in the main VStack with zIndex 2)
+                                .onAppear {
+                                    // Check for welcome horoscope when view appears
                                     _ = fetchWelcomeHoroscope()
                                 }
-                            }
-                            .onReceive(NotificationCenter.default.publisher(for: .welcomeHoroscopeReady)) { _ in
-                                // Refresh welcome horoscope when notification is received
-                                _ = fetchWelcomeHoroscope()
-                            }
-                            .onReceive(NotificationCenter.default.publisher(for: .flipBookMoveToTop)) { _ in
-                                // Move FlipBook to top when notification is received
-                                moveFlipBookToTop()
-                            }
-                            .id(isWelcomeHoroscopeLoaded) // Force re-creation when loading state changes
+                                .onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
+                                    // Check for welcome horoscope periodically until loaded
+                                    if !isWelcomeHoroscopeLoaded {
+                                        _ = fetchWelcomeHoroscope()
+                                    }
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: .welcomeHoroscopeReady)) { _ in
+                                    // Refresh welcome horoscope when notification is received
+                                    _ = fetchWelcomeHoroscope()
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: .flipBookMoveToTop)) { _ in
+                                    // Adjust spacing when FlipBook moves to top
+                                    adjustHeaderFlipBookSpacing(expanded: true)
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: .flipBookCollapsed)) { _ in
+                                    // Reset spacing when FlipBook collapses
+                                    adjustHeaderFlipBookSpacing(expanded: false)
+                                }
+                                .id(isWelcomeHoroscopeLoaded) // Force re-creation when loading state changes
                         }
                         
                         Spacer()
@@ -356,13 +362,11 @@ struct MainZodiacView: View {
         return cards
     }
     
-    // MARK: - FlipBook Control
+    // MARK: - FlipBook Spacing Control
     
-    private func moveFlipBookToTop() {
+    private func adjustHeaderFlipBookSpacing(expanded: Bool) {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-            flipBookCardHeight = 0.8 // Expanded height
-            isFlipBookExpanded = true
-            isFlipBookMinimized = false
+            headerFlipBookSpacing = expanded ? -200 : headerFlipBookSpacingDefault
         }
     }
     

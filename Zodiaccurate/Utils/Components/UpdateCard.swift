@@ -217,9 +217,11 @@ struct UpdateCard: View {
                                 if shouldMinimize && !isMinimized {
                                     cardHeight = cardHeightMinimized
                                     isMinimized = true
+                                    postStateChangeNotification(state: .minimized)
                                 } else if shouldReturnToDismissed && isMinimized {
                                     cardHeight = cardHeightDismissed
                                     isMinimized = false
+                                    postStateChangeNotification(state: .dismissed)
                                 } else if !isMinimized {
                                     // Check if we should expand from dismissed state
                                     let shouldExpand = translation < -50 || velocity < -500
@@ -227,6 +229,7 @@ struct UpdateCard: View {
                                      if !hasDismissedTutorial {
                                             cardHeight = cardHeightExpandedWithTutorial
                                             isExpanded = true
+                                            postStateChangeNotification(state: .expandedWithTutorial)
                                             
                                             // Show tutorial on first expansion
                                          if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
@@ -240,6 +243,7 @@ struct UpdateCard: View {
                                         } else {
                                             cardHeight = cardHeightExpanded
                                             isExpanded = true
+                                            postStateChangeNotification(state: .expanded)
                                         }
                                     }
                                 }
@@ -263,6 +267,7 @@ struct UpdateCard: View {
                             isMinimized = false
                             dragOffset = 0
                         }
+                        postStateChangeNotification(state: .dismissed)
                     }
                 } else if isMinimized {
                     // Tap to return to dismissed state from minimized
@@ -271,11 +276,13 @@ struct UpdateCard: View {
                         isMinimized = false
                         dragOffset = 0
                     }
+                    postStateChangeNotification(state: .dismissed)
                 } else {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                          if !hasDismissedTutorial {
                             cardHeight = cardHeightExpandedWithTutorial
                             isExpanded = true
+                            postStateChangeNotification(state: .expandedWithTutorial)
                             
                             // Show tutorial on first expansion
                              if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
@@ -289,6 +296,7 @@ struct UpdateCard: View {
                         } else {
                             cardHeight = cardHeightExpanded
                             isExpanded = true
+                            postStateChangeNotification(state: .expanded)
                         }
                         dragOffset = 0
                     }
@@ -320,6 +328,7 @@ struct UpdateCard: View {
                 hasDismissedTutorial = true
                 if isExpanded {
                     cardHeight = cardHeightExpandedWithKeyboard
+                    postStateChangeNotification(state: .expandedWithKeyboard)
                 }
             }
         }
@@ -334,8 +343,10 @@ struct UpdateCard: View {
                 if isExpanded {
                     if !hasDismissedTutorial {
                         cardHeight = cardHeightExpandedWithTutorial
+                        postStateChangeNotification(state: .expandedWithTutorial)
                     } else {
                         cardHeight = cardHeightExpanded
+                        postStateChangeNotification(state: .expanded)
                     }
                 }
             }
@@ -348,6 +359,15 @@ struct UpdateCard: View {
     }
     
     // MARK: - Card State Management
+    
+    private func postStateChangeNotification(state: UpdateCardState) {
+        NotificationCenter.default.post(
+            name: .updateCardStateChanged,
+            object: nil,
+            userInfo: ["state": state]
+        )
+    }
+    
     private func onCardDismiss() {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
             cardHeight = cardHeightDismissed
@@ -355,6 +375,7 @@ struct UpdateCard: View {
             isMinimized = false
             dragOffset = 0
         }
+        postStateChangeNotification(state: .dismissed)
     }
     
     private func onCardExpanded() {

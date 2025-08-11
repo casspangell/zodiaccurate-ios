@@ -19,6 +19,9 @@ struct MainZodiacView: View {
     @State private var showStardustTutorial = false
     @State private var showWellnessConversation = false
     @State private var wellnessDisplayName: String = ""
+    @State private var flipBookCardHeight: CGFloat = 0.5 // Normal height
+    @State private var isFlipBookExpanded = false
+    @State private var isFlipBookMinimized = false
     
     @State var completedOnboarding: Bool
     
@@ -147,24 +150,34 @@ struct MainZodiacView: View {
                             // Push FlipBook toward bottom to reduce bottom gap
                             Spacer(minLength: 0)
 
-                            FlipBook(pages: createFlipBookCards())
-                                .padding(.bottom, 8)
-                                .zIndex(1) // Place below QuestionMenu (which is in the main VStack with zIndex 2)
-                                .onAppear {
-                                    // Check for welcome horoscope when view appears
+                            FlipBook(
+                                pages: createFlipBookCards(),
+                                onMoveToTop: moveFlipBookToTop,
+                                cardHeight: $flipBookCardHeight,
+                                isExpanded: $isFlipBookExpanded,
+                                isMinimized: $isFlipBookMinimized
+                            )
+                            .padding(.bottom, 8)
+                            .zIndex(1) // Place below QuestionMenu (which is in the main VStack with zIndex 2)
+                            .onAppear {
+                                // Check for welcome horoscope when view appears
+                                _ = fetchWelcomeHoroscope()
+                            }
+                            .onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
+                                // Check for welcome horoscope periodically until loaded
+                                if !isWelcomeHoroscopeLoaded {
                                     _ = fetchWelcomeHoroscope()
                                 }
-                                .onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
-                                    // Check for welcome horoscope periodically until loaded
-                                    if !isWelcomeHoroscopeLoaded {
-                                        _ = fetchWelcomeHoroscope()
-                                    }
-                                }
-                                .onReceive(NotificationCenter.default.publisher(for: .welcomeHoroscopeReady)) { _ in
-                                    // Refresh welcome horoscope when notification is received
-                                    _ = fetchWelcomeHoroscope()
-                                }
-                                .id(isWelcomeHoroscopeLoaded) // Force re-creation when loading state changes
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: .welcomeHoroscopeReady)) { _ in
+                                // Refresh welcome horoscope when notification is received
+                                _ = fetchWelcomeHoroscope()
+                            }
+                            .onReceive(NotificationCenter.default.publisher(for: .flipBookMoveToTop)) { _ in
+                                // Move FlipBook to top when notification is received
+                                moveFlipBookToTop()
+                            }
+                            .id(isWelcomeHoroscopeLoaded) // Force re-creation when loading state changes
                         }
                         
                         Spacer()
@@ -320,7 +333,7 @@ struct MainZodiacView: View {
             FlipBookCard(
                 title: "Wellness",
                 content: "Start your personal wellness intake",
-                onTap: { showWellnessConversation = true }
+                onCardTap: { showWellnessConversation = true }
             )
         )
         
@@ -341,6 +354,16 @@ struct MainZodiacView: View {
         ])
         
         return cards
+    }
+    
+    // MARK: - FlipBook Control
+    
+    private func moveFlipBookToTop() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+            flipBookCardHeight = 0.8 // Expanded height
+            isFlipBookExpanded = true
+            isFlipBookMinimized = false
+        }
     }
     
     private func fetchWelcomeHoroscope() -> Horoscope? {

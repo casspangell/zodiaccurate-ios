@@ -3,20 +3,20 @@ import SwiftUI
 struct FlipBookCard: View {
     let horoscope: Horoscope?
     let isLoading: Bool
-    let onTap: (() -> Void)?
+    let onCardTap: (() -> Void)?
     @StateObject private var audioManager = AudioManager.shared
     
-    init(horoscope: Horoscope?, isLoading: Bool = false, onTap: (() -> Void)? = nil) {
+    init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil) {
         self.horoscope = horoscope
         self.isLoading = isLoading
-        self.onTap = onTap
+        self.onCardTap = onCardTap
     }
     
     // Convenience initializer for backward compatibility
-    init(title: String, content: String, onTap: (() -> Void)? = nil) {
+    init(title: String, content: String, onCardTap: (() -> Void)? = nil) {
         self.horoscope = Horoscope(title: title, message: content, key: "temp")
         self.isLoading = false
-        self.onTap = onTap
+        self.onCardTap = onCardTap
     }
     
     var body: some View {
@@ -61,11 +61,12 @@ struct FlipBookCard: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.bubbleMist.opacity(0.8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
-                        )
+                        .fill(Color.white)
+//                        .fill(Color.bubbleMist.opacity(0.8))
+//                        .overlay(
+//                            RoundedRectangle(cornerRadius: 16)
+//                                .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
+//                        )
                 )
                 .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
                 
@@ -105,7 +106,9 @@ struct FlipBookCard: View {
         }
         .contentShape(RoundedRectangle(cornerRadius: 16))
         .onTapGesture {
-            onTap?()
+            // Post notification to move FlipBook to top
+            NotificationCenter.default.post(name: .flipBookMoveToTop, object: nil)
+            onCardTap?()
         }
     }
 }
@@ -126,7 +129,10 @@ struct FlipBookCard: View {
                 message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas venenatis eros ut pretium tincidunt. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nulla facilisi. Sed vitae ex vitae nisi varius venenatis. Praesent commodo urna at nisi finibus varius. Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec vehicula sapien vitae massa tincidunt efficitur. Duis vestibulum mauris ac lectus tincidunt, in volutpat lorem efficitur. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
                 key: "preview"
             ),
-            isLoading: false
+            isLoading: false,
+            onCardTap: {
+                print("Card tapped - would move FlipBook to top")
+            }
         )
         .frame(height: 300)
         .padding()

@@ -9,10 +9,7 @@ import SwiftUI
 
 struct FlipBook: View {
     @State private var currentIndex: Int = 0
-    @State private var cardHeight: CGFloat = 0.5 // Normal height
     @State private var dragOffset: CGFloat = 0
-    @State private var isExpanded = false
-    @State private var isMinimized = false
     @State private var isDragging = false
     
     // Card height constants
@@ -23,10 +20,20 @@ struct FlipBook: View {
     private let pageCount: Int
     private let pageSpacing: CGFloat = 20
     private let pages: [FlipBookCard]
+    private let onMoveToTop: (() -> Void)?
     
-    init(pages: [FlipBookCard] = []) {
+    // External state control
+    @Binding var cardHeight: CGFloat
+    @Binding var isExpanded: Bool
+    @Binding var isMinimized: Bool
+    
+    init(pages: [FlipBookCard] = [], onMoveToTop: (() -> Void)? = nil, cardHeight: Binding<CGFloat>, isExpanded: Binding<Bool>, isMinimized: Binding<Bool>) {
         self.pages = pages.isEmpty ? FlipBook.defaultCards : pages
         self.pageCount = self.pages.count
+        self.onMoveToTop = onMoveToTop
+        self._cardHeight = cardHeight
+        self._isExpanded = isExpanded
+        self._isMinimized = isMinimized
     }
     
     var body: some View {
@@ -47,7 +54,7 @@ struct FlipBook: View {
                                         .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
                                     
                                 ForEach(Array(pages.enumerated()), id: \.offset) { index, card in
-                                    FlipBookPage(card: card, index: index)
+                                    FlipBookPage(card: card, index: index, onCardTap: onMoveToTop)
                                         .frame(width: geometry.size.width - 40)
                                         .id(index)
                                         .scrollTransition(.animated, axis: .horizontal) { content, phase in
@@ -77,15 +84,15 @@ struct FlipBook: View {
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: geometry.size.height * (isMinimized ? cardHeightMinimized : cardHeight))
-                .background(
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(Color.bubbleMist.opacity(0.9))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24)
-                                .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
-                        )
-                )
-                .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
+//                .background(
+//                    RoundedRectangle(cornerRadius: 24)
+//                        .fill(Color.bubbleMist.opacity(0.9))
+//                        .overlay(
+//                            RoundedRectangle(cornerRadius: 24)
+//                                .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
+//                        )
+//                )
+//                .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
                 .offset(y: dragOffset)
                 .gesture(
                     DragGesture()
@@ -162,6 +169,14 @@ struct FlipBook: View {
                             isExpanded = false
                             dragOffset = 0
                         }
+                    } else {
+                        // Tap to expand from normal state
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                            cardHeight = cardHeightExpanded
+                            isExpanded = true
+                            isMinimized = false
+                            dragOffset = 0
+                        }
                     }
                 }
             }
@@ -190,11 +205,15 @@ extension FlipBook {
 struct FlipBookPage: View {
     let card: FlipBookCard
     let index: Int
+    let onCardTap: (() -> Void)?
     
     var body: some View {
         VStack {
             card
                 .padding(.horizontal, 10)
+                .onTapGesture {
+                    onCardTap?()
+                }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -227,25 +246,34 @@ struct FlipBookPageIndicator: View {
         VerticleAuroraBackgroundView()
         VStack {
             // Example with custom ZodiacCards
-            FlipBook(pages: [
-                FlipBookCard(
-                    title: "Today's Reading",
-                    content: "The stars align in your favor today. Mercury's influence brings clarity to your thoughts, while Venus enhances your relationships. Focus on communication and trust your intuition."
-                ),
-                FlipBookCard(
-                    title: "This Week's Energy",
-                    content: "A powerful week ahead with Jupiter's expansion energy. New opportunities arise mid-week. Stay open to unexpected connections and trust the universe's timing."
-                ),
-                FlipBookCard(
-                    title: "Monthly Overview",
-                    content: "This month brings transformative energy with Pluto's influence. Embrace transformation and trust the process of growth."
-                )
-            ])
+            FlipBook(
+                pages: [
+                    FlipBookCard(
+                        title: "Today's Reading",
+                        content: "The stars align in your favor today. Mercury's influence brings clarity to your thoughts, while Venus enhances your relationships. Focus on communication and trust your intuition."
+                    ),
+                    FlipBookCard(
+                        title: "This Week's Energy",
+                        content: "A powerful week ahead with Jupiter's expansion energy. New opportunities arise mid-week. Stay open to unexpected connections and trust the universe's timing."
+                    ),
+                    FlipBookCard(
+                        title: "Monthly Overview",
+                        content: "This month brings transformative energy with Pluto's influence. Embrace transformation and trust the process of growth."
+                    )
+                ],
+                cardHeight: .constant(0.5),
+                isExpanded: .constant(false),
+                isMinimized: .constant(false)
+            )
             
             Spacer()
             
             // Default FlipBook for comparison
-            FlipBook()
+            FlipBook(
+                cardHeight: .constant(0.5),
+                isExpanded: .constant(false),
+                isMinimized: .constant(false)
+            )
         }
     }
 }

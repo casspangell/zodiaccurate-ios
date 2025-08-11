@@ -70,8 +70,9 @@ struct FlipBook: View {
                         updateCardState: updateCardState
                     )
                     print("📏 FlipBook: Container height: \(geometry.size.height), Screen height: \(screenHeight), UpdateCard state: \(updateCardState), Available height: \(availableHeight)")
-                    return availableHeight
+                    return screenHeight //kilroy
                 }())
+                .animation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0), value: updateCardState)
             }
             .frame(maxWidth: .infinity)
         }

@@ -192,31 +192,26 @@ func getUpdateCardHeight(state: UpdateCardState, screenHeight: CGFloat) -> CGFlo
     }
 }
 
-/// Enum representing the different states of the UpdateCard
-enum UpdateCardState {
-    case minimized
-    case dismissed
-    case expanded
-    case expandedWithTutorial
-    case expandedWithKeyboard
-}
+
 
 /// Returns the available height for FlipBook cards between the indicator and UpdateCard
 /// - Parameters:
 ///   - screenHeight: The total screen height
 ///   - updateCardState: The current state of the UpdateCard (default: .dismissed)
 ///   - indicatorHeight: The height of the FlipBook page indicator (default: 54 - 8 circles + padding)
+///   - gapBetweenCards: The gap between FlipBook and UpdateCard (default: 8)
 /// - Returns: The calculated available height for FlipBook cards
 func getFlipBookCardAvailableHeight(
     screenHeight: CGFloat,
     updateCardState: UpdateCardState = .dismissed,
-    indicatorHeight: CGFloat = 54
+    indicatorHeight: CGFloat = 54,
+    gapBetweenCards: CGFloat = 8
 ) -> CGFloat {
     let safeAreaTop = getSafeAreaTop()
     let updateCardHeight = getUpdateCardHeight(state: updateCardState, screenHeight: screenHeight)
     let safeAreaBottom = getSafeAreaBottom()
     
-    let availableHeight = screenHeight - safeAreaTop - indicatorHeight - updateCardHeight - safeAreaBottom
+    let availableHeight = screenHeight - safeAreaTop - indicatorHeight - updateCardHeight - safeAreaBottom - gapBetweenCards
     
     print("📐 Height Calculation:")
     print("   Screen height: \(screenHeight)")
@@ -224,6 +219,7 @@ func getFlipBookCardAvailableHeight(
     print("   Indicator height: \(indicatorHeight)")
     print("   UpdateCard height (\(updateCardState)): \(updateCardHeight)")
     print("   Safe area bottom: \(safeAreaBottom)")
+    print("   Gap between cards: \(gapBetweenCards)")
     print("   Available height: \(availableHeight)")
     
     return availableHeight
@@ -239,10 +235,37 @@ func getSafeAreaBottom() -> CGFloat {
     return window.safeAreaInsets.bottom
 }
 
+/// Enum representing zIndex values for different UI layers in MainZodiacView
+enum ZIndexLayer: Double {
+    case zero = 0
+    case one = 1
+    case two = 2
+    case three = 3
+    case four = 4
+    case five = 5
+    case active = 10  // Layer for active component
+}
+
+/// Returns the zIndex value for a given layer
+/// - Parameter layer: The ZIndexLayer enum case
+/// - Returns: The Double value for the zIndex
+func getZIndex(_ layer: ZIndexLayer) -> Double {
+    return layer.rawValue
+}
+
 // MARK: - Preference Keys
 
 /// Preference key for header height
 struct HeaderHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+/// Preference key for FlipBookCard bottom position
+struct FlipBookCardBottomPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {

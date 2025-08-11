@@ -1,5 +1,14 @@
 import SwiftUI
 
+/// Enum representing the different states of the UpdateCard
+enum UpdateCardState {
+    case minimized
+    case dismissed
+    case expanded
+    case expandedWithTutorial
+    case expandedWithKeyboard
+}
+
 struct UpdateCard: View {
     // Card height constants
     private let cardHeightMinimized: CGFloat = 0.05
@@ -255,6 +264,8 @@ struct UpdateCard: View {
                     }
             )
             .onTapGesture {
+                // Post notification to activate UpdateCard
+                NotificationCenter.default.post(name: .updateCardActivated, object: nil)
                 if isExpanded {
                     // Dismiss keyboard first
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
@@ -308,6 +319,26 @@ struct UpdateCard: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 fireGlisteningBackground()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .flipBookActivated)) { _ in
+            // Minimize UpdateCard when FlipBook is activated/expanded
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                cardHeight = cardHeightMinimized
+                isExpanded = false
+                isMinimized = true
+                dragOffset = 0
+            }
+            postStateChangeNotification(state: .minimized)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .flipBookCollapsed)) { _ in
+            // Return UpdateCard to dismissed state when FlipBook collapses
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                cardHeight = cardHeightDismissed
+                isExpanded = false
+                isMinimized = false
+                dragOffset = 0
+            }
+            postStateChangeNotification(state: .dismissed)
         }
         .onDisappear {
             removeKeyboardObservers()
@@ -376,6 +407,8 @@ struct UpdateCard: View {
             dragOffset = 0
         }
         postStateChangeNotification(state: .dismissed)
+        // Post notification to deactivate component
+        NotificationCenter.default.post(name: .componentDeactivated, object: nil)
     }
     
     private func onCardExpanded() {

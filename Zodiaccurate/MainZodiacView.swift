@@ -22,9 +22,17 @@ struct MainZodiacView: View {
     @State private var moveFlipbookToTop: Bool = false
     @State private var headerFlipBookSpacing: CGFloat = 50
     @State private var headerHeight: CGFloat = 0
+    @State private var activeComponent: ActiveComponent = .none
+    @State private var flipBookCardBottomPosition: CGFloat = 0
     
     var headerFlipBookSpacingDefault: CGFloat {
         return headerHeight + getQuestionMenuHeight() //getSafeAreaTop() + headerHeight + getQuestionMenuHeight()
+    }
+    
+    enum ActiveComponent {
+        case none
+        case flipBook
+        case updateCard
     }
     
     @State var completedOnboarding: Bool
@@ -148,7 +156,7 @@ struct MainZodiacView: View {
                                     .padding(.top, 80) // Position below profile badge
                                     .transition(.opacity.combined(with: .scale))
                                 }
-                                .zIndex(5)
+                                .zIndex(getZIndex(.five))
                             }
                         }
                         
@@ -158,9 +166,9 @@ struct MainZodiacView: View {
 //                            Spacer(minLength: 0)
 
                             FlipBook(pages: createFlipBookCards())
-                                .frame(height: getSafeAreaTop() + headerHeight + getQuestionMenuHeight() + 20)
+                                .background(Color.red)
                                 .padding(.bottom, 8)
-                                .zIndex(1) // Place below QuestionMenu (which is in the main VStack with zIndex 2)
+                                .zIndex(activeComponent == .flipBook ? getZIndex(.active) : getZIndex(.one))
                                 .onAppear {
                                     // Check for welcome horoscope when view appears
                                     _ = fetchWelcomeHoroscope()
@@ -183,18 +191,42 @@ struct MainZodiacView: View {
                                     // Reset spacing when FlipBook collapses
                                     adjustHeaderFlipBookSpacing(expanded: false)
                                 }
+                                .onReceive(NotificationCenter.default.publisher(for: .flipBookActivated)) { _ in
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        activeComponent = .flipBook
+                                    }
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: .componentDeactivated)) { _ in
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        activeComponent = .none
+                                    }
+                                }
+                                .onPreferenceChange(FlipBookCardBottomPreferenceKey.self) { bottomPosition in
+                                    flipBookCardBottomPosition = bottomPosition
+                                    print("📍 FlipBookCard bottom position: \(bottomPosition)")
+                                }
                                 .id(isWelcomeHoroscopeLoaded) // Force re-creation when loading state changes
                         }
                         
                         Spacer()
                     }
-                    .zIndex(2)
+                    .zIndex(getZIndex(.two))
 
                     
                     // UpdateCard layer (topmost) - disable interaction until consent is accepted
                     UpdateCard()
                         .allowsHitTesting(hasAcceptedConsentPolicies)
-                        .zIndex(3)
+                        .zIndex(activeComponent == .updateCard ? getZIndex(.active) : getZIndex(.three))
+                        .onReceive(NotificationCenter.default.publisher(for: .updateCardActivated)) { _ in
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                activeComponent = .updateCard
+                            }
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: .componentDeactivated)) { _ in
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                activeComponent = .none
+                            }
+                        }
                         .onAppear {
                             // Show tutorial popups for users who just completed onboarding or have accepted consent
                             let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
@@ -238,7 +270,7 @@ struct MainZodiacView: View {
                             .padding(.bottom, 20) // Position at bottom of screen
                             .transition(.opacity.combined(with: .scale))
                         }
-                        .zIndex(4)
+                        .zIndex(getZIndex(.four))
                     }
                 }
             }

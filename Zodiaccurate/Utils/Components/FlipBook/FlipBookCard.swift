@@ -32,7 +32,9 @@ struct FlipBookCard: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .topTrailing) {
+            VStack {
+                Spacer()
+                ZStack(alignment: .topTrailing) {
                 if isLoading {
                     // Loading state with spinner
                     VStack {
@@ -115,9 +117,19 @@ struct FlipBookCard: View {
                     )
                     .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
                 }
+                }
             }
             .frame(height: geometry.size.height * cardHeight)
             .offset(y: isExpanded ? -geometry.safeAreaInsets.top : dragOffset)
+            .background(
+                GeometryReader { cardGeometry in
+                    Color.clear
+                        .preference(
+                            key: FlipBookCardBottomPreferenceKey.self,
+                            value: isExpanded ? cardGeometry.frame(in: .global).maxY : 0
+                        )
+                }
+            )
             .contentShape(RoundedRectangle(cornerRadius: 16))
             .gesture(
                 DragGesture()
@@ -151,8 +163,8 @@ struct FlipBookCard: View {
                                 if shouldCollapse {
                                     cardHeight = cardHeightNormal
                                     isExpanded = false
-                                    // Post notification to reset spacing
-                                    NotificationCenter.default.post(name: .flipBookCollapsed, object: nil)
+                                    // Post notification to deactivate component
+                                    NotificationCenter.default.post(name: .componentDeactivated, object: nil)
                                 }
                                 dragOffset = 0
                             }
@@ -185,6 +197,8 @@ struct FlipBookCard: View {
                     }
                     // Post notification to reset spacing
                     NotificationCenter.default.post(name: .flipBookCollapsed, object: nil)
+                    // Post notification to deactivate component
+                    NotificationCenter.default.post(name: .componentDeactivated, object: nil)
                 } else {
                     // Tap to expand from normal state
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
@@ -194,9 +208,10 @@ struct FlipBookCard: View {
                     }
                     // Post notification to move FlipBook to top
                     NotificationCenter.default.post(name: .flipBookMoveToTop, object: nil)
+                    // Post notification to activate FlipBook
+                    NotificationCenter.default.post(name: .flipBookActivated, object: nil)
+                    onCardTap?()
                 }
-                
-                onCardTap?()
             }
         }
     }

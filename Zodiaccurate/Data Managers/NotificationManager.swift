@@ -22,6 +22,9 @@ extension Notification.Name {
     static let flipBookMoveToTop = Notification.Name("flipBookMoveToTop")
     static let flipBookCollapsed = Notification.Name("flipBookCollapsed")
     static let updateCardStateChanged = Notification.Name("updateCardStateChanged")
+    static let flipBookActivated = Notification.Name("flipBookActivated")
+    static let updateCardActivated = Notification.Name("updateCardActivated")
+    static let componentDeactivated = Notification.Name("componentDeactivated")
 }
 
 // MARK: - Notification Manager

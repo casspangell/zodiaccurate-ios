@@ -23,6 +23,14 @@ struct QuestionMenu: View {
     let isChildrenFiery: Bool
     let isEmploymentFiery: Bool
 
+    // Local interactive state that starts from the passed fiery flags, then turns off after tap
+    @State private var isWellnessFieryState: Bool = false
+    @State private var isRelationshipFieryState: Bool = false
+    @State private var isPartnerFieryState: Bool = false
+    @State private var isImportantPeopleFieryState: Bool = false
+    @State private var isChildrenFieryState: Bool = false
+    @State private var isEmploymentFieryState: Bool = false
+
     init(
         onWellness: @escaping () -> Void = {},
         onRelationship: @escaping () -> Void = {},
@@ -36,12 +44,12 @@ struct QuestionMenu: View {
         isImportantPeopleEnabled: Bool = true,
         isChildrenEnabled: Bool = true,
         isEmploymentEnabled: Bool = true,
-        isWellnessFiery: Bool = false,
-        isRelationshipFiery: Bool = false,
-        isPartnerFiery: Bool = false,
-        isImportantPeopleFiery: Bool = false,
-        isChildrenFiery: Bool = false,
-        isEmploymentFiery: Bool = false
+        isWellnessFiery: Bool = true,
+        isRelationshipFiery: Bool = true,
+        isPartnerFiery: Bool = true,
+        isImportantPeopleFiery: Bool = true,
+        isChildrenFiery: Bool = true,
+        isEmploymentFiery: Bool = true
     ) {
         self.onWellness = onWellness
         self.onRelationship = onRelationship
@@ -61,6 +69,14 @@ struct QuestionMenu: View {
         self.isImportantPeopleFiery = isImportantPeopleFiery
         self.isChildrenFiery = isChildrenFiery
         self.isEmploymentFiery = isEmploymentFiery
+
+        // Initialize local state from provided initial flags, but only if enabled
+        self._isWellnessFieryState = State(initialValue: isWellnessEnabled && isWellnessFiery)
+        self._isRelationshipFieryState = State(initialValue: isRelationshipEnabled && isRelationshipFiery)
+        self._isPartnerFieryState = State(initialValue: isPartnerEnabled && isPartnerFiery)
+        self._isImportantPeopleFieryState = State(initialValue: isImportantPeopleEnabled && isImportantPeopleFiery)
+        self._isChildrenFieryState = State(initialValue: isChildrenEnabled && isChildrenFiery)
+        self._isEmploymentFieryState = State(initialValue: isEmploymentEnabled && isEmploymentFiery)
     }
 
     var body: some View {
@@ -70,8 +86,11 @@ struct QuestionMenu: View {
                 systemName: "heart.fill",
                 accessibilityLabel: "Wellness Questions",
                 isEnabled: isWellnessEnabled,
-                isFiery: isWellnessFiery,
-                action: onWellness
+                isFiery: isWellnessFieryState,
+                action: {
+                    if isWellnessEnabled { isWellnessFieryState = false }
+                    onWellness()
+                }
             )
             Spacer()
             // Relationships
@@ -79,8 +98,11 @@ struct QuestionMenu: View {
                 systemName: "person.2.fill",
                 accessibilityLabel: "Relationship Questions",
                 isEnabled: isRelationshipEnabled,
-                isFiery: isRelationshipFiery,
-                action: onRelationship
+                isFiery: isRelationshipFieryState,
+                action: {
+                    if isRelationshipEnabled { isRelationshipFieryState = false }
+                    onRelationship()
+                }
             )
             Spacer()
             // Partner
@@ -88,8 +110,11 @@ struct QuestionMenu: View {
                 systemName: "link.circle.fill",
                 accessibilityLabel: "Partner Questions",
                 isEnabled: isPartnerEnabled,
-                isFiery: isPartnerFiery,
-                action: onPartner
+                isFiery: isPartnerFieryState,
+                action: {
+                    if isPartnerEnabled { isPartnerFieryState = false }
+                    onPartner()
+                }
             )
             Spacer()
             // Important People
@@ -97,8 +122,11 @@ struct QuestionMenu: View {
                 systemName: "star.fill",
                 accessibilityLabel: "Important People Questions",
                 isEnabled: isImportantPeopleEnabled,
-                isFiery: isImportantPeopleFiery,
-                action: onImportantPeople
+                isFiery: isImportantPeopleFieryState,
+                action: {
+                    if isImportantPeopleEnabled { isImportantPeopleFieryState = false }
+                    onImportantPeople()
+                }
             )
             Spacer()
             // Children
@@ -106,8 +134,11 @@ struct QuestionMenu: View {
                 systemName: "gamecontroller.fill",
                 accessibilityLabel: "Children Questions",
                 isEnabled: isChildrenEnabled,
-                isFiery: isChildrenFiery,
-                action: onChildren
+                isFiery: isChildrenFieryState,
+                action: {
+                    if isChildrenEnabled { isChildrenFieryState = false }
+                    onChildren()
+                }
             )
             Spacer()
             // Employment
@@ -115,8 +146,11 @@ struct QuestionMenu: View {
                 systemName: "briefcase.fill",
                 accessibilityLabel: "Employment Questions",
                 isEnabled: isEmploymentEnabled,
-                isFiery: isEmploymentFiery,
-                action: onEmployment
+                isFiery: isEmploymentFieryState,
+                action: {
+                    if isEmploymentEnabled { isEmploymentFieryState = false }
+                    onEmployment()
+                }
             )
         }
         .padding(.horizontal, 8)

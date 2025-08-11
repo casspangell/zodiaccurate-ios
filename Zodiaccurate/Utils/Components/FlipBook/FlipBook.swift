@@ -24,6 +24,7 @@ struct FlipBook: View {
                 // Page Indicator (moved to top)
                 FlipBookPageIndicator(currentIndex: currentIndex, pageCount: pageCount)
                     .padding(.bottom, 16)
+                    .padding(.top, 30)
                 
                 GeometryReader { geometry in
                     ScrollViewReader { proxy in

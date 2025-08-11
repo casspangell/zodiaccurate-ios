@@ -169,6 +169,7 @@ struct MainZodiacView: View {
                         Spacer()
                     }
                     .zIndex(2)
+
                     
                     // UpdateCard layer (topmost) - disable interaction until consent is accepted
                     UpdateCard()

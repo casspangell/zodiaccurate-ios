@@ -240,7 +240,7 @@ struct ZodiacHeader: View {
                         }
                     }
                     .frame(height: 150 * scale)
-                    .padding(.top, 0)
+                    .padding(.top, 10)
                     .frame(maxWidth: .infinity, alignment: .center)
                     
                     Text("")

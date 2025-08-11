@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ZodiacCard: View {
+struct FlipBookCard: View {
     let horoscope: Horoscope?
     let isLoading: Bool
     let onTap: (() -> Void)?
@@ -49,17 +49,14 @@ struct ZodiacCard: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
 
-                    // Scrollable Content (message)
-                    ScrollView(.vertical, showsIndicators: true) {
-                        Text(horoscope.message)
-                            .font(.dmSansMedium(size: 16))
-                            .foregroundColor(.whiteCustom.opacity(0.8))
-                            .lineSpacing(4)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 20)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    // Content
+                    Text(horoscope.message)
+                        .font(.dmSansMedium(size: 16))
+                        .foregroundColor(.whiteCustom.opacity(0.8))
+                        .lineSpacing(4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(
@@ -118,12 +115,12 @@ struct ZodiacCard: View {
 #Preview {
     VStack(spacing: 20) {
         // Loading state
-        ZodiacCard(horoscope: nil, isLoading: true)
+        FlipBookCard(horoscope: nil, isLoading: true)
             .frame(height: 300)
             .padding()
         
         // Loaded state
-        ZodiacCard(
+        FlipBookCard(
             horoscope: Horoscope(
                 title: "Parenting",
                 message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas venenatis eros ut pretium tincidunt. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nulla facilisi. Sed vitae ex vitae nisi varius venenatis. Praesent commodo urna at nisi finibus varius. Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec vehicula sapien vitae massa tincidunt efficitur. Duis vestibulum mauris ac lectus tincidunt, in volutpat lorem efficitur. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",

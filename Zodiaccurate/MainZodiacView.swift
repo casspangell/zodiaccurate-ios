@@ -149,6 +149,7 @@ struct MainZodiacView: View {
 
                             FlipBook(pages: createFlipBookCards())
                                 .padding(.bottom, 8)
+                                .zIndex(1) // Place below QuestionMenu (which is in the main VStack with zIndex 2)
                                 .onAppear {
                                     // Check for welcome horoscope when view appears
                                     _ = fetchWelcomeHoroscope()
@@ -295,20 +296,20 @@ struct MainZodiacView: View {
     
     // MARK: - FlipBook Cards
     
-    private func createFlipBookCards() -> [ZodiacCard] {
-        var cards: [ZodiacCard] = []
+    private func createFlipBookCards() -> [FlipBookCard] {
+        var cards: [FlipBookCard] = []
         
         // Add welcome horoscope as first card
         if let welcomeHoroscope = welcomeHoroscope {
             print("🎯 MainZodiacView: Creating welcome horoscope card with content")
-            cards.append(ZodiacCard(
+            cards.append(FlipBookCard(
                 horoscope: welcomeHoroscope,
                 isLoading: false
             ))
         } else {
             print("🎯 MainZodiacView: Creating welcome horoscope card with loading state")
             // Show loading state for welcome horoscope if not available yet
-            cards.append(ZodiacCard(
+            cards.append(FlipBookCard(
                 horoscope: nil,
                 isLoading: true
             ))
@@ -316,7 +317,7 @@ struct MainZodiacView: View {
         
         // Add Wellness card as the 2nd card in the stack
         cards.append(
-            ZodiacCard(
+            FlipBookCard(
                 title: "Wellness",
                 content: "Start your personal wellness intake",
                 onTap: { showWellnessConversation = true }
@@ -325,15 +326,15 @@ struct MainZodiacView: View {
         
         // Add remaining default cards
         cards.append(contentsOf: [
-            ZodiacCard(
+            FlipBookCard(
                 title: "Daily Horoscope",
                 content: "Discover what the stars have in store for you today"
             ),
-            ZodiacCard(
+            FlipBookCard(
                 title: "Weekly Forecast",
                 content: "Plan your week with cosmic guidance"
             ),
-            ZodiacCard(
+            FlipBookCard(
                 title: "Monthly Insights",
                 content: "Deep dive into your monthly astrological journey"
             )

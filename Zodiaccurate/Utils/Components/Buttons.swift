@@ -306,11 +306,23 @@ struct AudioControlButton: View {
     let isPlaying: Bool
     let onToggle: () -> Void
     let size: CGFloat
+    let isEnabled: Bool
+    let iconColor: Color
+    let borderColor: AnyShapeStyle
     
-    init(isPlaying: Bool = false, onToggle: @escaping () -> Void, size: CGFloat = 44) {
+    init(isPlaying: Bool = false, onToggle: @escaping () -> Void, size: CGFloat = 44, isEnabled: Bool = true, iconColor: Color = .white, borderColor: AnyShapeStyle? = nil) {
         self.isPlaying = isPlaying
         self.onToggle = onToggle
         self.size = size
+        self.isEnabled = isEnabled
+        self.iconColor = iconColor
+        self.borderColor = borderColor ?? AnyShapeStyle(
+            LinearGradient(
+                gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
     }
     
     var body: some View {
@@ -328,27 +340,22 @@ struct AudioControlButton: View {
                 // Icon
                 Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: size * 0.35, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(isEnabled ? iconColor : iconColor.opacity(0.4))
                     .offset(x: isPlaying ? 0 : 1) // Slight offset for play icon
             }
             .overlay(
                 Circle()
-                    .stroke(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.5
-                    )
+                    .stroke(borderColor, lineWidth: 1.5)
+                    .opacity(isEnabled ? 1.0 : 0.4)
             )
-            .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(isEnabled ? 0.2 : 0.1), radius: 4, x: 0, y: 2)
             .scaleEffect(isPlaying ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.2), value: isPlaying)
         }
         .buttonStyle(PlainButtonStyle())
-        .accessibilityLabel(isPlaying ? "Pause audio" : "Play audio")
-        .accessibilityHint("Tap to \(isPlaying ? "pause" : "play") the audio content")
+        .disabled(!isEnabled)
+        .accessibilityLabel(isEnabled ? (isPlaying ? "Pause audio" : "Play audio") : "No audio available")
+        .accessibilityHint(isEnabled ? "Tap to \(isPlaying ? "pause" : "play") the audio content" : "This card has no audio content")
     }
 }
 
@@ -475,6 +482,39 @@ struct PrimaryGradientButton_Previews: PreviewProvider {
                     AudioControlButton(
                         isPlaying: true,
                         onToggle: {}
+                    )
+                    
+                    AudioControlButton(
+                        isPlaying: false,
+                        onToggle: {},
+                        isEnabled: false
+                    )
+                }
+                
+                Text("Audio Control Buttons (Custom Colors)")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                HStack(spacing: 20) {
+                    AudioControlButton(
+                        isPlaying: false,
+                        onToggle: {},
+                        iconColor: .black,
+                        borderColor: AnyShapeStyle(.black.opacity(0.3))
+                    )
+                    
+                    AudioControlButton(
+                        isPlaying: true,
+                        onToggle: {},
+                        iconColor: .black,
+                        borderColor: AnyShapeStyle(.black.opacity(0.3))
+                    )
+                    
+                    AudioControlButton(
+                        isPlaying: false,
+                        onToggle: {},
+                        iconColor: .white,
+                        borderColor: AnyShapeStyle(.white.opacity(0.7))
                     )
                 }
             }

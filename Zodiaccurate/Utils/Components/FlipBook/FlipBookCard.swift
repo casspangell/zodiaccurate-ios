@@ -99,16 +99,19 @@ struct FlipBookCard: View {
                         
                         // Top right buttons container
                         HStack(spacing: 8) {
-                            // Audio Control Button (if available)
-                            if audioManager.hasAudio(for: horoscope) {
-                                AudioControlButton(
-                                    isPlaying: audioManager.isPlaying && audioManager.currentAudioKey == horoscope.key,
-                                    onToggle: {
+                            // Audio Control Button (always visible, disabled if no audio)
+                            AudioControlButton(
+                                isPlaying: audioManager.isPlaying && audioManager.currentAudioKey == horoscope.key,
+                                onToggle: {
+                                    if audioManager.hasAudio(for: horoscope) {
                                         audioManager.toggleAudio(for: horoscope)
-                                    },
-                                    size: 44
-                                )
-                            }
+                                    }
+                                },
+                                size: 44,
+                                isEnabled: audioManager.hasAudio(for: horoscope),
+                                iconColor: globalFlipBookExpanded ? .black : .white,
+                                borderColor: AnyShapeStyle(globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7))
+                            )
                             
                             // Expand/Contract Button
                             CircleIconButtonNoBackground(

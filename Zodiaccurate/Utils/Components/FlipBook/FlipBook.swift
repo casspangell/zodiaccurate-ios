@@ -10,6 +10,7 @@ import SwiftUI
 struct FlipBook: View {
     @State private var currentIndex: Int = 0
     @State private var updateCardState: UpdateCardState = .dismissed
+    @State private var flipBookOffset: CGFloat = 0
     
     private let pageCount: Int
     private let pageSpacing: CGFloat = 20
@@ -81,10 +82,25 @@ struct FlipBook: View {
                 .animation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0), value: updateCardState)
             }
             .frame(maxWidth: .infinity)
+            .offset(y: flipBookOffset)
+            .opacity(updateCardState == .expanded || updateCardState == .expandedWithTutorial || updateCardState == .expandedWithKeyboard ? 0 : 1)
+            .animation(.easeInOut(duration: 0.3), value: updateCardState)
         }
         .onReceive(NotificationCenter.default.publisher(for: .updateCardStateChanged)) { notification in
             if let state = notification.userInfo?["state"] as? UpdateCardState {
                 updateCardState = state
+                
+                // Animate FlipBook position based on UpdateCard state
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
+                    switch state {
+                    case .minimized:
+                        flipBookOffset = -50 // Move up slightly when minimized
+                    case .dismissed:
+                        flipBookOffset = 0 // Return to normal position
+                    case .expanded, .expandedWithTutorial, .expandedWithKeyboard:
+                        flipBookOffset = -100 // Move up more when expanded
+                    }
+                }
             }
         }
         .onAppear {

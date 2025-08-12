@@ -331,14 +331,8 @@ struct UpdateCard: View {
             postStateChangeNotification(state: .minimized)
         }
         .onReceive(NotificationCenter.default.publisher(for: .flipBookCollapsed)) { _ in
-            // Return UpdateCard to dismissed state when FlipBook collapses
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                cardHeight = cardHeightDismissed
-                isExpanded = false
-                isMinimized = false
-                dragOffset = 0
-            }
-            postStateChangeNotification(state: .dismissed)
+            // Don't change UpdateCard state when FlipBook collapses - keep current state
+            // This allows UpdateCard to remain minimized if it was already minimized
         }
         .onDisappear {
             removeKeyboardObservers()

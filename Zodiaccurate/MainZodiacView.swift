@@ -166,7 +166,6 @@ struct MainZodiacView: View {
 //                            Spacer(minLength: 0)
 
                             FlipBook(pages: createFlipBookCards())
-                                .background(Color.red)
                                 .padding(.bottom, 8)
                                 .zIndex(activeComponent == .flipBook ? getZIndex(.active) : getZIndex(.one))
                                 .onAppear {

@@ -267,6 +267,13 @@ struct TransparentTextEditor: UIViewRepresentable {
         textView.isScrollEnabled = true
         textView.delegate = context.coordinator
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        
+        // Anchor content to the top
+        textView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        textView.textContainer.lineFragmentPadding = 0
+        textView.textContainer.maximumNumberOfLines = 0
+        textView.textContainer.lineBreakMode = .byWordWrapping
+        
         return textView
     }
 
@@ -276,6 +283,15 @@ struct TransparentTextEditor: UIViewRepresentable {
         }
         uiView.textColor = textColor
         uiView.font = font
+        
+        // Ensure content stays anchored to the top
+        uiView.textContainerInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        uiView.textContainer.lineFragmentPadding = 0
+        
+        // Force scroll to top to anchor content
+        DispatchQueue.main.async {
+            uiView.setContentOffset(.zero, animated: false)
+        }
     }
 
     func makeCoordinator() -> Coordinator {
@@ -289,6 +305,11 @@ struct TransparentTextEditor: UIViewRepresentable {
         }
         func textViewDidChange(_ textView: UITextView) {
             parent.text = textView.text
+            
+            // Keep content anchored to top when text changes
+            DispatchQueue.main.async {
+                textView.setContentOffset(.zero, animated: false)
+            }
         }
     }
 }

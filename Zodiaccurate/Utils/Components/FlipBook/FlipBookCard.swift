@@ -9,6 +9,7 @@ struct FlipBookCard: View {
     // Internal state for expansion
     @State private var isExpanded = false
     @State private var cardHeight: CGFloat = 0.5
+    @State private var globalFlipBookExpanded = false
     
     // Card height constants
     private let cardHeightMinimized: CGFloat = 0.05
@@ -57,14 +58,14 @@ struct FlipBookCard: View {
                         // Header
                         Text(horoscope.title)
                             .font(.dmSansSemibold(size: 24))
-                            .foregroundColor(isExpanded ? .black : .whiteCustom)
+                            .foregroundColor(globalFlipBookExpanded ? .black : .whiteCustom)
                             .padding(.horizontal, 20)
                             .padding(.top, 20)
 
                         // Content
                         Text(horoscope.message)
                             .font(.dmSansMedium(size: 16))
-                            .foregroundColor(isExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
+                            .foregroundColor(globalFlipBookExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
                             .lineSpacing(4)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 20)
@@ -73,7 +74,7 @@ struct FlipBookCard: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 16) //kilroy
-                            .fill(isExpanded ? Color.white : Color.bubbleMist.opacity(0.8))
+                            .fill(globalFlipBookExpanded ? Color.white : Color.bubbleMist.opacity(0.8))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
                                     .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
@@ -139,6 +140,12 @@ struct FlipBookCard: View {
                     NotificationCenter.default.post(name: .flipBookCollapsed, object: nil)
                     // Post notification to deactivate component
                     NotificationCenter.default.post(name: .componentDeactivated, object: nil)
+                    // Post notification to update global expansion state
+                    NotificationCenter.default.post(
+                        name: .flipBookExpansionStateChanged,
+                        object: nil,
+                        userInfo: ["isExpanded": false]
+                    )
                 } else {
                     // Tap to expand from normal state
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
@@ -149,7 +156,18 @@ struct FlipBookCard: View {
                     NotificationCenter.default.post(name: .flipBookMoveToTop, object: nil)
                     // Post notification to activate FlipBook
                     NotificationCenter.default.post(name: .flipBookActivated, object: nil)
+                    // Post notification to update global expansion state
+                    NotificationCenter.default.post(
+                        name: .flipBookExpansionStateChanged,
+                        object: nil,
+                        userInfo: ["isExpanded": true]
+                    )
                     onCardTap?()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .flipBookExpansionStateChanged)) { notification in
+                if let isExpanded = notification.userInfo?["isExpanded"] as? Bool {
+                    globalFlipBookExpanded = isExpanded
                 }
             }
         }

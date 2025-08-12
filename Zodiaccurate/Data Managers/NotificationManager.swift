@@ -23,6 +23,7 @@ extension Notification.Name {
     static let flipBookCollapsed = Notification.Name("flipBookCollapsed")
     static let updateCardStateChanged = Notification.Name("updateCardStateChanged")
     static let flipBookActivated = Notification.Name("flipBookActivated")
+    static let flipBookExpansionStateChanged = Notification.Name("flipBookExpansionStateChanged")
     static let updateCardActivated = Notification.Name("updateCardActivated")
     static let componentDeactivated = Notification.Name("componentDeactivated")
 }

@@ -24,6 +24,7 @@ extension Notification.Name {
     static let updateCardStateChanged = Notification.Name("updateCardStateChanged")
     static let flipBookActivated = Notification.Name("flipBookActivated")
     static let flipBookExpansionStateChanged = Notification.Name("flipBookExpansionStateChanged")
+    static let flipBookIndexChanged = Notification.Name("flipBookIndexChanged")
     static let updateCardActivated = Notification.Name("updateCardActivated")
     static let componentDeactivated = Notification.Name("componentDeactivated")
 }

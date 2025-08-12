@@ -59,6 +59,12 @@ struct FlipBook: View {
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     currentIndex = newIndex
                                 }
+                                // Notify other components about the index change
+                                NotificationCenter.default.post(
+                                    name: .flipBookIndexChanged,
+                                    object: nil,
+                                    userInfo: ["index": newIndex]
+                                )
                             }
                         }))
                     }
@@ -80,6 +86,14 @@ struct FlipBook: View {
             if let state = notification.userInfo?["state"] as? UpdateCardState {
                 updateCardState = state
             }
+        }
+        .onAppear {
+            // Post initial index when FlipBook appears
+            NotificationCenter.default.post(
+                name: .flipBookIndexChanged,
+                object: nil,
+                userInfo: ["index": currentIndex]
+            )
         }
     }
 }

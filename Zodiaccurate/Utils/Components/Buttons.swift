@@ -43,12 +43,14 @@ struct CircleIconButton: View {
     let action: () -> Void
     let isEnabled: Bool
     let isFiery: Bool
+    let isHighlighted: Bool
 
-    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, isFiery: Bool = false, action: @escaping () -> Void) {
+    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, isFiery: Bool = false, isHighlighted: Bool = false, action: @escaping () -> Void) {
         self.systemName = systemName
         self.accessibilityLabel = accessibilityLabel
         self.isEnabled = isEnabled
         self.isFiery = isFiery
+        self.isHighlighted = isHighlighted
         self.action = action
     }
     
@@ -80,7 +82,15 @@ struct CircleIconButton: View {
                 .overlay(
                     Circle()
                         .stroke(
-                            isEnabled
+                            isHighlighted
+                            ? AnyShapeStyle(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.accentGold, Color.orange]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            : isEnabled
                             ? AnyShapeStyle(
                                 LinearGradient(
                                     gradient: Gradient(colors: [Color(hex: "4F8CFF"), Color(hex: "B39DDB")]),
@@ -89,7 +99,7 @@ struct CircleIconButton: View {
                                 )
                             )
                             : AnyShapeStyle(Color.white.opacity(0.25)),
-                            lineWidth: isEnabled ? 2 : 1.5
+                            lineWidth: isHighlighted ? 3 : (isEnabled ? 2 : 1.5)
                         )
                 )
                 .opacity(isEnabled ? 1.0 : 0.6)
@@ -100,6 +110,47 @@ struct CircleIconButton: View {
             .disabled(!isEnabled)
         }
         .frame(width: isFiery ? 56 : 40, height: isFiery ? 56 : 40)
+    }
+}
+
+// Circular icon button with no background, just icon and stroke
+struct CircleIconButtonNoBackground: View {
+    let systemName: String
+    let accessibilityLabel: String
+    let action: () -> Void
+    let isEnabled: Bool
+    let iconColor: Color
+    let strokeColor: Color
+    let strokeWidth: CGFloat
+
+    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, iconColor: Color = .white, strokeColor: Color = .white.opacity(0.7), strokeWidth: CGFloat = 1.5, action: @escaping () -> Void) {
+        self.systemName = systemName
+        self.accessibilityLabel = accessibilityLabel
+        self.isEnabled = isEnabled
+        self.iconColor = iconColor
+        self.strokeColor = strokeColor
+        self.strokeWidth = strokeWidth
+        self.action = action
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                // Icon
+                Image(systemName: systemName)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isEnabled ? iconColor : iconColor.opacity(0.6))
+            }
+            .frame(width: 40, height: 40)
+            .overlay(
+                Circle()
+                    .stroke(strokeColor, lineWidth: strokeWidth)
+            )
+            .opacity(isEnabled ? 1.0 : 0.6)
+        }
+        .frame(width: 40, height: 40)
+        .accessibilityLabel(accessibilityLabel)
+        .disabled(!isEnabled)
     }
 }
 
@@ -348,6 +399,27 @@ struct PrimaryGradientButton_Previews: PreviewProvider {
                     CircleIconButton(
                         systemName: "heart",
                         accessibilityLabel: "Favorites"
+                    ) {}
+                }
+                
+                Text("Circle Icon Buttons (No Background)")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                
+                HStack(spacing: 20) {
+                    CircleIconButtonNoBackground(
+                        systemName: "chevron.up",
+                        accessibilityLabel: "Expand"
+                    ) {}
+                    
+                    CircleIconButtonNoBackground(
+                        systemName: "chevron.down",
+                        accessibilityLabel: "Collapse"
+                    ) {}
+                    
+                    CircleIconButtonNoBackground(
+                        systemName: "xmark",
+                        accessibilityLabel: "Close"
                     ) {}
                 }
             }

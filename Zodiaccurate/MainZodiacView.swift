@@ -24,6 +24,7 @@ struct MainZodiacView: View {
     @State private var headerHeight: CGFloat = 0
     @State private var activeComponent: ActiveComponent = .none
     @State private var flipBookCardBottomPosition: CGFloat = 0
+    @State private var currentFlipBookIndex: Int = 0
     
     var headerFlipBookSpacingDefault: CGFloat {
         return headerHeight + getQuestionMenuHeight() //getSafeAreaTop() + headerHeight + getQuestionMenuHeight()
@@ -33,6 +34,27 @@ struct MainZodiacView: View {
         case none
         case flipBook
         case updateCard
+    }
+    
+    // MARK: - QuestionMenu Highlight Mapping
+    
+    /// Maps the current FlipBook index to the corresponding QuestionMenu button that should be highlighted
+    private func getHighlightedQuestionMenuButton() -> QuestionMenuButton {
+        // Skip index 0 (Welcome Horoscope) as it doesn't correspond to any QuestionMenu button
+        switch currentFlipBookIndex {
+        case 1: // Wellness card
+            return .wellness
+        case 2: // Partner card (no corresponding button in QuestionMenu)
+            return .none
+        case 3: // Important People card
+            return .importantPeople
+        case 4: // Children card
+            return .children
+        case 5: // Employment card
+            return .employment
+        default:
+            return .none
+        }
     }
     
     @State var completedOnboarding: Bool
@@ -106,9 +128,6 @@ struct MainZodiacView: View {
                                  onRelationship: {
                                      print("Relationship menu tapped")
                                  },
-                                 onPartner: {
-                                     print("Partner menu tapped")
-                                 },
                                  onImportantPeople: {
                                      print("Important People menu tapped")
                                  },
@@ -117,7 +136,8 @@ struct MainZodiacView: View {
                                  },
                                  onEmployment: {
                                      print("Employment menu tapped")
-                                 }
+                                 },
+                                 highlightedButton: getHighlightedQuestionMenuButton()
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.top, 24)
@@ -198,6 +218,13 @@ struct MainZodiacView: View {
                                 .onReceive(NotificationCenter.default.publisher(for: .componentDeactivated)) { _ in
                                     withAnimation(.easeInOut(duration: 0.3)) {
                                         activeComponent = .none
+                                    }
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: .flipBookIndexChanged)) { notification in
+                                    if let index = notification.userInfo?["index"] as? Int {
+                                        withAnimation(.easeInOut(duration: 0.3)) {
+                                            currentFlipBookIndex = index
+                                        }
                                     }
                                 }
                                 .onPreferenceChange(FlipBookCardBottomPreferenceKey.self) { bottomPosition in
@@ -364,29 +391,49 @@ struct MainZodiacView: View {
                 isLoading: true
             ))
         }
-        
-        // Add Wellness card as the 2nd card in the stack
-        cards.append(
-            FlipBookCard(
-                title: "Wellness",
-                content: "Start your personal wellness intake",
-                onCardTap: { showWellnessConversation = true }
-            )
-        )
-        
+
         // Add remaining default cards
         cards.append(contentsOf: [
             FlipBookCard(
-                title: "Daily Horoscope",
-                content: "Discover what the stars have in store for you today"
+                title: "Wellness",
+                content: "Start your intake",
+//                onCardTap: { showWellnessConversation = true },
+                showStartButton: true,
+                onStartButtonTap: {
+                    print("Wellness start button tapped")
+                }
             ),
             FlipBookCard(
-                title: "Weekly Forecast",
-                content: "Plan your week with cosmic guidance"
+                title: "Partner",
+                content: "Start your intake",
+                showStartButton: true,
+                onStartButtonTap: {
+                    print("Partner start button tapped")
+                }
             ),
             FlipBookCard(
-                title: "Monthly Insights",
-                content: "Deep dive into your monthly astrological journey"
+                title: "Important People",
+                content: "Start your intake",
+                showStartButton: true,
+                onStartButtonTap: {
+                    print("Important People start button tapped")
+                }
+            ),
+            FlipBookCard(
+                title: "Children",
+                content: "Start your intake",
+                showStartButton: true,
+                onStartButtonTap: {
+                    print("Children start button tapped")
+                }
+            ),
+            FlipBookCard(
+                title: "Employment",
+                content: "Start your intake",
+                showStartButton: true,
+                onStartButtonTap: {
+                    print("Employment start button tapped")
+                }
             )
         ])
         

@@ -1,16 +1,23 @@
 import SwiftUI
 
+enum QuestionMenuButton {
+    case none
+    case wellness
+    case relationship
+    case importantPeople
+    case children
+    case employment
+}
+
 struct QuestionMenu: View {
     let onWellness: () -> Void
     let onRelationship: () -> Void
-    let onPartner: () -> Void
     let onImportantPeople: () -> Void
     let onChildren: () -> Void
     let onEmployment: () -> Void
     
     let isWellnessEnabled: Bool
     let isRelationshipEnabled: Bool
-    let isPartnerEnabled: Bool
     let isImportantPeopleEnabled: Bool
     let isChildrenEnabled: Bool
     let isEmploymentEnabled: Bool
@@ -18,15 +25,16 @@ struct QuestionMenu: View {
     // Optional fiery state per button
     let isWellnessFiery: Bool
     let isRelationshipFiery: Bool
-    let isPartnerFiery: Bool
     let isImportantPeopleFiery: Bool
     let isChildrenFiery: Bool
     let isEmploymentFiery: Bool
+    
+    // Highlighted button state
+    let highlightedButton: QuestionMenuButton
 
     // Local interactive state that starts from the passed fiery flags, then turns off after tap
     @State private var isWellnessFieryState: Bool = false
     @State private var isRelationshipFieryState: Bool = false
-    @State private var isPartnerFieryState: Bool = false
     @State private var isImportantPeopleFieryState: Bool = false
     @State private var isChildrenFieryState: Bool = false
     @State private var isEmploymentFieryState: Bool = false
@@ -34,46 +42,41 @@ struct QuestionMenu: View {
     init(
         onWellness: @escaping () -> Void = {},
         onRelationship: @escaping () -> Void = {},
-        onPartner: @escaping () -> Void = {},
         onImportantPeople: @escaping () -> Void = {},
         onChildren: @escaping () -> Void = {},
         onEmployment: @escaping () -> Void = {},
         isWellnessEnabled: Bool = true,
         isRelationshipEnabled: Bool = true,
-        isPartnerEnabled: Bool = true,
         isImportantPeopleEnabled: Bool = true,
         isChildrenEnabled: Bool = true,
         isEmploymentEnabled: Bool = true,
         isWellnessFiery: Bool = true,
         isRelationshipFiery: Bool = true,
-        isPartnerFiery: Bool = true,
         isImportantPeopleFiery: Bool = true,
         isChildrenFiery: Bool = true,
-        isEmploymentFiery: Bool = true
+        isEmploymentFiery: Bool = true,
+        highlightedButton: QuestionMenuButton = .none
     ) {
         self.onWellness = onWellness
         self.onRelationship = onRelationship
-        self.onPartner = onPartner
         self.onImportantPeople = onImportantPeople
         self.onChildren = onChildren
         self.onEmployment = onEmployment
         self.isWellnessEnabled = isWellnessEnabled
         self.isRelationshipEnabled = isRelationshipEnabled
-        self.isPartnerEnabled = isPartnerEnabled
         self.isImportantPeopleEnabled = isImportantPeopleEnabled
         self.isChildrenEnabled = isChildrenEnabled
         self.isEmploymentEnabled = isEmploymentEnabled
         self.isWellnessFiery = isWellnessFiery
         self.isRelationshipFiery = isRelationshipFiery
-        self.isPartnerFiery = isPartnerFiery
         self.isImportantPeopleFiery = isImportantPeopleFiery
         self.isChildrenFiery = isChildrenFiery
         self.isEmploymentFiery = isEmploymentFiery
+        self.highlightedButton = highlightedButton
 
         // Initialize local state from provided initial flags, but only if enabled
         self._isWellnessFieryState = State(initialValue: isWellnessEnabled && isWellnessFiery)
         self._isRelationshipFieryState = State(initialValue: isRelationshipEnabled && isRelationshipFiery)
-        self._isPartnerFieryState = State(initialValue: isPartnerEnabled && isPartnerFiery)
         self._isImportantPeopleFieryState = State(initialValue: isImportantPeopleEnabled && isImportantPeopleFiery)
         self._isChildrenFieryState = State(initialValue: isChildrenEnabled && isChildrenFiery)
         self._isEmploymentFieryState = State(initialValue: isEmploymentEnabled && isEmploymentFiery)
@@ -87,6 +90,7 @@ struct QuestionMenu: View {
                 accessibilityLabel: "Wellness Questions",
                 isEnabled: isWellnessEnabled,
                 isFiery: isWellnessFieryState,
+                isHighlighted: highlightedButton == .wellness,
                 action: {
                     if isWellnessEnabled { isWellnessFieryState = false }
                     onWellness()
@@ -99,21 +103,10 @@ struct QuestionMenu: View {
                 accessibilityLabel: "Relationship Questions",
                 isEnabled: isRelationshipEnabled,
                 isFiery: isRelationshipFieryState,
+                isHighlighted: highlightedButton == .relationship,
                 action: {
                     if isRelationshipEnabled { isRelationshipFieryState = false }
                     onRelationship()
-                }
-            )
-            Spacer()
-            // Partner
-            CircleIconButton(
-                systemName: "link.circle.fill",
-                accessibilityLabel: "Partner Questions",
-                isEnabled: isPartnerEnabled,
-                isFiery: isPartnerFieryState,
-                action: {
-                    if isPartnerEnabled { isPartnerFieryState = false }
-                    onPartner()
                 }
             )
             Spacer()
@@ -123,6 +116,7 @@ struct QuestionMenu: View {
                 accessibilityLabel: "Important People Questions",
                 isEnabled: isImportantPeopleEnabled,
                 isFiery: isImportantPeopleFieryState,
+                isHighlighted: highlightedButton == .importantPeople,
                 action: {
                     if isImportantPeopleEnabled { isImportantPeopleFieryState = false }
                     onImportantPeople()
@@ -135,6 +129,7 @@ struct QuestionMenu: View {
                 accessibilityLabel: "Children Questions",
                 isEnabled: isChildrenEnabled,
                 isFiery: isChildrenFieryState,
+                isHighlighted: highlightedButton == .children,
                 action: {
                     if isChildrenEnabled { isChildrenFieryState = false }
                     onChildren()
@@ -147,6 +142,7 @@ struct QuestionMenu: View {
                 accessibilityLabel: "Employment Questions",
                 isEnabled: isEmploymentEnabled,
                 isFiery: isEmploymentFieryState,
+                isHighlighted: highlightedButton == .employment,
                 action: {
                     if isEmploymentEnabled { isEmploymentFieryState = false }
                     onEmployment()
@@ -164,7 +160,6 @@ struct QuestionMenu_Previews: PreviewProvider {
             QuestionMenu(
                 isWellnessEnabled: true,
                 isRelationshipEnabled: true,
-                isPartnerEnabled: true,
                 isImportantPeopleEnabled: true,
                 isChildrenEnabled: true,
                 isEmploymentEnabled: true
@@ -174,16 +169,24 @@ struct QuestionMenu_Previews: PreviewProvider {
             QuestionMenu(
                 isWellnessEnabled: true,
                 isRelationshipEnabled: true,
-                isPartnerEnabled: true,
                 isImportantPeopleEnabled: true,
                 isChildrenEnabled: true,
                 isEmploymentEnabled: true,
                 isWellnessFiery: true,
                 isRelationshipFiery: false,
-                isPartnerFiery: true,
                 isImportantPeopleFiery: false,
                 isChildrenFiery: true,
                 isEmploymentFiery: false
+            )
+            
+            // Highlighted state demo
+            QuestionMenu(
+                isWellnessEnabled: true,
+                isRelationshipEnabled: true,
+                isImportantPeopleEnabled: true,
+                isChildrenEnabled: true,
+                isEmploymentEnabled: true,
+                highlightedButton: .wellness
             )
         }
         .padding(24)

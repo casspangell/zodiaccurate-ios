@@ -73,10 +73,10 @@ struct ZodiacHeader: View {
     let showMenu: Bool
     let onWellness: (() -> Void)?
     let onRelationship: (() -> Void)?
-    let onPartner: (() -> Void)?
     let onImportantPeople: (() -> Void)?
     let onChildren: (() -> Void)?
     let onEmployment: (() -> Void)?
+    let highlightedButton: QuestionMenuButton
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
     @State private var headerBackgroundOpacity: Double = 1.0
@@ -116,10 +116,10 @@ struct ZodiacHeader: View {
         showMenu: Bool = false,
         onWellness: (() -> Void)? = nil,
         onRelationship: (() -> Void)? = nil,
-        onPartner: (() -> Void)? = nil,
         onImportantPeople: (() -> Void)? = nil,
         onChildren: (() -> Void)? = nil,
-        onEmployment: (() -> Void)? = nil
+        onEmployment: (() -> Void)? = nil,
+        highlightedButton: QuestionMenuButton = .none
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -137,10 +137,10 @@ struct ZodiacHeader: View {
         self.showMenu = showMenu
         self.onWellness = onWellness
         self.onRelationship = onRelationship
-        self.onPartner = onPartner
         self.onImportantPeople = onImportantPeople
         self.onChildren = onChildren
         self.onEmployment = onEmployment
+        self.highlightedButton = highlightedButton
     }
     
     // MARK: - Body
@@ -188,14 +188,14 @@ struct ZodiacHeader: View {
 
                     // Horizontal Question Menu anchored at the bottom of the header
                     if showMenu {
-                        QuestionMenu(
-                            onWellness: { onWellness?() },
-                            onRelationship: { onRelationship?() },
-                            onPartner: { onPartner?() },
-                            onImportantPeople: { onImportantPeople?() },
-                            onChildren: { onChildren?() },
-                            onEmployment: { onEmployment?() }
-                        )
+                                                    QuestionMenu(
+                                onWellness: { onWellness?() },
+                                onRelationship: { onRelationship?() },
+                                onImportantPeople: { onImportantPeople?() },
+                                onChildren: { onChildren?() },
+                                onEmployment: { onEmployment?() },
+                                highlightedButton: highlightedButton
+                            )
                         .padding(.horizontal, 16)
                         .padding(.bottom, 6)
                         .transition(.move(edge: .bottom).combined(with: .opacity))

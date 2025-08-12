@@ -94,13 +94,19 @@ struct FlipBook: View {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
                     switch state {
                     case .minimized:
-                        flipBookOffset = -50 // Move up slightly when minimized
+                        flipBookOffset = 0 // Return to original position when minimized
                     case .dismissed:
                         flipBookOffset = 0 // Return to normal position
                     case .expanded, .expandedWithTutorial, .expandedWithKeyboard:
                         flipBookOffset = -100 // Move up more when expanded
                     }
                 }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .flipBookCollapsed)) { _ in
+            // Return FlipBook to original position when collapsed
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
+                flipBookOffset = 0
             }
         }
         .onAppear {

@@ -61,41 +61,52 @@ struct FlipBookCard: View {
                 } else if let horoscope = horoscope {
                     // Content state
                     ZStack(alignment: .topTrailing) {
-                        ScrollView(.vertical, showsIndicators: false) {
-                            VStack(alignment: .leading, spacing: 16) {
-                                // Header
-                                Text(horoscope.title)
-                                    .font(.dmSansSemibold(size: 24))
-                                    .foregroundColor(globalFlipBookExpanded ? .black : .whiteCustom)
-                                    .padding(.horizontal, 20)
-                                    .padding(.top, 20)
+                        ScrollViewReader { scrollProxy in
+                            ScrollView(.vertical, showsIndicators: false) {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    // Header
+                                    Text(horoscope.title)
+                                        .font(.dmSansSemibold(size: 24))
+                                        .foregroundColor(globalFlipBookExpanded ? .black : .whiteCustom)
+                                        .padding(.horizontal, 20)
+                                        .padding(.top, 20)
+                                        .id("top") // Add ID for scrolling to top
 
-                                // Content
-                                Text(horoscope.message)
-                                    .font(.dmSansMedium(size: 16))
-                                    .foregroundColor(globalFlipBookExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
-                                    .lineSpacing(4)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 20)
-                                
-                                // Start Button (if enabled)
-                                if showStartButton {
-                                    HStack {
-                                        Spacer()
-                                        PrimaryGradientButton(title: "Start!") {
-                                            onStartButtonTap?()
+                                    // Content
+                                    Text(horoscope.message)
+                                        .font(.dmSansMedium(size: 16))
+                                        .foregroundColor(globalFlipBookExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
+                                        .lineSpacing(4)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 20)
+                                    
+                                    // Start Button (if enabled)
+                                    if showStartButton {
+                                        HStack {
+                                            Spacer()
+                                            PrimaryGradientButton(title: "Start!") {
+                                                onStartButtonTap?()
+                                            }
+                                            Spacer()
                                         }
-                                        Spacer()
+                                        .padding(.horizontal, 20)
                                     }
-                                    .padding(.horizontal, 20)
+                                    
+                                    Spacer(minLength: 20)
                                 }
-                                
-                                Spacer(minLength: 20)
+                                .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                             }
-                            .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                            .disabled(!isExpanded)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .onChange(of: isExpanded) { _, newValue in
+                                if !newValue {
+                                    // Scroll to top when contracting
+                                    withAnimation(.easeInOut(duration: 0.3)) {
+                                        scrollProxy.scrollTo("top", anchor: .top)
+                                    }
+                                }
+                            }
                         }
-                        .disabled(!isExpanded)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                         
                         // Top right buttons container
                         HStack(spacing: 8) {

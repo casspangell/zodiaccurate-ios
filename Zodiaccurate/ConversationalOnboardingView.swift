@@ -65,7 +65,7 @@ struct ConversationalOnboardingView: View {
             // Trigger badge animation when birth date is selected
             let (zodiacSign, assetName) = determineZodiacSignAndAsset(from: input)
             if zodiacSign != "Unknown" {
-                triggerBadgeAnimation(assetName)//kilroy
+                triggerBadgeAnimation(assetName)
             }
             
             print("👤 Updated birthDate: '\(input)' - Zodiac: \(zodiacSign)")

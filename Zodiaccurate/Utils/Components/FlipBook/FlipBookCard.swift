@@ -57,14 +57,14 @@ struct FlipBookCard: View {
                         // Header
                         Text(horoscope.title)
                             .font(.dmSansSemibold(size: 24))
-                            .foregroundColor(.whiteCustom)
+                            .foregroundColor(isExpanded ? .black : .whiteCustom)
                             .padding(.horizontal, 20)
                             .padding(.top, 20)
 
                         // Content
                         Text(horoscope.message)
                             .font(.dmSansMedium(size: 16))
-                            .foregroundColor(.whiteCustom.opacity(0.8))
+                            .foregroundColor(isExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
                             .lineSpacing(4)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 20)
@@ -72,13 +72,12 @@ struct FlipBookCard: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.white)
-//                            .fill(Color.bubbleMist.opacity(0.8))
-//                            .overlay(
-//                                RoundedRectangle(cornerRadius: 16)
-//                                    .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
-//                            )
+                        RoundedRectangle(cornerRadius: 16) //kilroy
+                            .fill(isExpanded ? Color.white : Color.bubbleMist.opacity(0.8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
+                            )
                     )
                     .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
                     

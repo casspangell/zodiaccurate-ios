@@ -9,8 +9,6 @@ struct FlipBookCard: View {
     // Internal state for expansion
     @State private var isExpanded = false
     @State private var cardHeight: CGFloat = 0.5
-    @State private var dragOffset: CGFloat = 0
-    @State private var isDragging = false
     
     // Card height constants
     private let cardHeightMinimized: CGFloat = 0.05
@@ -120,7 +118,7 @@ struct FlipBookCard: View {
                 }
             }
             .frame(height: geometry.size.height * cardHeight)
-            .offset(y: isExpanded ? -geometry.safeAreaInsets.top : dragOffset)
+            .offset(y: isExpanded ? -geometry.safeAreaInsets.top : 0)
             .background(
                 GeometryReader { cardGeometry in
                     Color.clear
@@ -131,69 +129,12 @@ struct FlipBookCard: View {
                 }
             )
             .contentShape(RoundedRectangle(cornerRadius: 16))
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        isDragging = true
-                        let translation = value.translation.height
-                        let screenHeight = geometry.size.height
-                        
-                        if isExpanded {
-                            // When expanded, allow normal drag behavior
-                            let heightDifference = (cardHeightExpanded - cardHeightNormal) * screenHeight
-                            let maxDrag = heightDifference * 0.3
-                            dragOffset = max(-maxDrag, min(translation, maxDrag))
-                        } else {
-                            // When in normal state, allow swiping up to expand or down to minimize
-                            let heightDifference = (cardHeightNormal - cardHeightMinimized) * screenHeight
-                            let maxDrag = heightDifference * 0.5
-                            dragOffset = max(-maxDrag, min(translation, maxDrag))
-                        }
-                    }
-                    .onEnded { value in
-                        let translation = value.translation.height
-                        let velocity = value.velocity.height
-                        let screenHeight = geometry.size.height
-                        
-                        if isExpanded {
-                            // When expanded, determine if we should collapse
-                            let shouldCollapse = translation > 50 || velocity > 500
-                            
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                if shouldCollapse {
-                                    cardHeight = cardHeightNormal
-                                    isExpanded = false
-                                    // Post notification to deactivate component
-                                    NotificationCenter.default.post(name: .componentDeactivated, object: nil)
-                                }
-                                dragOffset = 0
-                            }
-                        } else {
-                            // When in normal state, determine if we should expand or minimize
-                            let shouldExpand = translation < -50 || velocity < -500
-                            let shouldMinimize = translation > 30 || velocity > 300
-                            
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                if shouldExpand && !isExpanded {
-                                    cardHeight = cardHeightExpanded
-                                    isExpanded = true
-                                } else if shouldMinimize {
-                                    cardHeight = cardHeightMinimized
-                                }
-                                dragOffset = 0
-                            }
-                        }
-                        
-                        isDragging = false
-                    }
-            )
             .onTapGesture {
                 if isExpanded {
                     // Tap to collapse from expanded state
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                         cardHeight = cardHeightNormal
                         isExpanded = false
-                        dragOffset = 0
                     }
                     // Post notification to reset spacing
                     NotificationCenter.default.post(name: .flipBookCollapsed, object: nil)
@@ -204,7 +145,6 @@ struct FlipBookCard: View {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                         cardHeight = cardHeightExpanded
                         isExpanded = true
-                        dragOffset = 0
                     }
                     // Post notification to move FlipBook to top
                     NotificationCenter.default.post(name: .flipBookMoveToTop, object: nil)

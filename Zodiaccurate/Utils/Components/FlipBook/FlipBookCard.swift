@@ -95,9 +95,11 @@ struct FlipBookCard: View {
                                     Spacer(minLength: 20)
                                 }
                                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                                .layoutPriority(1) // Ensure proper layout priority
                             }
                             .disabled(!isExpanded)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .animation(.none, value: isExpanded) // Disable animations during frame changes
                             .onChange(of: isExpanded) { _, newValue in
                                 if !newValue {
                                     // Scroll to top when contracting
@@ -207,6 +209,7 @@ struct FlipBookCard: View {
             }
             .frame(height: geometry.size.height * cardHeight)
             .offset(y: isExpanded ? -geometry.safeAreaInsets.top : 0)
+            .animation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0), value: cardHeight) // Animate only cardHeight changes
             .background(
                 GeometryReader { cardGeometry in
                     Color.clear

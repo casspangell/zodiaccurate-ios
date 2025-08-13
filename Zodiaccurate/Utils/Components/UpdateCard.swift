@@ -263,56 +263,56 @@ struct UpdateCard: View {
                         isDragging = false
                     }
             )
-            .onTapGesture {
-                // Post notification to activate UpdateCard
-                NotificationCenter.default.post(name: .updateCardActivated, object: nil)
-                if isExpanded {
-                    // Dismiss keyboard first
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                    
-                    // Then animate card collapse
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                            cardHeight = cardHeightDismissed
-                            isExpanded = false
-                            isMinimized = false
-                            dragOffset = 0
-                        }
-                        postStateChangeNotification(state: .dismissed)
-                    }
-                } else if isMinimized {
-                    // Tap to return to dismissed state from minimized
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                        cardHeight = cardHeightDismissed
-                        isMinimized = false
-                        dragOffset = 0
-                    }
-                    postStateChangeNotification(state: .dismissed)
-                } else {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                         if !hasDismissedTutorial {
-                            cardHeight = cardHeightExpandedWithTutorial
-                            isExpanded = true
-                            postStateChangeNotification(state: .expandedWithTutorial)
-                            
-                            // Show tutorial on first expansion
-                             if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        showTutorialBubble = true
-                                        hasShownTutorial = true
-                                    }
-                                }
-                            }
-                        } else {
-                            cardHeight = cardHeightExpanded
-                            isExpanded = true
-                            postStateChangeNotification(state: .expanded)
-                        }
-                        dragOffset = 0
-                    }
-                }
-            }
+//            .onTapGesture {
+//                // Post notification to activate UpdateCard
+//                NotificationCenter.default.post(name: .updateCardActivated, object: nil)
+//                if isExpanded {
+//                    // Dismiss keyboard first
+//                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+//                    
+//                    // Then animate card collapse
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+//                            cardHeight = cardHeightDismissed
+//                            isExpanded = false
+//                            isMinimized = false
+//                            dragOffset = 0
+//                        }
+//                        postStateChangeNotification(state: .dismissed)
+//                    }
+//                } else if isMinimized {
+//                    // Tap to return to dismissed state from minimized
+//                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+//                        cardHeight = cardHeightDismissed
+//                        isMinimized = false
+//                        dragOffset = 0
+//                    }
+//                    postStateChangeNotification(state: .dismissed)
+//                } else {
+//                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+//                         if !hasDismissedTutorial {
+//                            cardHeight = cardHeightExpandedWithTutorial
+//                            isExpanded = true
+//                            postStateChangeNotification(state: .expandedWithTutorial)
+//                            
+//                            // Show tutorial on first expansion
+//                             if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
+//                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//                                    withAnimation(.easeInOut(duration: 0.3)) {
+//                                        showTutorialBubble = true
+//                                        hasShownTutorial = true
+//                                    }
+//                                }
+//                            }
+//                        } else {
+//                            cardHeight = cardHeightExpanded
+//                            isExpanded = true
+//                            postStateChangeNotification(state: .expanded)
+//                        }
+//                        dragOffset = 0
+//                    }
+//                }
+//            }
         }
         .onAppear {
             setupKeyboardObservers()
@@ -428,22 +428,7 @@ struct UpdateCard: View {
             dragOffset = 0
         }
     }
-    
-    // MARK: - Green Background Animation
-//    func triggerTransistionAnimation() {
-//        // Show green background
-//        withAnimation(.easeInOut(duration: 0.5)) {
-//            showGreenBackground = true
-//        }
-//        
-//        // Return to black background after 2 seconds
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-//            withAnimation(.easeInOut(duration: 0.5)) {
-//                showGreenBackground = false
-//            }
-//        }
-//    }
-    
+
     // MARK: - Glistening Animation
     func fireGlisteningBackground() {
         triggerGlistening = true

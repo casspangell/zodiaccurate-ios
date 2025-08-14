@@ -214,6 +214,9 @@ struct UpdateCard: View {
                                     cardHeight = cardHeightDismissed
                                     isExpanded = false
                                     isMinimized = false
+                                    postStateChangeNotification(state: .dismissed)
+                                    // Post specific notification that UpdateCard is dismissed
+                                    NotificationCenter.default.post(name: .updateCardDismissed, object: nil)
                                 }
                                 dragOffset = 0
                             }
@@ -231,6 +234,8 @@ struct UpdateCard: View {
                                     cardHeight = cardHeightDismissed
                                     isMinimized = false
                                     postStateChangeNotification(state: .dismissed)
+                                    // Post specific notification that UpdateCard is dismissed
+                                    NotificationCenter.default.post(name: .updateCardDismissed, object: nil)
                                 } else if !isMinimized {
                                     // Check if we should expand from dismissed state
                                     let shouldExpand = translation < -50 || velocity < -500
@@ -403,6 +408,8 @@ struct UpdateCard: View {
         postStateChangeNotification(state: .dismissed)
         // Post notification to deactivate component
         NotificationCenter.default.post(name: .componentDeactivated, object: nil)
+        // Post specific notification that UpdateCard is dismissed
+        NotificationCenter.default.post(name: .updateCardDismissed, object: nil)
     }
     
     private func onCardExpanded() {

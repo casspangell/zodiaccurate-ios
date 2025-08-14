@@ -11,6 +11,7 @@ struct FlipBook: View {
     @State private var currentIndex: Int = 0
     @State private var updateCardState: UpdateCardState = .dismissed
     @State private var flipBookOffset: CGFloat = 0
+    @State private var isVisible: Bool = true
     
     private let pageCount: Int
     private let pageSpacing: CGFloat = 20
@@ -98,22 +99,26 @@ struct FlipBook: View {
             }
             .frame(maxWidth: .infinity)
             .offset(y: flipBookOffset)
-            .opacity(updateCardState == .expanded || updateCardState == .expandedWithTutorial || updateCardState == .expandedWithKeyboard ? 0 : 1)
-            .animation(.easeInOut(duration: 0.3), value: updateCardState)
+            .opacity(isVisible ? 1 : 0)
+            .animation(.easeInOut(duration: 0.3), value: isVisible)
         }
         .onReceive(NotificationCenter.default.publisher(for: .updateCardStateChanged)) { notification in
             if let state = notification.userInfo?["state"] as? UpdateCardState {
                 updateCardState = state
                 
-                // Animate FlipBook position based on UpdateCard state
+                // Animate FlipBook position and visibility based on UpdateCard state
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
                     switch state {
                     case .minimized:
                         flipBookOffset = 0 // Return to original position when minimized
+                        isVisible = true // Keep visible when minimized
                     case .dismissed:
                         flipBookOffset = 0 // Return to normal position
+                        isVisible = true // Ensure FlipBook is visible when UpdateCard is dismissed
+                        print("🔄 FlipBook: UpdateCard dismissed - ensuring FlipBook is visible")
                     case .expanded, .expandedWithTutorial, .expandedWithKeyboard:
                         flipBookOffset = -100 // Move up more when expanded
+                        isVisible = false // Hide when UpdateCard is expanded
                     }
                 }
             }
@@ -122,6 +127,15 @@ struct FlipBook: View {
             // Return FlipBook to original position when collapsed
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
                 flipBookOffset = 0
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .updateCardDismissed)) { _ in
+            // Ensure FlipBook is visible when UpdateCard is dismissed
+            print("🔄 FlipBook: Received updateCardDismissed notification - ensuring visibility")
+            withAnimation(.easeInOut(duration: 0.3)) {
+                updateCardState = .dismissed
+                flipBookOffset = 0
+                isVisible = true
             }
         }
         .onAppear {

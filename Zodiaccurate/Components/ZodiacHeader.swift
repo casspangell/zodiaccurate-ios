@@ -316,12 +316,59 @@ struct ZodiacHeader: View {
             // Optional centered label - only visible in compact mode
             Group {
                 if displayMode == .compact, let label = centeredLabel {
-                    Text(label)
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 20)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    VStack(spacing: 0) {
+                        Spacer()
+                        
+                        // Fancy label with gradient and effects
+                        Text(label)
+                            .font(.dmSansSemibold(size: 20))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.white
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color.deepBlue.opacity(0.9),
+                                                Color.accentPurple.opacity(0.9)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .stroke(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [
+                                                        Color.electricBlue.opacity(0.95),
+                                                        Color.magenta
+                                                    ]),
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 1.5
+                                            )
+                                    )
+                                    .shadow(color: Color.orange.opacity(0.9), radius: 20, x: 0, y: 4)
+                                    .shadow(color: Color.magenta.opacity(0.6), radius: 10, x: 0, y: 6)
+                            )
+                            .scaleEffect(1.0)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: label)
+                        
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         )
@@ -445,7 +492,7 @@ struct ZodiacHeader: View {
                     print("Settings button tapped")
                 },
                 displayMode: .compact,
-                centeredLabel: "Compact Mode"
+                centeredLabel: "Relationship"
             )
         }
     }

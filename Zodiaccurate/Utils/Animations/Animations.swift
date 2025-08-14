@@ -476,7 +476,11 @@ struct HandDrawAnimation: View {
             if let description = description {
                 Text(description)
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white.opacity(0.7))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.black.opacity(0.3))
+                    .cornerRadius(8)
                     .multilineTextAlignment(.center)
             }
         }

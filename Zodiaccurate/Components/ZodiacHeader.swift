@@ -77,6 +77,8 @@ struct ZodiacHeader: View {
     let onChildren: (() -> Void)?
     let onEmployment: (() -> Void)?
     let highlightedButton: QuestionMenuButton
+    // Optional centered label
+    let centeredLabel: String?
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
     @State private var headerBackgroundOpacity: Double = 1.0
@@ -119,7 +121,8 @@ struct ZodiacHeader: View {
         onImportantPeople: (() -> Void)? = nil,
         onChildren: (() -> Void)? = nil,
         onEmployment: (() -> Void)? = nil,
-        highlightedButton: QuestionMenuButton = .none
+        highlightedButton: QuestionMenuButton = .none,
+        centeredLabel: String? = nil
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -141,6 +144,7 @@ struct ZodiacHeader: View {
         self.onChildren = onChildren
         self.onEmployment = onEmployment
         self.highlightedButton = highlightedButton
+        self.centeredLabel = centeredLabel
     }
     
     // MARK: - Body
@@ -308,6 +312,19 @@ struct ZodiacHeader: View {
                 )
             }
         }
+        .overlay(
+            // Optional centered label - only visible in compact mode
+            Group {
+                if displayMode == .compact, let label = centeredLabel {
+                    Text(label)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 20)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+        )
         .opacity(headerOpacity)
         .zIndex(2)
         .onAppear {
@@ -315,6 +332,7 @@ struct ZodiacHeader: View {
             print("   🎭 Profile image: \(profileImage)")
             print("   📅 Today's date: \(todaysDate)")
             print("   🎛️ Display mode: \(displayMode)")
+            print("   🏷️ Centered label: \(centeredLabel ?? "nil")")
             
             // Initialize BadgeAnimationManager with the initial profile image
             badgeAnimationManager.currentProfileImage = profileImage
@@ -410,6 +428,24 @@ struct ZodiacHeader: View {
                     print("Settings button tapped")
                 },
                 displayMode: .initial
+            )
+            
+            ZodiacHeader(
+                profileImage: "Leo",
+                badgeScale: 1.0,
+                badgeRotation: 0,
+                cosmicGlowOpacity: 0.5,
+                nebulaOpacity: 0.3,
+                starFieldOpacity: 0.4,
+                cosmicParticlesOpacity: 0.6,
+                sparkleOpacity: 0.8,
+                badgeSize: nil,
+                todaysDate: ZodiacHeader.formatCurrentDate(),
+                onSettingsTap: {
+                    print("Settings button tapped")
+                },
+                displayMode: .compact,
+                centeredLabel: "Compact Mode"
             )
         }
     }

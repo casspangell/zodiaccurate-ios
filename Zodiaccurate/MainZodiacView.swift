@@ -334,7 +334,8 @@ struct MainZodiacView: View {
                 onComplete: {
                     showWellnessConversation = false
                 },
-                topInsetMode: .compact
+                topInsetMode: .compact,
+                questionCategory: .wellness
             )
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])

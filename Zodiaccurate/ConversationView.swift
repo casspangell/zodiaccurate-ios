@@ -20,9 +20,33 @@ struct ConversationView: View {
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
     let topInsetMode: ChatTopInsetMode
+    let questionCategory: QuestionMenuButton?
     
     // MARK: - Internal user placeholder (required by ZodiacChatView for personalization/GPT hooks)
     @State private var placeholderUser = User()
+    
+    // MARK: - Computed Properties
+    private var categoryDisplayText: String? {
+        if let category = questionCategory {
+            switch category {
+            case .wellness:
+                return "Wellness"
+            case .relationship:
+                return "Relationship"
+            case .importantPeople:
+                return "Important People"
+            case .children:
+                return "Children"
+            case .employment:
+                return "Employment"
+            case .none:
+                return "Questions"
+            }
+        } else {
+            // Default to "Questions" for compact display mode
+            return "Questions"
+        }
+    }
     
     init(
         conversationSteps: [ConversationStep],
@@ -34,7 +58,8 @@ struct ConversationView: View {
         triggerBadgeAnimation: @escaping (String) -> Void = { _ in },
         backgroundColor: Color? = nil,
         bubbleColor: ChatBubbleColor? = nil,
-        topInsetMode: ChatTopInsetMode = .large
+        topInsetMode: ChatTopInsetMode = .large,
+        questionCategory: QuestionMenuButton? = nil
     ) {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
@@ -46,6 +71,7 @@ struct ConversationView: View {
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
         self.topInsetMode = topInsetMode
+        self.questionCategory = questionCategory
     }
     
     var body: some View {
@@ -79,7 +105,8 @@ struct ConversationView: View {
             
             ZodiacHeader(
                 profileImage: profileImage,
-                displayMode: .compact
+                displayMode: .compact,
+                centeredLabel: categoryDisplayText
             )
             .frame(maxWidth: .infinity)
         }
@@ -93,11 +120,21 @@ struct ConversationView: View {
 
 #if DEBUG
 #Preview {
-    ConversationView(
-        conversationSteps: exampleConversationSteps,
-        displayName: .constant("Cass"),
-        onResponse: { _, _ in }
-    )
+    VStack(spacing: 20) {
+        ConversationView(
+            conversationSteps: exampleConversationSteps,
+            displayName: .constant("Cass"),
+            onResponse: { _, _ in },
+            questionCategory: .wellness
+        )
+        
+        ConversationView(
+            conversationSteps: exampleConversationSteps,
+            displayName: .constant("Cass"),
+            onResponse: { _, _ in }
+            // No questionCategory - should default to "Questions"
+        )
+    }
 }
 #endif
 

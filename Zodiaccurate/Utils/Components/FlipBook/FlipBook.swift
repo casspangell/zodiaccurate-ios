@@ -11,7 +11,6 @@ struct FlipBook: View {
     @State private var currentIndex: Int = 0
     @State private var updateCardState: UpdateCardState = .dismissed
     @State private var flipBookOffset: CGFloat = 0
-    @State private var showHandAnimation: Bool = true
     
     private let pageCount: Int
     private let pageSpacing: CGFloat = 20
@@ -29,63 +28,61 @@ struct FlipBook: View {
                 FlipBookPageIndicator(currentIndex: currentIndex, pageCount: pageCount)
                     .padding(.bottom, 16)
                     .padding(.top, 30)
-
+                
                 GeometryReader { geometry in
-                    ZStack {
-                        ScrollViewReader { proxy in
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: pageSpacing) {
-                                    // Add leading spacer for centering
-                                    Spacer()
-                                        .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
-                                    
-                                    ForEach(Array(pages.enumerated()), id: \.offset) { index, card in
-                                        FlipBookPage(
-                                            card: card, 
-                                            index: index,
-                                            canNavigateLeft: index > 0,
-                                            canNavigateRight: index < pageCount - 1,
-                                            onNavigateLeft: {
-                                                withAnimation(.easeInOut(duration: 0.3)) {
-                                                    currentIndex = index - 1
-                                                }
-                                            },
-                                            onNavigateRight: {
-                                                withAnimation(.easeInOut(duration: 0.3)) {
-                                                    currentIndex = index + 1
-                                                }
+                    ScrollViewReader { proxy in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: pageSpacing) {
+                                // Add leading spacer for centering
+                                Spacer()
+                                    .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
+                                
+                                ForEach(Array(pages.enumerated()), id: \.offset) { index, card in
+                                    FlipBookPage(
+                                        card: card, 
+                                        index: index,
+                                        canNavigateLeft: index > 0,
+                                        canNavigateRight: index < pageCount - 1,
+                                        onNavigateLeft: {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                currentIndex = index - 1
                                             }
-                                        )
-                                        .frame(width: geometry.size.width - 40)
-                                        .id(index)
-                                        .scrollTransition(.animated, axis: .horizontal) { content, phase in
-                                            content
-                                                .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
-                                                .opacity(phase.isIdentity ? 1.0 : 0.7)
+                                        },
+                                        onNavigateRight: {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                currentIndex = index + 1
+                                            }
                                         }
-                                    }
-                                    
-                                    // Add trailing spacer for centering
-                                    Spacer()
-                                        .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
-                                }
-                                .scrollTargetLayout()
-                            }
-                            .scrollTargetBehavior(.viewAligned)
-                            .scrollPosition(id: .init(get: { currentIndex }, set: { newPosition in
-                                if let newIndex = newPosition {
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        currentIndex = newIndex
-                                    }
-                                    // Notify other components about the index change
-                                    NotificationCenter.default.post(
-                                        name: .flipBookIndexChanged,
-                                        object: nil,
-                                        userInfo: ["index": newIndex]
                                     )
+                                    .frame(width: geometry.size.width - 40)
+                                    .id(index)
+                                    .scrollTransition(.animated, axis: .horizontal) { content, phase in
+                                        content
+                                            .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
+                                            .opacity(phase.isIdentity ? 1.0 : 0.7)
+                                    }
                                 }
-                            }))
+                                
+                                // Add trailing spacer for centering
+                                Spacer()
+                                    .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
+                            }
+                            .scrollTargetLayout()
                         }
+                        .scrollTargetBehavior(.viewAligned)
+                        .scrollPosition(id: .init(get: { currentIndex }, set: { newPosition in
+                            if let newIndex = newPosition {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    currentIndex = newIndex
+                                }
+                                // Notify other components about the index change
+                                NotificationCenter.default.post(
+                                    name: .flipBookIndexChanged,
+                                    object: nil,
+                                    userInfo: ["index": newIndex]
+                                )
+                            }
+                        }))
                     }
                 }
                 .frame(height: {
@@ -163,39 +160,23 @@ struct FlipBookPage: View {
     let canNavigateRight: Bool
     let onNavigateLeft: (() -> Void)?
     let onNavigateRight: (() -> Void)?
-    @State private var showHandAnimation: Bool = true
     
     var body: some View {
-        ZStack {
-            VStack {
-                FlipBookCard(
-                    horoscope: card.horoscope,
-                    isLoading: card.isLoading,
-                    onCardTap: card.onCardTap,
-                    showStartButton: card.showStartButton,
-                    onStartButtonTap: card.onStartButtonTap,
-                    canNavigateLeft: canNavigateLeft,
-                    canNavigateRight: canNavigateRight,
-                    onNavigateLeft: onNavigateLeft,
-                    onNavigateRight: onNavigateRight
-                )
-                .padding(.horizontal, 10)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            
-            
-            // Hand Draw Animation overlay in the center
-            if showHandAnimation {
-                HandDrawAnimation(description: "Tap to Dismiss")
-                    .opacity(showHandAnimation ? 1.0 : 0.0)
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showHandAnimation = false
-                        }
-                    }
-            }
+        VStack {
+            FlipBookCard(
+                horoscope: card.horoscope,
+                isLoading: card.isLoading,
+                onCardTap: card.onCardTap,
+                showStartButton: card.showStartButton,
+                onStartButtonTap: card.onStartButtonTap,
+                canNavigateLeft: canNavigateLeft,
+                canNavigateRight: canNavigateRight,
+                onNavigateLeft: onNavigateLeft,
+                onNavigateRight: onNavigateRight
+            )
+            .padding(.horizontal, 10)
         }
-
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -241,6 +222,11 @@ struct FlipBookPageIndicator: View {
                     )
                 ]
             )
+            
+            Spacer()
+            
+            // Default FlipBook for comparison
+            FlipBook()
         }
     }
 }

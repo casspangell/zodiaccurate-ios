@@ -25,6 +25,7 @@ struct MainZodiacView: View {
     @State private var activeComponent: ActiveComponent = .none
     @State private var flipBookCardBottomPosition: CGFloat = 0
     @State private var currentFlipBookIndex: Int = 0
+    @State private var showHandAnimation: Bool = true
     
     var headerFlipBookSpacingDefault: CGFloat {
         return headerHeight + getQuestionMenuHeight() //getSafeAreaTop() + headerHeight + getQuestionMenuHeight()
@@ -179,12 +180,13 @@ struct MainZodiacView: View {
                                 .zIndex(getZIndex(.five))
                             }
                         }
+                    
                         
                         // FlipBook layer directly under header (gated by consent)
                         if hasAcceptedConsentPolicies {
                             // Push FlipBook toward bottom to reduce bottom gap
-//                            Spacer(minLength: 0)
-
+                            //                            Spacer(minLength: 0)
+                            
                             FlipBook(pages: createFlipBookCards())
                                 .padding(.bottom, 8)
                                 .zIndex(activeComponent == .flipBook ? getZIndex(.active) : getZIndex(.one))
@@ -238,6 +240,23 @@ struct MainZodiacView: View {
                     }
                     .zIndex(getZIndex(.two))
 
+                    // Hand Draw Animation overlay
+//                    if hasAcceptedConsentPolicies && showHandAnimation {
+//                        VStack {
+//                            Spacer()
+//                            ZStack {
+//                                // Hand Draw Animation
+//                                HandDrawAnimation(description: "Tap to Dismiss")
+//                            }
+//                            .onTapGesture {
+//                                withAnimation(.easeInOut(duration: 0.3)) {
+//                                    showHandAnimation = false
+//                                }
+//                            }
+//                            Spacer()
+//                        }
+//                        .zIndex(getZIndex(.three))
+//                    }
                     
                     // UpdateCard layer (topmost) - disable interaction until consent is accepted
                     UpdateCard()
@@ -481,6 +500,6 @@ struct MainZodiacView: View {
     UserDefaults.standard.set(true, forKey: "hasAcceptedConsentPolicies")
     
     // Create a preview-specific view that ensures data is loaded
-    return MainZodiacView(completedOnboarding: false)
+    return MainZodiacView(completedOnboarding: true)
         .environmentObject(AuthenticationManager())
 }

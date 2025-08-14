@@ -464,24 +464,35 @@ struct HandDrawAnimation: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "hand.draw")
-                .font(.system(size: 44, weight: .medium))
-                .foregroundColor(.white)
-                .rotationEffect(.degrees(rotation))
-                .onAppear {
-                    startAnimation()
-                }
+        ZStack {
+//            RoundedRectangle(cornerRadius: 16)
+//                .fill(Color.white)
+//                .frame(width: 70, height: 70)
+//                .padding(.bottom, 20)
             
-            if let description = description {
-                Text(description)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.black.opacity(0.3))
-                    .cornerRadius(8)
-                    .multilineTextAlignment(.center)
+            VStack(spacing: 0) {
+                Image(systemName: "hand.draw.fill")
+                    .font(.system(size: 44, weight: .medium))
+                    .foregroundColor(Color.yellow)
+                    .background(
+                        Image(systemName: "hand.draw.fill")
+                            .font(.system(size: 44, weight: .medium))
+                            .foregroundColor(Color.accentPurple)
+                            .scaleEffect(1.5)
+                            .blur(radius: 20)
+                    )
+                    .rotationEffect(.degrees(rotation))
+                    .onAppear {
+                        startAnimation()
+                    }
+                
+                if let description = description {
+                    Text(description)
+                        .font(.caption)
+                        .foregroundColor(Color.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 8)
+                }
             }
         }
     }
@@ -515,21 +526,20 @@ struct HandDrawAnimation: View {
 #Preview {
     ZStack {
         // Dark background to match your app theme
-        Color.black.ignoresSafeArea()
+        VerticleAuroraBackgroundView()
         
-        VStack(spacing: 40) {
-            Text("Hand Draw Animation")
-                .font(.title2)
-                .foregroundColor(.white)
+//        VStack(spacing: 40) {
+
+        HandDrawAnimation(description: "Tap to Dismiss")
+//            }
             
-            HandDrawAnimation(description: "Default animation")
-            
-            HandDrawAnimation(animationDuration: 2.5, description: "Slower animation")
-            
-            HandDrawAnimation(repeatForever: false, description: "Single play cycle")
-            
-            HandDrawAnimation(description: "Tap to draw")
-        }
+//            // Without background circle
+//            HandDrawAnimation(description: "Default animation")
+//            
+//            HandDrawAnimation(animationDuration: 2.5, description: "Slower animation")
+//            
+//            HandDrawAnimation(repeatForever: false, description: "Single play cycle")
+//        }
     }
 }
 

@@ -6,6 +6,13 @@ struct FlipBookCard: View {
     let onCardTap: (() -> Void)?
     let showStartButton: Bool
     let onStartButtonTap: (() -> Void)?
+    
+    // Navigation parameters
+    let canNavigateLeft: Bool
+    let canNavigateRight: Bool
+    let onNavigateLeft: (() -> Void)?
+    let onNavigateRight: (() -> Void)?
+    
     @StateObject private var audioManager = AudioManager.shared
     
     // Internal state for expansion
@@ -18,21 +25,29 @@ struct FlipBookCard: View {
     private let cardHeightNormal: CGFloat = 0.5
     private let cardHeightExpanded: CGFloat = 0.8
     
-    init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil) {
+    init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = horoscope
         self.isLoading = isLoading
         self.onCardTap = onCardTap
         self.showStartButton = showStartButton
         self.onStartButtonTap = onStartButtonTap
+        self.canNavigateLeft = canNavigateLeft
+        self.canNavigateRight = canNavigateRight
+        self.onNavigateLeft = onNavigateLeft
+        self.onNavigateRight = onNavigateRight
     }
     
     // Convenience initializer for backward compatibility
-    init(title: String, content: String, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil) {
+    init(title: String, content: String, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = Horoscope(title: title, message: content, key: "temp")
         self.isLoading = false
         self.onCardTap = onCardTap
         self.showStartButton = showStartButton
         self.onStartButtonTap = onStartButtonTap
+        self.canNavigateLeft = canNavigateLeft
+        self.canNavigateRight = canNavigateRight
+        self.onNavigateLeft = onNavigateLeft
+        self.onNavigateRight = onNavigateRight
     }
     
     var body: some View {
@@ -61,6 +76,61 @@ struct FlipBookCard: View {
                 } else if let horoscope = horoscope {
                     // Content state
                     ZStack(alignment: .topTrailing) {
+                        // Left navigation chevron
+                        if canNavigateLeft {
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    CircleIconButtonNoBackground(
+                                        systemName: "chevron.left",
+                                        accessibilityLabel: "Previous card",
+                                        iconColor: globalFlipBookExpanded ? .black : .white,
+                                        strokeColor: globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7),
+                                        action: {
+                                            onNavigateLeft?()
+                                        }
+                                    )
+                                    Spacer()
+                                }
+                                .padding(.leading, 12)
+                                Spacer()
+                            }
+                            .background(
+                                Circle()
+                                    .fill(Color.black.opacity(0.1))
+                                    .frame(width: 44, height: 44)
+                                    .offset(x: 6)
+                            )
+                            .zIndex(2)
+                        }
+                        
+                        // Right navigation chevron
+                        if canNavigateRight {
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    CircleIconButtonNoBackground(
+                                        systemName: "chevron.right",
+                                        accessibilityLabel: "Next card",
+                                        iconColor: globalFlipBookExpanded ? .black : .white,
+                                        strokeColor: globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7),
+                                        action: {
+                                            onNavigateRight?()
+                                        }
+                                    )
+                                }
+                                .padding(.trailing, 12)
+                                Spacer()
+                            }
+                            .background(
+                                Circle()
+                                    .fill(Color.black.opacity(0.1))
+                                    .frame(width: 44, height: 44)
+                                    .offset(x: -6)
+                            )
+                            .zIndex(2)
+                        }
                         ScrollViewReader { scrollProxy in
                             ScrollView(.vertical, showsIndicators: false) {
                                 VStack(alignment: .leading, spacing: 16) {
@@ -238,7 +308,7 @@ struct FlipBookCard: View {
             .frame(height: 300)
             .padding()
         
-        // Loaded state
+        // Loaded state with navigation arrows
         FlipBookCard(
             horoscope: Horoscope(
                 title: "Parenting",
@@ -248,6 +318,14 @@ struct FlipBookCard: View {
             isLoading: false,
             onCardTap: {
                 print("Card tapped - would move FlipBook to top")
+            },
+            canNavigateLeft: true,
+            canNavigateRight: true,
+            onNavigateLeft: {
+                print("Navigate left tapped!")
+            },
+            onNavigateRight: {
+                print("Navigate right tapped!")
             }
         )
         .frame(height: 300)

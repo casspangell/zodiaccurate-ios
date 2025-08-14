@@ -38,14 +38,29 @@ struct FlipBook: View {
                                     .frame(width: (geometry.size.width - (geometry.size.width - 40)) / 2 - pageSpacing)
                                 
                                 ForEach(Array(pages.enumerated()), id: \.offset) { index, card in
-                                    FlipBookPage(card: card, index: index)
-                                        .frame(width: geometry.size.width - 40)
-                                        .id(index)
-                                        .scrollTransition(.animated, axis: .horizontal) { content, phase in
-                                            content
-                                                .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
-                                                .opacity(phase.isIdentity ? 1.0 : 0.7)
+                                    FlipBookPage(
+                                        card: card, 
+                                        index: index,
+                                        canNavigateLeft: index > 0,
+                                        canNavigateRight: index < pageCount - 1,
+                                        onNavigateLeft: {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                currentIndex = index - 1
+                                            }
+                                        },
+                                        onNavigateRight: {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                currentIndex = index + 1
+                                            }
                                         }
+                                    )
+                                    .frame(width: geometry.size.width - 40)
+                                    .id(index)
+                                    .scrollTransition(.animated, axis: .horizontal) { content, phase in
+                                        content
+                                            .scaleEffect(phase.isIdentity ? 1.0 : 0.9)
+                                            .opacity(phase.isIdentity ? 1.0 : 0.7)
+                                    }
                                 }
                                 
                                 // Add trailing spacer for centering
@@ -141,11 +156,25 @@ extension FlipBook {
 struct FlipBookPage: View {
     let card: FlipBookCard
     let index: Int
+    let canNavigateLeft: Bool
+    let canNavigateRight: Bool
+    let onNavigateLeft: (() -> Void)?
+    let onNavigateRight: (() -> Void)?
     
     var body: some View {
         VStack {
-            card
-                .padding(.horizontal, 10)
+            FlipBookCard(
+                horoscope: card.horoscope,
+                isLoading: card.isLoading,
+                onCardTap: card.onCardTap,
+                showStartButton: card.showStartButton,
+                onStartButtonTap: card.onStartButtonTap,
+                canNavigateLeft: canNavigateLeft,
+                canNavigateRight: canNavigateRight,
+                onNavigateLeft: onNavigateLeft,
+                onNavigateRight: onNavigateRight
+            )
+            .padding(.horizontal, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

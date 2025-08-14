@@ -105,6 +105,7 @@ struct FlipBook: View {
         .onReceive(NotificationCenter.default.publisher(for: .updateCardStateChanged)) { notification in
             if let state = notification.userInfo?["state"] as? UpdateCardState {
                 updateCardState = state
+                print("🔄 FlipBook: UpdateCard state changed to \(state)")
                 
                 // Animate FlipBook position and visibility based on UpdateCard state
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)) {
@@ -112,6 +113,7 @@ struct FlipBook: View {
                     case .minimized:
                         flipBookOffset = 0 // Return to original position when minimized
                         isVisible = true // Keep visible when minimized
+                        print("🔄 FlipBook: UpdateCard minimized - FlipBook visible")
                     case .dismissed:
                         flipBookOffset = 0 // Return to normal position
                         isVisible = true // Ensure FlipBook is visible when UpdateCard is dismissed
@@ -119,6 +121,7 @@ struct FlipBook: View {
                     case .expanded, .expandedWithTutorial, .expandedWithKeyboard:
                         flipBookOffset = -100 // Move up more when expanded
                         isVisible = false // Hide when UpdateCard is expanded
+                        print("🔄 FlipBook: UpdateCard expanded - FlipBook hidden")
                     }
                 }
             }

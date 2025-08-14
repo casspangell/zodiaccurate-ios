@@ -335,7 +335,7 @@ struct MainZodiacView: View {
                     showWellnessConversation = false
                 },
                 topInsetMode: .compact,
-                questionCategory: .wellness
+                questionCategory: getQuestionCategoryFromDisplayName(wellnessDisplayName)
             )
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
@@ -420,7 +420,8 @@ struct MainZodiacView: View {
 //                onCardTap: { showWellnessConversation = true },
                 showStartButton: true,
                 onStartButtonTap: {
-                    print("Wellness start button tapped")
+                    wellnessDisplayName = "Wellness"
+                    showWellnessConversation = true
                 }
             ),
             FlipBookCard(
@@ -428,7 +429,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    print("Partner start button tapped")
+                    wellnessDisplayName = "Relationship"
+                    showWellnessConversation = true
                 }
             ),
             FlipBookCard(
@@ -436,7 +438,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    print("Important People start button tapped")
+                    wellnessDisplayName = "Important People"
+                    showWellnessConversation = true
                 }
             ),
             FlipBookCard(
@@ -444,7 +447,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    print("Children start button tapped")
+                    wellnessDisplayName = "Children"
+                    showWellnessConversation = true
                 }
             ),
             FlipBookCard(
@@ -452,7 +456,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    print("Employment start button tapped")
+                    wellnessDisplayName = "Employment"
+                    showWellnessConversation = true
                 }
             )
         ])
@@ -465,6 +470,25 @@ struct MainZodiacView: View {
     private func adjustHeaderFlipBookSpacing(expanded: Bool) {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
             headerFlipBookSpacing = expanded ? -200 : headerFlipBookSpacingDefault
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func getQuestionCategoryFromDisplayName(_ displayName: String) -> QuestionMenuButton {
+        switch displayName {
+        case "Wellness":
+            return .wellness
+        case "Relationship":
+            return .relationship
+        case "Important People":
+            return .importantPeople
+        case "Children":
+            return .children
+        case "Employment":
+            return .employment
+        default:
+            return .wellness
         }
     }
     

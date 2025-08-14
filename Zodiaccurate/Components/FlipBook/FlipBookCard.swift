@@ -21,7 +21,7 @@ struct FlipBookCard: View {
     @State private var globalFlipBookExpanded = false
     
     // Card height constants
-    private let cardHeightMinimized: CGFloat = 0.05
+//    private let cardHeightMinimized: CGFloat = 0.05
     private let cardHeightNormal: CGFloat = 0.5
     private let cardHeightExpanded: CGFloat = 0.8
     
@@ -100,11 +100,23 @@ struct FlipBookCard: View {
                                         HStack {
                                             Spacer()
                                             PrimaryGradientButton(title: "Start!") {
+                                                print("🎯 FlipBookCard: Start button tapped!")
                                                 onStartButtonTap?()
                                             }
                                             Spacer()
                                         }
                                         .padding(.horizontal, 20)
+                                        .onAppear {
+                                            print("🎯 FlipBookCard: Start button appeared - showStartButton: \(showStartButton)")
+                                        }
+                                        .onTapGesture {
+                                            print("🎯 FlipBookCard: Start button tap gesture detected")
+                                        }
+                                        .allowsHitTesting(true)
+                                        .zIndex(1000) // Ensure button is on top
+                                        .onChange(of: isExpanded) { _, newValue in
+                                            print("🎯 FlipBookCard: Card expansion changed to \(newValue)")
+                                        }
                                     }
                                     
                                     Spacer(minLength: 20)
@@ -112,9 +124,11 @@ struct FlipBookCard: View {
                                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                                 .layoutPriority(1) // Ensure proper layout priority
                             }
-                            .disabled(!isExpanded)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .animation(.none, value: isExpanded) // Disable animations during frame changes
+                            .onChange(of: isExpanded) { _, newValue in
+                                print("🎯 FlipBookCard: ScrollView expansion state changed to \(newValue)")
+                            }
                             .onChange(of: isExpanded) { _, newValue in
                                 if !newValue {
                                     // Scroll to top when contracting
@@ -225,6 +239,12 @@ struct FlipBookCard: View {
             .frame(height: geometry.size.height * cardHeight)
             .offset(y: isExpanded ? -geometry.safeAreaInsets.top : 0)
             .animation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0), value: cardHeight) // Animate only cardHeight changes
+            .onAppear {
+                print("🎯 FlipBookCard: Card appeared - showStartButton: \(showStartButton)")
+            }
+            .onDisappear {
+                print("🎯 FlipBookCard: Card disappeared")
+            }
             .background(
                 GeometryReader { cardGeometry in
                     Color.clear

@@ -450,3 +450,82 @@ private extension FieryOrbitRing {
     }
 }
 
+// MARK: - Hand Draw Animation
+struct HandDrawAnimation: View {
+    @State private var rotation: Double = 0
+    let animationDuration: Double
+    let repeatForever: Bool
+    let description: String?
+    
+    init(animationDuration: Double = 1.0, repeatForever: Bool = true, description: String? = nil) {
+        self.animationDuration = animationDuration
+        self.repeatForever = repeatForever
+        self.description = description
+    }
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "hand.draw")
+                .font(.system(size: 44, weight: .medium))
+                .foregroundColor(.white)
+                .rotationEffect(.degrees(rotation))
+                .onAppear {
+                    startAnimation()
+                }
+            
+            if let description = description {
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+            }
+        }
+    }
+    
+    private func startAnimation() {
+        let animation = repeatForever ?
+            Animation.easeInOut(duration: animationDuration).repeatForever(autoreverses: true) :
+            Animation.easeInOut(duration: animationDuration)
+        
+        withAnimation(animation) {
+            rotation = 60
+        }
+        
+        if !repeatForever {
+            // Reset after animation completes
+            DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
+                withAnimation(.easeInOut(duration: animationDuration)) {
+                    rotation = -60
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + animationDuration) {
+                    withAnimation(.easeInOut(duration: animationDuration)) {
+                        rotation = 0
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    ZStack {
+        // Dark background to match your app theme
+        Color.black.ignoresSafeArea()
+        
+        VStack(spacing: 40) {
+            Text("Hand Draw Animation")
+                .font(.title2)
+                .foregroundColor(.white)
+            
+            HandDrawAnimation(description: "Default animation")
+            
+            HandDrawAnimation(animationDuration: 2.5, description: "Slower animation")
+            
+            HandDrawAnimation(repeatForever: false, description: "Single play cycle")
+            
+            HandDrawAnimation(description: "Tap to draw")
+        }
+    }
+}
+

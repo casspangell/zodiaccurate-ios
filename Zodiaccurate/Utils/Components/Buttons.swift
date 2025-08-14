@@ -122,14 +122,16 @@ struct CircleIconButtonNoBackground: View {
     let iconColor: Color
     let strokeColor: Color
     let strokeWidth: CGFloat
+    let showStroke: Bool
 
-    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, iconColor: Color = .white, strokeColor: Color = .white.opacity(0.7), strokeWidth: CGFloat = 1.5, action: @escaping () -> Void) {
+    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, iconColor: Color = .white, strokeColor: Color = .white.opacity(0.7), strokeWidth: CGFloat = 1.5, showStroke: Bool = true, action: @escaping () -> Void) {
         self.systemName = systemName
         self.accessibilityLabel = accessibilityLabel
         self.isEnabled = isEnabled
         self.iconColor = iconColor
         self.strokeColor = strokeColor
         self.strokeWidth = strokeWidth
+        self.showStroke = showStroke
         self.action = action
     }
     
@@ -143,8 +145,12 @@ struct CircleIconButtonNoBackground: View {
             }
             .frame(width: 40, height: 40)
             .overlay(
-                Circle()
-                    .stroke(strokeColor, lineWidth: strokeWidth)
+                Group {
+                    if showStroke {
+                        Circle()
+                            .stroke(strokeColor, lineWidth: strokeWidth)
+                    }
+                }
             )
             .opacity(isEnabled ? 1.0 : 0.6)
         }

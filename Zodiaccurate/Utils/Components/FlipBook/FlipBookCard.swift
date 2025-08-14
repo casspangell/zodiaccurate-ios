@@ -76,61 +76,6 @@ struct FlipBookCard: View {
                 } else if let horoscope = horoscope {
                     // Content state
                     ZStack(alignment: .topTrailing) {
-                        // Left navigation chevron
-                        if canNavigateLeft {
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    CircleIconButtonNoBackground(
-                                        systemName: "chevron.left",
-                                        accessibilityLabel: "Previous card",
-                                        iconColor: globalFlipBookExpanded ? .black : .white,
-                                        strokeColor: globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7),
-                                        action: {
-                                            onNavigateLeft?()
-                                        }
-                                    )
-                                    Spacer()
-                                }
-                                .padding(.leading, 12)
-                                Spacer()
-                            }
-                            .background(
-                                Circle()
-                                    .fill(Color.black.opacity(0.1))
-                                    .frame(width: 44, height: 44)
-                                    .offset(x: 6)
-                            )
-                            .zIndex(2)
-                        }
-                        
-                        // Right navigation chevron
-                        if canNavigateRight {
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    CircleIconButtonNoBackground(
-                                        systemName: "chevron.right",
-                                        accessibilityLabel: "Next card",
-                                        iconColor: globalFlipBookExpanded ? .black : .white,
-                                        strokeColor: globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7),
-                                        action: {
-                                            onNavigateRight?()
-                                        }
-                                    )
-                                }
-                                .padding(.trailing, 12)
-                                Spacer()
-                            }
-                            .background(
-                                Circle()
-                                    .fill(Color.black.opacity(0.1))
-                                    .frame(width: 44, height: 44)
-                                    .offset(x: -6)
-                            )
-                            .zIndex(2)
-                        }
                         ScrollViewReader { scrollProxy in
                             ScrollView(.vertical, showsIndicators: false) {
                                 VStack(alignment: .leading, spacing: 16) {
@@ -290,6 +235,7 @@ struct FlipBookCard: View {
                 }
             )
             .contentShape(RoundedRectangle(cornerRadius: 16))
+
             .onReceive(NotificationCenter.default.publisher(for: .flipBookExpansionStateChanged)) { notification in
                 if let isExpanded = notification.userInfo?["isExpanded"] as? Bool {
                     globalFlipBookExpanded = isExpanded

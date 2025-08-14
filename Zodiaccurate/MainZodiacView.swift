@@ -41,12 +41,12 @@ struct MainZodiacView: View {
     
     /// Maps the current FlipBook index to the corresponding QuestionMenu button that should be highlighted
     private func getHighlightedQuestionMenuButton() -> QuestionMenuButton {
-        // Skip index 0 (Welcome Horoscope) as it doesn't correspond to any QuestionMenu button
+        // Skip index 0 (Welcome Horoscope)
         switch currentFlipBookIndex {
         case 1: // Wellness card
             return .wellness
-        case 2: // Partner card (no corresponding button in QuestionMenu)
-            return .none
+        case 2: // Partner card
+            return .relationship
         case 3: // Important People card
             return .importantPeople
         case 4: // Children card

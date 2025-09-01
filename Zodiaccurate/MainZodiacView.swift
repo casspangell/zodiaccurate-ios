@@ -5,6 +5,7 @@ struct MainZodiacView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @Environment(\.modelContext) private var modelContext
     @State private var stardustManager: StardustManager?
+    @State private var intakeDataManager: IntakeDataManager?
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
@@ -19,6 +20,14 @@ struct MainZodiacView: View {
     @State private var showStardustTutorial = false
     @State private var showWellnessConversation = false
     @State private var wellnessDisplayName: String = ""
+    @State private var showRelationshipConversation = false
+    @State private var relationshipDisplayName: String = ""
+    @State private var showImportantPeopleConversation = false
+    @State private var importantPeopleDisplayName: String = ""
+    @State private var showChildrenConversation = false
+    @State private var childrenDisplayName: String = ""
+    @State private var showEmploymentConversation = false
+    @State private var employmentDisplayName: String = ""
     @State private var moveFlipbookToTop: Bool = false
     @State private var headerFlipBookSpacing: CGFloat = 50
     @State private var headerHeight: CGFloat = 0
@@ -35,6 +44,31 @@ struct MainZodiacView: View {
         case none
         case flipBook
         case updateCard
+    }
+    
+    // MARK: - IntakeData Management
+    
+    /// Handle conversation response and update IntakeData
+    private func handleConversationResponse(input: String, step: ConversationStep, topic: QuestionMenuButton) {
+        guard let intakeDataManager = intakeDataManager else {
+            print("❌ IntakeDataManager not available")
+            return
+        }
+        
+        let userId = authManager.user?.uid ?? "default"
+        let topicString = intakeDataManager.topicFromQuestionMenuButton(topic)
+        
+        if !topicString.isEmpty {
+            intakeDataManager.updateIntakeData(
+                userId: userId,
+                topic: topicString,
+                dataKey: step.dataKey,
+                answer: input
+            )
+            print("📝 Updated IntakeData - Topic: \(topicString), Key: \(step.dataKey), Answer: \(input)")
+        } else {
+            print("⚠️ Unknown topic for QuestionMenuButton: \(topic)")
+        }
     }
     
     // MARK: - QuestionMenu Highlight Mapping
@@ -91,6 +125,11 @@ struct MainZodiacView: View {
                         stardustManager = StardustManager()
                     }
                     
+                    // Initialize IntakeDataManager
+                    if intakeDataManager == nil {
+                        intakeDataManager = IntakeDataManager(modelContext: modelContext)
+                    }
+                    
                     // Trigger header animation to main mode when view loads
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
@@ -127,16 +166,20 @@ struct MainZodiacView: View {
                                      showWellnessConversation = true
                                  },
                                  onRelationship: {
-                                     print("Relationship menu tapped")
+                                     relationshipDisplayName = "Relationship"
+                                     showRelationshipConversation = true
                                  },
                                  onImportantPeople: {
-                                     print("Important People menu tapped")
+                                     importantPeopleDisplayName = "Important People"
+                                     showImportantPeopleConversation = true
                                  },
                                  onChildren: {
-                                     print("Children menu tapped")
+                                     childrenDisplayName = "Children"
+                                     showChildrenConversation = true
                                  },
                                  onEmployment: {
-                                     print("Employment menu tapped")
+                                     employmentDisplayName = "Employment"
+                                     showEmploymentConversation = true
                                  },
                                  highlightedButton: getHighlightedQuestionMenuButton()
                             )
@@ -330,12 +373,89 @@ struct MainZodiacView: View {
                 displayName: $wellnessDisplayName,
                 onResponse: { input, step in
                     print("[Wellness Response] \(step.dataKey): \(input)")
+                    handleConversationResponse(input: input, step: step, topic: .wellness)
                 },
                 onComplete: {
                     showWellnessConversation = false
                 },
                 topInsetMode: .compact,
                 questionCategory: getQuestionCategoryFromDisplayName(wellnessDisplayName)
+            )
+            .ignoresSafeArea(.container, edges: .top)
+            .presentationDetents([.large])
+            .presentationCornerRadius(0)
+            .presentationDragIndicator(.hidden)
+        }
+        .sheet(isPresented: $showRelationshipConversation) {
+            ConversationView(
+                conversationSteps: relationshipConversationSteps,
+                displayName: $relationshipDisplayName,
+                onResponse: { input, step in
+                    print("[Relationship Response] \(step.dataKey): \(input)")
+                    handleConversationResponse(input: input, step: step, topic: .relationship)
+                },
+                onComplete: {
+                    showRelationshipConversation = false
+                },
+                topInsetMode: .compact,
+                questionCategory: getQuestionCategoryFromDisplayName(relationshipDisplayName)
+            )
+            .ignoresSafeArea(.container, edges: .top)
+            .presentationDetents([.large])
+            .presentationCornerRadius(0)
+            .presentationDragIndicator(.hidden)
+        }
+        .sheet(isPresented: $showImportantPeopleConversation) {
+            ConversationView(
+                conversationSteps: importantPeopleConversationSteps,
+                displayName: $importantPeopleDisplayName,
+                onResponse: { input, step in
+                    print("[Important People Response] \(step.dataKey): \(input)")
+                    handleConversationResponse(input: input, step: step, topic: .importantPeople)
+                },
+                onComplete: {
+                    showImportantPeopleConversation = false
+                },
+                topInsetMode: .compact,
+                questionCategory: getQuestionCategoryFromDisplayName(importantPeopleDisplayName)
+            )
+            .ignoresSafeArea(.container, edges: .top)
+            .presentationDetents([.large])
+            .presentationCornerRadius(0)
+            .presentationDragIndicator(.hidden)
+        }
+        .sheet(isPresented: $showChildrenConversation) {
+            ConversationView(
+                conversationSteps: childrenConversationSteps,
+                displayName: $childrenDisplayName,
+                onResponse: { input, step in
+                    print("[Children Response] \(step.dataKey): \(input)")
+                    handleConversationResponse(input: input, step: step, topic: .children)
+                },
+                onComplete: {
+                    showChildrenConversation = false
+                },
+                topInsetMode: .compact,
+                questionCategory: getQuestionCategoryFromDisplayName(childrenDisplayName)
+            )
+            .ignoresSafeArea(.container, edges: .top)
+            .presentationDetents([.large])
+            .presentationCornerRadius(0)
+            .presentationDragIndicator(.hidden)
+        }
+        .sheet(isPresented: $showEmploymentConversation) {
+            ConversationView(
+                conversationSteps: employmentConversationSteps,
+                displayName: $employmentDisplayName,
+                onResponse: { input, step in
+                    print("[Employment Response] \(step.dataKey): \(input)")
+                    handleConversationResponse(input: input, step: step, topic: .employment)
+                },
+                onComplete: {
+                    showEmploymentConversation = false
+                },
+                topInsetMode: .compact,
+                questionCategory: getQuestionCategoryFromDisplayName(employmentDisplayName)
             )
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])

@@ -304,6 +304,7 @@ struct ZodiacChatView: View {
                 }
                 .padding(.horizontal)
                 .contentShape(Rectangle())
+                .offset(y: -totalScrollOffset) // Apply negative offset to pull content up when keyboard appears
                 .onTapGesture {
                     if shouldShowCompleteButton {
                         onConversationComplete()
@@ -313,7 +314,6 @@ struct ZodiacChatView: View {
             .scrollDismissesKeyboard(.interactively)
             .clipped()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .offset(y: -totalScrollOffset)
             .zIndex(1)
             .background(Color.clear)
             .safeAreaInset(edge: .bottom) {
@@ -467,12 +467,20 @@ struct ZodiacChatView: View {
             // Clean up timer when view disappears
             scrollDebounceTimer?.invalidate()
             scrollDebounceTimer = nil
+            
+            // Reset keyboard offset when view disappears
+            keyboardManager.resetKeyboardOffset()
         }
         .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
             self.headerHeight = headerHeight
         }
         .onReceive(keyboardManager.$keyboardHeight) { keyboardHeight in
             handleKeyboardHeightChange(keyboardHeight)
+            
+            // Ensure offset is reset when keyboard is hidden
+            if keyboardHeight == 0 {
+                keyboardManager.resetKeyboardOffset()
+            }
         }
 
     }

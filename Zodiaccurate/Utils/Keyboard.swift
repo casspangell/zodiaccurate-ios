@@ -44,6 +44,13 @@ class KeyboardManager: ObservableObject {
             withAnimation(.easeInOut(duration: 0.3)) {
                 self.animatedKeyboardOffset = targetOffset
             }
+            print("🔧 Keyboard offset set to: \(targetOffset)")
+        } else if keyboardHeight == 0 {
+            // Reset offset when keyboard is hidden
+            withAnimation(.easeInOut(duration: 0.3)) {
+                self.animatedKeyboardOffset = 0
+            }
+            print("🔧 Keyboard offset reset to 0 (keyboard hidden)")
         }
     }
     
@@ -51,6 +58,7 @@ class KeyboardManager: ObservableObject {
         withAnimation(.easeInOut(duration: 0.2)) {
             self.animatedKeyboardOffset = 0
         }
+        print("🔧 Keyboard offset reset to 0")
     }
 }
 
@@ -115,13 +123,13 @@ func calculateKeyboardOffset(
     let viewableArea = screenHeight - keyboardHeight
     let inputFieldMaxY = inputFieldFrame.maxY
     
-    // Get the height of the last response bubble for additional context
-    let viewableAreaDiff = viewableArea - inputFieldMaxY
-
-    if viewableAreaDiff < 0 {
-        let offset = viewableArea - keyboardHeight + lastResponseBubbleHeight + 24 //padding
-//        print("OFFSET: \(offset) ///viewableArea \(viewableArea) - keyboardHeight \(keyboardHeight) + lastResponseBubbleHeight \(lastResponseBubbleHeight) + 24")
-        return offset
+    // Calculate offset to ensure exactly 8px between bottom of answer chat bubble and top of keyboard
+    let targetSpacing: CGFloat = 8.0
+    let requiredOffset = inputFieldMaxY - (viewableArea - targetSpacing)
+    
+    if requiredOffset > 0 {
+        print("🔧 Keyboard offset calculation: inputFieldMaxY=\(inputFieldMaxY), viewableArea=\(viewableArea), requiredOffset=\(requiredOffset)")
+        return requiredOffset
     } else {
         return 0
     }

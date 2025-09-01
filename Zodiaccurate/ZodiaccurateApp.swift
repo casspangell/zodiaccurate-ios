@@ -114,7 +114,7 @@ struct ZodiaccurateApp: App {
                     }
                 }
         }
-        .modelContainer(for: [User.self, Horoscope.self])
+        .modelContainer(for: [User.self, Horoscope.self, Stardust.self, IntakeData.self])
     }
 }
 

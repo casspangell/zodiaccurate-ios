@@ -162,16 +162,22 @@ struct MainZodiacView: View {
                                  }, displayMode: .main,
                                  showMenu: hasAcceptedConsentPolicies,
                                  onWellness: {
+                                     print("🔍 MainZodiacView: onWellness callback triggered")
                                      wellnessDisplayName = "Wellness"
                                      showWellnessConversation = true
                                  },
                                  onRelationship: {
+                                     print("🔍 MainZodiacView: onRelationship callback triggered")
                                      relationshipDisplayName = "Relationship"
                                      showRelationshipConversation = true
                                  },
                                  onImportantPeople: {
+                                     print("🔍 MainZodiacView: onImportantPeople callback triggered")
+                                     print("🔍 MainZodiacView: Setting importantPeopleDisplayName to 'Important People'")
                                      importantPeopleDisplayName = "Important People"
+                                     print("🔍 MainZodiacView: importantPeopleDisplayName is now '\(importantPeopleDisplayName)'")
                                      showImportantPeopleConversation = true
+                                     print("🔍 MainZodiacView: showImportantPeopleConversation set to true")
                                  },
                                  onChildren: {
                                      childrenDisplayName = "Children"
@@ -379,8 +385,12 @@ struct MainZodiacView: View {
                     showWellnessConversation = false
                 },
                 topInsetMode: .compact,
-                questionCategory: getQuestionCategoryFromDisplayName(wellnessDisplayName)
+                questionCategory: .wellness
             )
+            .onAppear {
+                print("🔍 MainZodiacView: Starting Wellness conversation with questionCategory = .wellness")
+                print("🔍 MainZodiacView: wellnessDisplayName = '\(wellnessDisplayName)'")
+            }
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
             .presentationCornerRadius(0)
@@ -398,7 +408,7 @@ struct MainZodiacView: View {
                     showRelationshipConversation = false
                 },
                 topInsetMode: .compact,
-                questionCategory: getQuestionCategoryFromDisplayName(relationshipDisplayName)
+                questionCategory: .relationship
             )
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
@@ -417,8 +427,12 @@ struct MainZodiacView: View {
                     showImportantPeopleConversation = false
                 },
                 topInsetMode: .compact,
-                questionCategory: getQuestionCategoryFromDisplayName(importantPeopleDisplayName)
+                questionCategory: .importantPeople
             )
+            .onAppear {
+                print("🔍 MainZodiacView: Starting Important People conversation with questionCategory = .importantPeople")
+                print("🔍 MainZodiacView: importantPeopleDisplayName = '\(importantPeopleDisplayName)'")
+            }
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
             .presentationCornerRadius(0)
@@ -436,7 +450,7 @@ struct MainZodiacView: View {
                     showChildrenConversation = false
                 },
                 topInsetMode: .compact,
-                questionCategory: getQuestionCategoryFromDisplayName(childrenDisplayName)
+                questionCategory: .children
             )
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
@@ -455,7 +469,7 @@ struct MainZodiacView: View {
                     showEmploymentConversation = false
                 },
                 topInsetMode: .compact,
-                questionCategory: getQuestionCategoryFromDisplayName(employmentDisplayName)
+                questionCategory: .employment
             )
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
@@ -549,8 +563,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    wellnessDisplayName = "Relationship"
-                    showWellnessConversation = true
+                    relationshipDisplayName = "Relationship"
+                    showRelationshipConversation = true
                 }
             ),
             FlipBookCard(
@@ -558,8 +572,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    wellnessDisplayName = "Important People"
-                    showWellnessConversation = true
+                    importantPeopleDisplayName = "Important People"
+                    showImportantPeopleConversation = true
                 }
             ),
             FlipBookCard(
@@ -567,8 +581,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    wellnessDisplayName = "Children"
-                    showWellnessConversation = true
+                    childrenDisplayName = "Children"
+                    showChildrenConversation = true
                 }
             ),
             FlipBookCard(
@@ -576,8 +590,8 @@ struct MainZodiacView: View {
                 content: "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
-                    wellnessDisplayName = "Employment"
-                    showWellnessConversation = true
+                    employmentDisplayName = "Employment"
+                    showEmploymentConversation = true
                 }
             )
         ])
@@ -596,20 +610,24 @@ struct MainZodiacView: View {
     // MARK: - Helper Functions
     
     private func getQuestionCategoryFromDisplayName(_ displayName: String) -> QuestionMenuButton {
+        print("🔍 MainZodiacView: getQuestionCategoryFromDisplayName called with '\(displayName)'")
+        let result: QuestionMenuButton
         switch displayName {
         case "Wellness":
-            return .wellness
+            result = .wellness
         case "Relationship":
-            return .relationship
+            result = .relationship
         case "Important People":
-            return .importantPeople
+            result = .importantPeople
         case "Children":
-            return .children
+            result = .children
         case "Employment":
-            return .employment
+            result = .employment
         default:
-            return .wellness
+            result = .wellness
         }
+        print("🔍 MainZodiacView: getQuestionCategoryFromDisplayName returning \(result)")
+        return result
     }
     
     private func fetchWelcomeHoroscope() -> Horoscope? {

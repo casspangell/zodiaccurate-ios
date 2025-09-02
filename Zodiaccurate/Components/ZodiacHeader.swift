@@ -54,6 +54,12 @@ enum ZodiacHeaderDisplayMode {
 }
 
 /// A reusable zodiac-themed header component with animated profile badge
+/// 
+/// The header can automatically display topic names based on the highlighted button state:
+/// - When `highlightedButton` is set to a specific topic (e.g., .wellness), the header will
+///   automatically show the corresponding display name (e.g., "Wellness") in compact mode
+/// - If `centeredLabel` is explicitly provided, it takes precedence over the automatic behavior
+/// - This is particularly useful when the header is used with QuestionMenu to show which topic is active
 struct ZodiacHeader: View {
     // MARK: - Properties
     let profileImage: String
@@ -77,11 +83,40 @@ struct ZodiacHeader: View {
     let onChildren: (() -> Void)?
     let onEmployment: (() -> Void)?
     let highlightedButton: QuestionMenuButton
-    // Optional centered label
+    // Optional centered label - if not provided, will automatically show based on highlightedButton state
     let centeredLabel: String?
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
     @State private var headerBackgroundOpacity: Double = 1.0
+    
+    // MARK: - Computed Properties
+    
+    /// Automatically generates the centered label based on the highlighted button state
+    /// 
+    /// Priority order:
+    /// 1. If `centeredLabel` is explicitly provided, use that
+    /// 2. Otherwise, automatically generate label based on `highlightedButton` state
+    /// 3. If no button is highlighted, return nil (no label shown)
+    private var automaticCenteredLabel: String? {
+        if let customLabel = centeredLabel {
+            return customLabel
+        }
+        
+        switch highlightedButton {
+        case .wellness:
+            return "Wellness"
+        case .relationship:
+            return "Relationship"
+        case .importantPeople:
+            return "Important People"
+        case .children:
+            return "Children"
+        case .employment:
+            return "Employment"
+        case .none:
+            return nil
+        }
+    }
     
     // MARK: - Convenience Functions
     /// Returns the height of the profile badge
@@ -309,7 +344,7 @@ struct ZodiacHeader: View {
         .overlay(
             // Optional centered label - only visible in compact mode
             Group {
-                if displayMode == .compact, let label = centeredLabel {
+                if displayMode == .compact, let label = automaticCenteredLabel {
                     VStack(spacing: 0) {
                         Spacer()
                         
@@ -466,23 +501,56 @@ struct ZodiacHeader: View {
                 displayMode: .initial
             )
             
-            ZodiacHeader(
-                profileImage: "Leo",
-                badgeScale: 1.0,
-                badgeRotation: 0,
-                cosmicGlowOpacity: 0.5,
-                nebulaOpacity: 0.3,
-                starFieldOpacity: 0.4,
-                cosmicParticlesOpacity: 0.6,
-                sparkleOpacity: 0.8,
-                badgeSize: nil,
-                todaysDate: ZodiacHeader.formatCurrentDate(),
-                onSettingsTap: {
-                    print("Settings button tapped")
-                },
-                displayMode: .compact,
-                centeredLabel: "Relationship"
-            )
+        ZodiacHeader(
+            profileImage: "Leo",
+            badgeScale: 1.0,
+            badgeRotation: 0,
+            cosmicGlowOpacity: 0.5,
+            nebulaOpacity: 0.3,
+            starFieldOpacity: 0.4,
+            cosmicParticlesOpacity: 0.6,
+            sparkleOpacity: 0.8,
+            badgeSize: nil,
+            todaysDate: ZodiacHeader.formatCurrentDate(),
+            onSettingsTap: {
+                print("Settings button tapped")
+            },
+            displayMode: .compact,
+            highlightedButton: .relationship
+        )
+        
+        // Example with different highlighted button states
+        VStack(spacing: 16) {
+            Text("Different Highlighted States:")
+                .font(.caption)
+                .foregroundColor(.gray)
+            
+            HStack(spacing: 20) {
+                ZodiacHeader(
+                    profileImage: "Leo",
+                    displayMode: .compact,
+                    highlightedButton: .wellness
+                )
+                
+                ZodiacHeader(
+                    profileImage: "Leo",
+                    displayMode: .compact,
+                    highlightedButton: .importantPeople
+                )
+                
+                ZodiacHeader(
+                    profileImage: "Leo",
+                    displayMode: .compact,
+                    highlightedButton: .children
+                )
+                
+                ZodiacHeader(
+                    profileImage: "Leo",
+                    displayMode: .compact,
+                    highlightedButton: .employment
+                )
+            }
+        }
         }
     }
 }

@@ -134,6 +134,20 @@ struct ConversationView: View {
             // Fresh placeholder user to scope this conversation session (not persisted)
             placeholderUser = User(createdAt: Date(), updatedAt: Date())
             
+            // Debug logging for questionCategory and topicString
+            let categoryString = questionCategory.map { category in
+                switch category {
+                case .wellness: return "wellness"
+                case .relationship: return "relationship"
+                case .importantPeople: return "importantPeople"
+                case .children: return "children"
+                case .employment: return "employment"
+                case .none: return "none"
+                }
+            } ?? "nil"
+            print("🔍 ConversationView: questionCategory = \(categoryString)")
+            print("🔍 ConversationView: topicString = '\(topicString)'")
+            
             // Check the current step on load
             if !topicString.isEmpty {
                 // Load existing progress for this topic

@@ -148,6 +148,7 @@ struct QuestionMenu: View {
                 isHighlighted: highlightedButton == .wellness,
                 isUnfinished: isWellnessUnfinished,
                 action: {
+                    print("🔘 QuestionMenu: Wellness button tapped")
                     if isWellnessEnabled { isWellnessFieryState = false }
                     onWellness()
                 }
@@ -162,6 +163,7 @@ struct QuestionMenu: View {
                 isHighlighted: highlightedButton == .relationship,
                 isUnfinished: isRelationshipUnfinished,
                 action: {
+                    print("🔘 QuestionMenu: Relationship button tapped")
                     if isRelationshipEnabled { isRelationshipFieryState = false }
                     onRelationship()
                 }
@@ -176,6 +178,9 @@ struct QuestionMenu: View {
                 isHighlighted: highlightedButton == .importantPeople,
                 isUnfinished: isImportantPeopleUnfinished,
                 action: {
+                    print("🔘 QuestionMenu: Important People button tapped")
+                    print("🔍 QuestionMenu: isImportantPeopleEnabled = \(isImportantPeopleEnabled)")
+                    print("🔍 QuestionMenu: isImportantPeopleFieryState = \(isImportantPeopleFieryState)")
                     if isImportantPeopleEnabled { isImportantPeopleFieryState = false }
                     onImportantPeople()
                 }
@@ -190,6 +195,7 @@ struct QuestionMenu: View {
                 isHighlighted: highlightedButton == .children,
                 isUnfinished: isChildrenUnfinished,
                 action: {
+                    print("🔘 QuestionMenu: Children button tapped")
                     if isChildrenEnabled { isChildrenFieryState = false }
                     onChildren()
                 }
@@ -204,6 +210,7 @@ struct QuestionMenu: View {
                 isHighlighted: highlightedButton == .employment,
                 isUnfinished: isEmploymentUnfinished,
                 action: {
+                    print("🔘 QuestionMenu: Employment button tapped")
                     if isEmploymentEnabled { isEmploymentFieryState = false }
                     onEmployment()
                 }

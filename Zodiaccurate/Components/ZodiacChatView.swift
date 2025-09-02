@@ -12,7 +12,6 @@ struct ZodiacChatView: View {
     // MARK: - Properties
     @State private var messages: [ChatMessage] = []
     @State private var currentInput = ""
-    @State private var currentStep = 0
     @State private var isTyping = false
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
@@ -57,6 +56,7 @@ struct ZodiacChatView: View {
     let backgroundColor: Color?
     let bubbleColor: ChatBubbleColor?
     let topInsetMode: ChatTopInsetMode
+    @Binding var currentStepIndex: Int
     
     // MARK: - Initialization
     init(
@@ -72,7 +72,8 @@ struct ZodiacChatView: View {
         triggerBadgeAnimation: @escaping (String) -> Void,
         backgroundColor: Color? = nil,
         bubbleColor: ChatBubbleColor? = nil,
-        topInsetMode: ChatTopInsetMode = .large
+        topInsetMode: ChatTopInsetMode = .large,
+        currentStepIndex: Binding<Int>
     ) {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
@@ -87,6 +88,7 @@ struct ZodiacChatView: View {
         self.backgroundColor = backgroundColor
         self.bubbleColor = bubbleColor
         self.topInsetMode = topInsetMode
+        self._currentStepIndex = currentStepIndex
     }
     
     // MARK: - Computed Properties
@@ -105,10 +107,10 @@ struct ZodiacChatView: View {
     }
     
     private var shouldShowCompleteButton: Bool {
-        let isFinalStep = currentStep < conversationSteps.count && conversationSteps[currentStep].isFinal
+        let isFinalStep = currentStepIndex < conversationSteps.count && conversationSteps[currentStepIndex].isFinal
         let hasMessages = messages.count > 0
         let lastMessageIsAI = messages.last?.isUser == false
-        let isConversationComplete = currentStep >= conversationSteps.count
+        let isConversationComplete = currentStepIndex >= conversationSteps.count
         
         return (isFinalStep && hasMessages && lastMessageIsAI) || isConversationComplete
     }
@@ -219,7 +221,7 @@ struct ZodiacChatView: View {
                     // Chat History Content
                     ChatHistoryContentView(
                         messages: messages,
-                        currentStep: currentStep,
+                        currentStep: currentStepIndex,
                         onboardingConversationSteps: conversationSteps,
                         showInputField: showInputField,
                         showResponseChatBubble: showResponseChatBubble,
@@ -238,7 +240,7 @@ struct ZodiacChatView: View {
                     
                     // Input
                     ChatInputView(
-                        currentStep: currentStep,
+                        currentStep: currentStepIndex,
                         conversationSteps: conversationSteps,
                         showInputField: showInputField,
                         showResponseChatBubble: showResponseChatBubble,
@@ -453,7 +455,7 @@ struct ZodiacChatView: View {
                 VStack {
                     Spacer()
                     
-                    ProgressBar(progress: Double(currentStep) / Double(conversationSteps.count - 1), foregroundColor: .accentGold)
+                    ProgressBar(progress: Double(currentStepIndex) / Double(conversationSteps.count - 1), foregroundColor: .accentGold)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
                         .opacity(keyboardManager.keyboardHeight > 0 ? 0 : 1)
@@ -528,32 +530,49 @@ struct ZodiacChatView: View {
         responseBubbleOpacity = 0.0
         tutorialBubbleOpacity = 0.0
         
-        let initialMessage = conversationSteps[0].message
-        let personalizedInitialMessage = personalizeMessage(initialMessage, userName)
-        let typingDelay = calculateTypingDelay(for: personalizedInitialMessage)
+        // Check if this is a resume scenario (user has already answered some questions)
+        let isResuming = currentStepIndex > 0
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isTyping = true
+        if isResuming {
+            print("🔍 [startConversation] RESUMING conversation at step \(currentStepIndex + 1) - showing next question")
+            // Don't show input field immediately, wait for the next question
+            showResponseChatBubble = false
+            showInputField = false
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + typingDelay) {
-                isTyping = false
-                let questionMessage = ChatMessage(
-                    text: personalizedInitialMessage,
-                    isUser: false,
-                    timestamp: Date()
-                )
-                withAnimation {
-                    messages.append(questionMessage)
-                }
+            // Automatically trigger the next question after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                triggerNextQuestion()
+            }
+        } else {
+            print("🔍 [startConversation] Starting NEW conversation at step \(currentStepIndex)")
+            // Show the first question and input field
+            let currentStepMessage = conversationSteps[currentStepIndex].message
+            let personalizedCurrentMessage = personalizeMessage(currentStepMessage, userName)
+            let typingDelay = calculateTypingDelay(for: personalizedCurrentMessage)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                isTyping = true
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + typingDelay) {
+                    isTyping = false
+                    let questionMessage = ChatMessage(
+                        text: personalizedCurrentMessage,
+                        isUser: false,
+                        timestamp: Date()
+                    )
                     withAnimation {
-                        showResponseChatBubble = true
-                        showInputField = true
-                        responseBubbleOpacity = 0.0 // Start with opacity 0
-                        // Show tutorial bubble if the current step has a tutorial
-                        if currentStep < conversationSteps.count && conversationSteps[currentStep].tutorial != nil {
-                            showTutorialBubble = true
+                        messages.append(questionMessage)
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation {
+                            showResponseChatBubble = true
+                            showInputField = true
+                            responseBubbleOpacity = 0.0 // Start with opacity 0
+                            // Show tutorial bubble if the current step has a tutorial
+                            if currentStepIndex < conversationSteps.count && conversationSteps[currentStepIndex].tutorial != nil {
+                                showTutorialBubble = true
+                            }
                         }
                     }
                 }
@@ -574,6 +593,9 @@ struct ZodiacChatView: View {
     private func handleUserInput(input: String) {
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedInput.isEmpty else { return }
+
+        print("🔍 [handleUserInput] User answered step \(currentStepIndex) with: \(trimmedInput)")
+        print("🔍 [handleUserInput] Step details - message: \(conversationSteps[currentStepIndex].message), inputType: \(conversationSteps[currentStepIndex].inputType)")
 
         tutorialManager.stopTutorial()
         
@@ -596,17 +618,15 @@ struct ZodiacChatView: View {
         }
         
         // Track user response for AI steps
-        if currentStep < conversationSteps.count && conversationSteps[currentStep].aiStep {
+        if currentStepIndex < conversationSteps.count && conversationSteps[currentStepIndex].aiStep {
             previousResponses.append(trimmedInput)
         }
         
-        onUserDataUpdate(trimmedInput, conversationSteps[currentStep])
+        onUserDataUpdate(trimmedInput, conversationSteps[currentStepIndex])
         currentInput = ""
         
         // Check if this was the final step
-        let wasFinalStep = conversationSteps[currentStep].isFinal
-        currentStep += 1
-        onStepComplete(currentStep)
+        let wasFinalStep = conversationSteps[currentStepIndex].isFinal
         
         if wasFinalStep {
             // For final steps, complete the conversation after a delay to show the user's response
@@ -614,6 +634,11 @@ struct ZodiacChatView: View {
                 handleConversationComplete()
             }
         } else {
+            // Move to next step
+            currentStepIndex += 1
+            print("🔍 [handleUserInput] Moving to next step: \(currentStepIndex)")
+            onStepComplete(currentStepIndex)
+            
             // Trigger next question after a delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 triggerNextQuestion()
@@ -647,10 +672,10 @@ struct ZodiacChatView: View {
                 withAnimation {
                     showResponseChatBubble = true
                     responseBubbleOpacity = 0.0 // Start with opacity 0
-                    if currentStep < conversationSteps.count {
+                    if currentStepIndex < conversationSteps.count {
                         showInputField = true
                         // Show tutorial bubble if the current step has a tutorial
-                        if currentStep < conversationSteps.count && conversationSteps[currentStep].tutorial != nil {
+                        if currentStepIndex < conversationSteps.count && conversationSteps[currentStepIndex].tutorial != nil {
                             showTutorialBubble = true
                         }
                     }
@@ -660,9 +685,11 @@ struct ZodiacChatView: View {
     }
     
     private func triggerNextQuestion() {
-        if currentStep < conversationSteps.count {
-            let nextStep = conversationSteps[currentStep]
+        if currentStepIndex < conversationSteps.count {
+            let nextStep = conversationSteps[currentStepIndex]
             let nextMessage = nextStep.message
+            
+            print("🔍 [triggerNextQuestion] Showing step \(currentStepIndex) - message: \(nextMessage)")
             
             // Use GPTOnboarding if aiStep is true
             if nextStep.aiStep {

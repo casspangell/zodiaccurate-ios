@@ -369,11 +369,6 @@ struct ZodiacHeader: View {
         .opacity(headerOpacity)
         .zIndex(2)
         .onAppear {
-            print("🎯 ZodiacHeaderMain: Header appeared")
-            print("   🎭 Profile image: \(profileImage)")
-            print("   📅 Today's date: \(todaysDate)")
-            print("   🎛️ Display mode: \(displayMode)")
-            print("   🏷️ Centered label: \(centeredLabel ?? "nil")")
             
             // Initialize BadgeAnimationManager with the initial profile image
             badgeAnimationManager.currentProfileImage = profileImage

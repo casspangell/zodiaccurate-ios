@@ -117,7 +117,8 @@ struct ConversationView: View {
                 triggerBadgeAnimation: triggerBadgeAnimation,
                 backgroundColor: backgroundColor,
                 bubbleColor: bubbleColor,
-                topInsetMode: topInsetMode
+                topInsetMode: topInsetMode,
+                currentStepIndex: $currentStepIndex
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -133,13 +134,26 @@ struct ConversationView: View {
             // Fresh placeholder user to scope this conversation session (not persisted)
             placeholderUser = User(createdAt: Date(), updatedAt: Date())
             
-            // Load existing progress for this topic
+            // Check the current step on load
             if !topicString.isEmpty {
+                // Load existing progress for this topic
                 currentStepIndex = ConversationProgressManager.getProgress(for: topicString)
-                print("📱 ConversationView: Loaded progress for \(topicString) - Resuming at step \(currentStepIndex + 1)/\(conversationSteps.count)")
+                
+                // Default to step 1 if no progress found
+                if currentStepIndex == 0 {
+                    currentStepIndex = 0 // This represents step 1 (0-based index)
+                    print("📱 ConversationView: Starting at default step 1 for \(topicString)")
+                } else {
+                    print("📱 ConversationView: Resuming \(topicString) at step \(currentStepIndex + 1)/\(conversationSteps.count)")
+                }
             } else {
-                print("📱 ConversationView: Starting new conversation for \(topicString) - Step 1/\(conversationSteps.count)")
+                // No topic specified, start at step 1
+                currentStepIndex = 0
+                print("📱 ConversationView: No topic specified, starting at step 1/\(conversationSteps.count)")
             }
+            
+            // Always log the current step the user is on
+            print("📍 User is currently on step \(currentStepIndex + 1) of \(conversationSteps.count)")
         }
         .onDisappear {
             // Save current progress when view disappears (including manual dismissal)

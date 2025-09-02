@@ -28,6 +28,7 @@ struct ConversationalOnboardingView: View {
     @State private var isOnboardingComplete = false
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
+    @State private var currentStepIndex: Int = 0
     let triggerBadgeAnimation: (String) -> Void
     
     var onComplete: () -> Void = {}
@@ -189,6 +190,7 @@ struct ConversationalOnboardingView: View {
                     updateUserData(input: input, step: step)
                 },
                 onStepComplete: { step in
+                    currentStepIndex = step
                     // Handle step completion if needed
                     //                        print("👤 Completed step \(step)")
                 },
@@ -204,7 +206,8 @@ struct ConversationalOnboardingView: View {
                 },
                 triggerBadgeAnimation: triggerBadgeAnimation,
                 backgroundColor: backgroundColor,
-                bubbleColor: bubbleColor
+                bubbleColor: bubbleColor,
+                currentStepIndex: $currentStepIndex
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(.all, edges: .all)

@@ -445,11 +445,18 @@ struct ZodiacChatView: View {
                 
             VStack(spacing: 0) {
                 chatScrollView
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // Progress indicator pinned to bottom, hidden when keyboard is visible
+            VStack {
+                Spacer()
                 
-                // Progress indicator at the bottom
                 ProgressBar(progress: Double(currentStep) / Double(conversationSteps.count), foregroundColor: .accentGold)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
+                    .opacity(keyboardManager.keyboardHeight > 0 ? 0 : 1)
+                    .animation(.easeInOut(duration: 0.3), value: keyboardManager.keyboardHeight)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             

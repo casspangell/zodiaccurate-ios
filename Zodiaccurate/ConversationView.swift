@@ -25,6 +25,9 @@ struct ConversationView: View {
     // MARK: - Internal user placeholder (required by ZodiacChatView for personalization/GPT hooks)
     @State private var placeholderUser = User()
     
+    // MARK: - Progress Tracking
+    @State private var currentStepIndex: Int = 0
+    
     // MARK: - Computed Properties
     private var categoryDisplayText: String? {
         if let category = questionCategory {
@@ -46,6 +49,11 @@ struct ConversationView: View {
             // Default to "Questions" for compact display mode
             return "Questions"
         }
+    }
+    
+    private var topicString: String {
+        guard let category = questionCategory else { return "" }
+        return ConversationProgressManager.topicFromQuestionMenuButton(category)
     }
     
     init(
@@ -85,9 +93,19 @@ struct ConversationView: View {
                     onResponse(input, step)
                 },
                 onStepComplete: { idx in
+                    currentStepIndex = idx
                     onStepComplete(idx)
+                    
+                    // Save progress after each step completion
+                    if !topicString.isEmpty {
+                        ConversationProgressManager.saveProgress(step: idx, for: topicString)
+                    }
                 },
                 onConversationComplete: {
+                    // Save final progress before completing
+                    if !topicString.isEmpty {
+                        ConversationProgressManager.saveProgress(step: conversationSteps.count - 1, for: topicString)
+                    }
                     onComplete()
                 },
                 personalizeMessage: { message, name in
@@ -114,6 +132,21 @@ struct ConversationView: View {
         .onAppear {
             // Fresh placeholder user to scope this conversation session (not persisted)
             placeholderUser = User(createdAt: Date(), updatedAt: Date())
+            
+            // Load existing progress for this topic
+            if !topicString.isEmpty {
+                currentStepIndex = ConversationProgressManager.getProgress(for: topicString)
+                print("📱 ConversationView: Loaded progress for \(topicString) - Resuming at step \(currentStepIndex + 1)/\(conversationSteps.count)")
+            } else {
+                print("📱 ConversationView: Starting new conversation for \(topicString) - Step 1/\(conversationSteps.count)")
+            }
+        }
+        .onDisappear {
+            // Save current progress when view disappears (including manual dismissal)
+            if !topicString.isEmpty {
+                ConversationProgressManager.saveProgress(step: currentStepIndex, for: topicString)
+                print("💾 ConversationView: Saved progress for \(topicString) - Step \(currentStepIndex + 1)/\(conversationSteps.count)")
+            }
         }
     }
 }

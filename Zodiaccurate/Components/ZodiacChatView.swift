@@ -445,6 +445,11 @@ struct ZodiacChatView: View {
                 
             VStack(spacing: 0) {
                 chatScrollView
+                
+                // Progress indicator at the bottom
+                ProgressBar(progress: Double(currentStep) / Double(conversationSteps.count), foregroundColor: .accentGold)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             

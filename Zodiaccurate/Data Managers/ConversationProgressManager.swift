@@ -36,6 +36,9 @@ class ConversationProgressManager {
         userDefaults.set(topic, forKey: Keys.lastActiveTopic)
         userDefaults.set(step, forKey: Keys.lastActiveStep)
         
+        // Post notification to update UI
+        NotificationCenter.default.post(name: .conversationProgressUpdated, object: nil)
+        
         print("💾 Saved conversation progress - Topic: \(topic), Step: \(step)")
     }
     
@@ -134,4 +137,9 @@ class ConversationProgressManager {
             return ""
         }
     }
+}
+
+// MARK: - Notification Names
+extension Notification.Name {
+    static let conversationProgressUpdated = Notification.Name("conversationProgressUpdated")
 }

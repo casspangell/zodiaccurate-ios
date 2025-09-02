@@ -32,41 +32,34 @@ struct QuestionMenu: View {
     // Highlighted button state
     let highlightedButton: QuestionMenuButton
     
-    // MARK: - Computed Properties for Unfinished State
+    // MARK: - State Properties for Unfinished State
     
     /// Determines if a topic is unfinished based on conversation progress
     /// Returns true only if there's some progress but not complete
-    private var isWellnessUnfinished: Bool {
-        let progress = ConversationProgressManager.getProgress(for: "wellness")
-        let totalSteps = getTotalStepsForTopic("wellness")
-        return progress > 0 && progress < totalSteps
-    }
-    
-    private var isRelationshipUnfinished: Bool {
-        let progress = ConversationProgressManager.getProgress(for: "relationship")
-        let totalSteps = getTotalStepsForTopic("relationship")
-        return progress > 0 && progress < totalSteps
-    }
-    
-    private var isImportantPeopleUnfinished: Bool {
-        let progress = ConversationProgressManager.getProgress(for: "importantPeople")
-        let totalSteps = getTotalStepsForTopic("importantPeople")
-        return progress > 0 && progress < totalSteps
-    }
-    
-    private var isChildrenUnfinished: Bool {
-        let progress = ConversationProgressManager.getProgress(for: "children")
-        let totalSteps = getTotalStepsForTopic("children")
-        return progress > 0 && progress < totalSteps
-    }
-    
-    private var isEmploymentUnfinished: Bool {
-        let progress = ConversationProgressManager.getProgress(for: "employment")
-        let totalSteps = getTotalStepsForTopic("employment")
-        return progress > 0 && progress < totalSteps
-    }
+    @State private var isWellnessUnfinished: Bool = false
+    @State private var isRelationshipUnfinished: Bool = false
+    @State private var isImportantPeopleUnfinished: Bool = false
+    @State private var isChildrenUnfinished: Bool = false
+    @State private var isEmploymentUnfinished: Bool = false
     
     // MARK: - Helper Methods
+    
+    /// Update all unfinished states based on current progress
+    func updateUnfinishedStates() {
+        let wellnessProgress = ConversationProgressManager.getProgress(for: "wellness")
+        let relationshipProgress = ConversationProgressManager.getProgress(for: "relationship")
+        let importantPeopleProgress = ConversationProgressManager.getProgress(for: "importantPeople")
+        let childrenProgress = ConversationProgressManager.getProgress(for: "children")
+        let employmentProgress = ConversationProgressManager.getProgress(for: "employment")
+        
+        isWellnessUnfinished = wellnessProgress > 0 && wellnessProgress < getTotalStepsForTopic("wellness")
+        isRelationshipUnfinished = relationshipProgress > 0 && relationshipProgress < getTotalStepsForTopic("relationship")
+        isImportantPeopleUnfinished = importantPeopleProgress > 0 && importantPeopleProgress < getTotalStepsForTopic("importantPeople")
+        isChildrenUnfinished = childrenProgress > 0 && childrenProgress < getTotalStepsForTopic("children")
+        isEmploymentUnfinished = employmentProgress > 0 && employmentProgress < getTotalStepsForTopic("employment")
+        
+        print("🔄 QuestionMenu: Updated unfinished states - Wellness: \(isWellnessUnfinished), Relationship: \(isRelationshipUnfinished), Important People: \(isImportantPeopleUnfinished), Children: \(isChildrenUnfinished), Employment: \(isEmploymentUnfinished)")
+    }
     
     /// Get the total number of steps for a specific topic
     /// This should match the actual conversation steps defined in your app
@@ -217,6 +210,13 @@ struct QuestionMenu: View {
             )
         }
         .padding(.horizontal, 8)
+        .onAppear {
+            updateUnfinishedStates()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .conversationProgressUpdated)) { _ in
+            print("🔄 QuestionMenu: Received conversationProgressUpdated notification, updating states")
+            updateUnfinishedStates()
+        }
     }
 }
 

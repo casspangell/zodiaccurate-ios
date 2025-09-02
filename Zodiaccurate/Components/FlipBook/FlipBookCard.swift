@@ -103,12 +103,15 @@ struct FlipBookCard: View {
                                         .id("top") // Add ID for scrolling to top
 
                                     // Content
-                                    Text(isCardUnfinished ? "Continue your intake" : "Start your intake")
+                                    Text(getContentText())
                                         .font(.dmSansMedium(size: 16))
                                         .foregroundColor(globalFlipBookExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
                                         .lineSpacing(4)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .padding(.horizontal, 20)
+                                        .onAppear {
+                                            print("🎯 FlipBookCard: Content text displayed - '\(getContentText())'")
+                                        }
                                         .onChange(of: isCardUnfinished) { _, newValue in
                                             print("🎯 FlipBookCard: Content text changed - isCardUnfinished: \(newValue)")
                                         }
@@ -296,13 +299,23 @@ struct FlipBookCard: View {
                     globalFlipBookExpanded = isExpanded
                 }
             }
+            .onAppear {
+                updateUnfinishedState()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .conversationProgressUpdated)) { _ in
+                print("🔄 FlipBookCard: Received conversationProgressUpdated notification, updating unfinished state")
+                updateUnfinishedState()
+            }
         }
     }
     
-    // MARK: - Computed Properties for Unfinished State
+    // MARK: - State Properties for Unfinished State
     
     /// Determines if a card is unfinished based on conversation progress
     /// Returns true only if there's some progress but not complete
+    @State private var isCardUnfinishedState: Bool = false
+    
+    /// Computed property that combines explicit isUnfinished with progress-based state
     private var isCardUnfinished: Bool {
         // If isUnfinished is explicitly set, use that value
         if isUnfinished {
@@ -310,19 +323,8 @@ struct FlipBookCard: View {
             return true
         }
         
-        // Otherwise, determine based on the card's content/title
-        guard let title = getCardTitle() else { 
-            print("🎯 FlipBookCard: No title available, returning false")
-            return false 
-        }
-        
-        let topicKey = getTopicKey(from: title)
-        let progress = ConversationProgressManager.getProgress(for: topicKey)
-        let totalSteps = getTotalStepsForTopic(topicKey)
-        let isUnfinished = progress > 0 && progress < totalSteps
-        
-        print("🎯 FlipBookCard: Title: '\(title)', Topic: '\(topicKey)', Progress: \(progress)/\(totalSteps), isUnfinished: \(isUnfinished)")
-        return isUnfinished
+        // Otherwise, use the reactive state
+        return isCardUnfinishedState
     }
     
     /// Get the card title for progress checking
@@ -332,6 +334,24 @@ struct FlipBookCard: View {
         }
         // For convenience initializer, use the stored title
         return convenienceTitle.isEmpty ? nil : convenienceTitle
+    }
+    
+    /// Update the unfinished state based on current progress
+    private func updateUnfinishedState() {
+        guard let title = getCardTitle() else { 
+            isCardUnfinishedState = false
+            return 
+        }
+        
+        let topicKey = getTopicKey(from: title)
+        let progress = ConversationProgressManager.getProgress(for: topicKey)
+        let totalSteps = getTotalStepsForTopic(topicKey)
+        let newUnfinishedState = progress > 0 && progress < totalSteps
+        
+        if isCardUnfinishedState != newUnfinishedState {
+            isCardUnfinishedState = newUnfinishedState
+            print("🎯 FlipBookCard: Updated unfinished state for '\(title)' - Progress: \(progress)/\(totalSteps), Unfinished: \(newUnfinishedState)")
+        }
     }
     
     /// Get the content text to display

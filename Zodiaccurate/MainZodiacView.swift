@@ -278,11 +278,14 @@ struct MainZodiacView: View {
                                         }
                                     }
                                 }
+                                .onReceive(NotificationCenter.default.publisher(for: .conversationProgressUpdated)) { _ in
+                                    print("🔄 MainZodiacView: Received conversationProgressUpdated notification - individual cards will update automatically")
+                                }
                                 .onPreferenceChange(FlipBookCardBottomPreferenceKey.self) { bottomPosition in
                                     flipBookCardBottomPosition = bottomPosition
                                     print("📍 FlipBookCard bottom position: \(bottomPosition)")
                                 }
-                                .id(isWelcomeHoroscopeLoaded) // Force re-creation when loading state changes
+                                .id(isWelcomeHoroscopeLoaded) // Force re-creation only when loading state changes
                         }
                         
                         Spacer()
@@ -533,12 +536,15 @@ struct MainZodiacView: View {
         // Add welcome horoscope as first card
         if let welcomeHoroscope = welcomeHoroscope {
             print("🎯 MainZodiacView: Creating welcome horoscope card with content")
+            print("🎯 MainZodiacView: Horoscope title: '\(welcomeHoroscope.title)'")
+            print("🎯 MainZodiacView: Horoscope message length: \(welcomeHoroscope.message.count) characters")
             cards.append(FlipBookCard(
                 horoscope: welcomeHoroscope,
                 isLoading: false
             ))
         } else {
             print("🎯 MainZodiacView: Creating welcome horoscope card with loading state")
+            print("🎯 MainZodiacView: welcomeHoroscope is nil")
             // Show loading state for welcome horoscope if not available yet
             cards.append(FlipBookCard(
                 horoscope: nil,

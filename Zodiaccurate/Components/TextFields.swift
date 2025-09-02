@@ -25,8 +25,8 @@ struct SingleLineTextField: View {
                     if text.isEmpty {
                         Text(placeholder)
                             .foregroundColor(.gray)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
                             .allowsHitTesting(false)
                     }
                     
@@ -34,8 +34,8 @@ struct SingleLineTextField: View {
                     TextField("", text: $text)
                         .focused(isFocused)
                         .lineLimit(1) // Force single line
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                         .frame(height: 44) // Fixed height for single line
                         .foregroundColor(.white)
                         .background(
@@ -145,16 +145,16 @@ struct MultiLineTextField: View {
                     if text.isEmpty {
                         Text(placeholder)
                             .foregroundColor(Color.white.opacity(0.5))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 16)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
                             .allowsHitTesting(false)
                     }
                     
                     // Multi-line TransparentTextEditor - fixed height like original "text" type
                     TransparentTextEditor(text: $text, textColor: textColor)
                         .frame(minHeight: 100, maxHeight: 100)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                         .background(
                             CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio)
                                 .fill(backgroundColor)

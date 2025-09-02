@@ -26,6 +26,10 @@ struct FlipBookCard: View {
     @State private var cardOpacity: Double = 1.0
     @State private var borderOpacity: Double = 0.3
     
+    // State for convenience initializer
+    @State private var convenienceTitle: String = ""
+    @State private var convenienceContent: String = ""
+    
     // Card height constants
 //    private let cardHeightMinimized: CGFloat = 0.05
     private let cardHeightNormal: CGFloat = 0.5
@@ -56,6 +60,9 @@ struct FlipBookCard: View {
         self.canNavigateRight = canNavigateRight
         self.onNavigateLeft = onNavigateLeft
         self.onNavigateRight = onNavigateRight
+        // Store title and content for convenience initializer
+        self._convenienceTitle = State(initialValue: title)
+        self._convenienceContent = State(initialValue: content)
     }
     
     var body: some View {
@@ -96,29 +103,35 @@ struct FlipBookCard: View {
                                         .id("top") // Add ID for scrolling to top
 
                                     // Content
-                                    Text(horoscope.message)
+                                    Text(isCardUnfinished ? "Continue your intake" : "Start your intake")
                                         .font(.dmSansMedium(size: 16))
                                         .foregroundColor(globalFlipBookExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
                                         .lineSpacing(4)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .padding(.horizontal, 20)
+                                        .onChange(of: isCardUnfinished) { _, newValue in
+                                            print("🎯 FlipBookCard: Content text changed - isCardUnfinished: \(newValue)")
+                                        }
                                     
-                                    // Start Button (if enabled)
+                                    // Continue/Start Button (if enabled)
                                     if showStartButton {
                                         HStack {
                                             Spacer()
-                                            PrimaryGradientButton(title: "Start!") {
-                                                print("🎯 FlipBookCard: Start button tapped!")
+                                            PrimaryGradientButton(title: isCardUnfinished ? "Continue" : "Start!") {
+                                                print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tapped!")
                                                 onStartButtonTap?()
+                                            }
+                                            .onAppear {
+                                                print("🎯 FlipBookCard: Button text - isCardUnfinished: \(isCardUnfinished), showing: '\(isCardUnfinished ? "Continue" : "Start!")'")
                                             }
                                             Spacer()
                                         }
                                         .padding(.horizontal, 20)
                                         .onAppear {
-                                            print("🎯 FlipBookCard: Start button appeared - showStartButton: \(showStartButton)")
+                                            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button appeared - showStartButton: \(showStartButton)")
                                         }
                                         .onTapGesture {
-                                            print("🎯 FlipBookCard: Start button tap gesture detected")
+                                            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tap gesture detected")
                                         }
                                         .allowsHitTesting(true)
                                         .zIndex(1000) // Ensure button is on top
@@ -214,21 +227,21 @@ struct FlipBookCard: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 16) //kilroy
-                            .fill(globalFlipBookExpanded ? Color.white : (isUnfinished ? Color.deepPink.opacity(0.1) : Color.bubbleMist.opacity(0.8)))
+                            .fill(globalFlipBookExpanded ? Color.white : (isCardUnfinished ? Color.deepPink.opacity(0.1) : Color.bubbleMist.opacity(0.8)))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .stroke(isUnfinished ? Color.deepPink.opacity(borderOpacity) : Color.accentPurple.opacity(borderOpacity), lineWidth: isUnfinished ? 2 : 1)
+                                    .stroke(isCardUnfinished ? Color.deepPink.opacity(borderOpacity) : Color.accentPurple.opacity(borderOpacity), lineWidth: isCardUnfinished ? 2 : 1)
                             )
                     )
-                    .shadow(color: isUnfinished ? Color.deepPink.opacity(0.3) : Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .shadow(color: isCardUnfinished ? Color.deepPink.opacity(0.3) : Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
                     .scaleEffect(cardScale)
                     .opacity(cardOpacity)
                     .onAppear {
-                        if isUnfinished {
+                        if isCardUnfinished {
                             startPulsatingAnimation()
                         }
                     }
-                    .onChange(of: isUnfinished) { newValue in
+                    .onChange(of: isCardUnfinished) { newValue in
                         if newValue {
                             startPulsatingAnimation()
                         } else {
@@ -283,6 +296,89 @@ struct FlipBookCard: View {
                     globalFlipBookExpanded = isExpanded
                 }
             }
+        }
+    }
+    
+    // MARK: - Computed Properties for Unfinished State
+    
+    /// Determines if a card is unfinished based on conversation progress
+    /// Returns true only if there's some progress but not complete
+    private var isCardUnfinished: Bool {
+        // If isUnfinished is explicitly set, use that value
+        if isUnfinished {
+            print("🎯 FlipBookCard: isUnfinished explicitly set to true")
+            return true
+        }
+        
+        // Otherwise, determine based on the card's content/title
+        guard let title = getCardTitle() else { 
+            print("🎯 FlipBookCard: No title available, returning false")
+            return false 
+        }
+        
+        let topicKey = getTopicKey(from: title)
+        let progress = ConversationProgressManager.getProgress(for: topicKey)
+        let totalSteps = getTotalStepsForTopic(topicKey)
+        let isUnfinished = progress > 0 && progress < totalSteps
+        
+        print("🎯 FlipBookCard: Title: '\(title)', Topic: '\(topicKey)', Progress: \(progress)/\(totalSteps), isUnfinished: \(isUnfinished)")
+        return isUnfinished
+    }
+    
+    /// Get the card title for progress checking
+    private func getCardTitle() -> String? {
+        if let horoscope = horoscope {
+            return horoscope.title
+        }
+        // For convenience initializer, use the stored title
+        return convenienceTitle.isEmpty ? nil : convenienceTitle
+    }
+    
+    /// Get the content text to display
+    private func getContentText() -> String {
+        if let horoscope = horoscope {
+            return horoscope.message
+        }
+        // For convenience initializer, show appropriate text based on unfinished state
+        let contentText = isCardUnfinished ? "Continue your intake" : "Start your intake"
+        print("🎯 FlipBookCard: Content text - isCardUnfinished: \(isCardUnfinished), showing: '\(contentText)'")
+        return contentText
+    }
+    
+    /// Convert display title to topic key for progress checking
+    private func getTopicKey(from title: String) -> String {
+        switch title.lowercased() {
+        case "wellness":
+            return "wellness"
+        case "partner", "relationship":
+            return "relationship"
+        case "important people":
+            return "importantPeople"
+        case "children":
+            return "children"
+        case "employment":
+            return "employment"
+        default:
+            return title.lowercased()
+        }
+    }
+    
+    /// Get the total number of steps for a specific topic
+    /// This should match the actual conversation steps defined in your app
+    private func getTotalStepsForTopic(_ topic: String) -> Int {
+        switch topic.lowercased() {
+        case "wellness":
+            return 5 // Adjust based on your actual wellness conversation steps
+        case "relationship":
+            return 5 // Adjust based on your actual relationship conversation steps
+        case "importantpeople":
+            return 5 // Adjust based on your actual important people conversation steps
+        case "children":
+            return 5 // Adjust based on your actual children conversation steps
+        case "employment":
+            return 5 // Adjust based on your actual employment conversation steps
+        default:
+            return 5 // Default fallback
         }
     }
     
@@ -354,12 +450,26 @@ struct FlipBookCard: View {
         // .frame(height: 300)
         // .padding()
         
-        // Card with unfinished state (pulsating animation)
+        // Card with unfinished state (pulsating animation) - automatically determined
         FlipBookCard(
-            title: "Unfinished Task",
-            content: "This card demonstrates the pulsating animation when isUnfinished is true. Notice the subtle scaling, opacity changes, and enhanced border.",
-            showStartButton: false,
-            isUnfinished: true
+            title: "Wellness",
+            content: "Start your intake",
+            showStartButton: true,
+            onStartButtonTap: {
+                print("Continue button tapped!")
+            }
+        )
+        .frame(height: 300)
+        .padding()
+        
+        // Card with employment topic to show different behavior
+        FlipBookCard(
+            title: "Employment",
+            content: "Start your intake",
+            showStartButton: true,
+            onStartButtonTap: {
+                print("Employment button tapped!")
+            }
         )
         .frame(height: 300)
         .padding()

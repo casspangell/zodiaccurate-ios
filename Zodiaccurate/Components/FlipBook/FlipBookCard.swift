@@ -6,6 +6,7 @@ struct FlipBookCard: View {
     let onCardTap: (() -> Void)?
     let showStartButton: Bool
     let onStartButtonTap: (() -> Void)?
+    let isUnfinished: Bool
     
     // Navigation parameters
     let canNavigateLeft: Bool
@@ -20,17 +21,23 @@ struct FlipBookCard: View {
     @State private var cardHeight: CGFloat = 0.5
     @State private var globalFlipBookExpanded = false
     
+    // Animation states for unfinished pulsating effect
+    @State private var cardScale: CGFloat = 1.0
+    @State private var cardOpacity: Double = 1.0
+    @State private var borderOpacity: Double = 0.3
+    
     // Card height constants
 //    private let cardHeightMinimized: CGFloat = 0.05
     private let cardHeightNormal: CGFloat = 0.5
     private let cardHeightExpanded: CGFloat = 0.8
     
-    init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
+    init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = horoscope
         self.isLoading = isLoading
         self.onCardTap = onCardTap
         self.showStartButton = showStartButton
         self.onStartButtonTap = onStartButtonTap
+        self.isUnfinished = isUnfinished
         self.canNavigateLeft = canNavigateLeft
         self.canNavigateRight = canNavigateRight
         self.onNavigateLeft = onNavigateLeft
@@ -38,12 +45,13 @@ struct FlipBookCard: View {
     }
     
     // Convenience initializer for backward compatibility
-    init(title: String, content: String, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
+    init(title: String, content: String, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = Horoscope(title: title, message: content, key: "temp")
         self.isLoading = false
         self.onCardTap = onCardTap
         self.showStartButton = showStartButton
         self.onStartButtonTap = onStartButtonTap
+        self.isUnfinished = isUnfinished
         self.canNavigateLeft = canNavigateLeft
         self.canNavigateRight = canNavigateRight
         self.onNavigateLeft = onNavigateLeft
@@ -206,13 +214,27 @@ struct FlipBookCard: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(
                         RoundedRectangle(cornerRadius: 16) //kilroy
-                            .fill(globalFlipBookExpanded ? Color.white : Color.bubbleMist.opacity(0.8))
+                            .fill(globalFlipBookExpanded ? Color.white : (isUnfinished ? Color.deepPink.opacity(0.1) : Color.bubbleMist.opacity(0.8)))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
+                                    .stroke(isUnfinished ? Color.deepPink.opacity(borderOpacity) : Color.accentPurple.opacity(borderOpacity), lineWidth: isUnfinished ? 2 : 1)
                             )
                     )
-                    .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .shadow(color: isUnfinished ? Color.deepPink.opacity(0.3) : Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .scaleEffect(cardScale)
+                    .opacity(cardOpacity)
+                    .onAppear {
+                        if isUnfinished {
+                            startPulsatingAnimation()
+                        }
+                    }
+                    .onChange(of: isUnfinished) { newValue in
+                        if newValue {
+                            startPulsatingAnimation()
+                        } else {
+                            stopPulsatingAnimation()
+                        }
+                    }
                     
                 } else {
                     // Empty state (shouldn't happen with proper usage)
@@ -263,48 +285,81 @@ struct FlipBookCard: View {
             }
         }
     }
+    
+    // MARK: - Animation Functions
+    private func startPulsatingAnimation() {
+        withAnimation(
+            .easeInOut(duration: 1.2)
+            .repeatForever(autoreverses: true)
+        ) {
+            cardScale = 1.02
+            cardOpacity = 0.95
+            borderOpacity = 0.8
+        }
+    }
+    
+    private func stopPulsatingAnimation() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            cardScale = 1.0
+            cardOpacity = 1.0
+            borderOpacity = 0.3
+        }
+    }
 }
 
 
 
 #Preview {
     VStack(spacing: 20) {
+        // Canvas Preview - Demonstrates FlipBookCard with Pulsating Animation
         // Loading state
-        FlipBookCard(horoscope: nil, isLoading: true)
-            .frame(height: 300)
-            .padding()
+        // FlipBookCard(horoscope: nil, isLoading: true)
+        //     .frame(height: 300)
+        //     .padding()
         
-        // Loaded state with navigation arrows
-        FlipBookCard(
-            horoscope: Horoscope(
-                title: "Parenting",
-                message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas venenatis eros ut pretium tincidunt. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nulla facilisi. Sed vitae ex vitae nisi varius venenatis. Praesent commodo urna at nisi finibus varius. Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec vehicula sapien vitae massa tincidunt efficitur. Duis vestibulum mauris ac lectus tincidunt, in volutpat lorem efficitur. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
-                key: "preview"
-            ),
-            isLoading: false,
-            onCardTap: {
-                print("Card tapped - would move FlipBook to top")
-            },
-            canNavigateLeft: true,
-            canNavigateRight: true,
-            onNavigateLeft: {
-                print("Navigate left tapped!")
-            },
-            onNavigateRight: {
-                print("Navigate right tapped!")
-            }
-        )
-        .frame(height: 300)
-        .padding()
+        // // Loaded state with navigation arrows
+        // FlipBookCard(
+        //     horoscope: Horoscope(
+        //         title: "Parenting",
+        //         message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas venenatis eros ut pretium tincidunt. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nulla facilisi. Sed vitae ex vitae nisi varius venenatis. Praesent commodo urna at nisi finibus varius. Nulla facilisi. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Donec vehicula sapien vitae massa tincidunt efficitur. Duis vestibulum mauris ac lectus tincidunt, in volutpat lorem efficitur. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+        //         key: "preview"
+        //     ),
+        //     isLoading: false,
+        //     onCardTap: {
+        //         print("Card tapped - would move FlipBook to top")
+        //     },
+        //     isUnfinished: false,
+        //     canNavigateLeft: true,
+        //     canNavigateRight: true,
+        //     onNavigateLeft: {
+        //         print("Navigate left tapped!")
+        //     },
+        //     onNavigateRight: {
+        //         print("Navigate right tapped!")
+        //     }
+        // )
+        // .frame(height: 300)
+        // .padding()
         
-        // Card with Start button
+        // // Card with Start button
+        // FlipBookCard(
+        //     title: "Wellness",
+        //     content: "Start your intake",
+        //     showStartButton: true,
+        //     onStartButtonTap: {
+        //         print("Start button tapped!")
+        //     },
+        //     isUnfinished: false
+        // )
+        // .frame(height: 300)
+        // .padding()
+        
+        // Card with unfinished state (pulsating animation)
         FlipBookCard(
-            title: "Wellness",
-            content: "Start your intake",
-            showStartButton: true,
-            onStartButtonTap: {
-                print("Start button tapped!")
-            }
+            title: "Unfinished Task",
+            content: "This card demonstrates the pulsating animation when isUnfinished is true. Notice the subtle scaling, opacity changes, and enhanced border.",
+            showStartButton: false,
+            isUnfinished: true
         )
         .frame(height: 300)
         .padding()

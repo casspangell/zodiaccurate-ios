@@ -134,6 +134,14 @@ let wellnessConversationSteps: [ConversationStep] = [
             "Pagan",
             "Other"
         ],
+    ),
+    // 13. Final
+    ConversationStep(
+        message: "✨ The stars have witnessed your journey through wellness. Your Wellness profile is now complete, and the universe holds the wisdom to guide you toward your highest potential. The celestial energies are aligning in your favor. ✨",
+        inputType: "none",
+        placeholder: "none",
+        dataKey: "final",
+        isFinal: true
     )
 ]
 

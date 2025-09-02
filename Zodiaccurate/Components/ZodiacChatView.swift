@@ -20,6 +20,7 @@ struct ZodiacChatView: View {
     @State private var showResponseChatBubble = false
     @State private var showTutorialBubble = false
     @StateObject private var keyboardManager = KeyboardManager()
+    @StateObject private var stardustManager = StardustManager()
     @State private var headerHeight: CGFloat = 0
     @State private var previousResponses: [String] = []
 
@@ -307,7 +308,7 @@ struct ZodiacChatView: View {
                 .offset(y: -totalScrollOffset) // Apply negative offset to pull content up when keyboard appears
                 .onTapGesture {
                     if shouldShowCompleteButton {
-                        onConversationComplete()
+                        handleConversationComplete()
                     }
                 }
             }
@@ -448,16 +449,16 @@ struct ZodiacChatView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // Progress indicator pinned to bottom, hidden when keyboard is visible
-            VStack {
-                Spacer()
-                
-                ProgressBar(progress: Double(currentStep) / Double(conversationSteps.count), foregroundColor: .accentGold)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 20)
-                    .opacity(keyboardManager.keyboardHeight > 0 ? 0 : 1)
-                    .animation(.easeInOut(duration: 0.3), value: keyboardManager.keyboardHeight)
-            }
+                            // Progress indicator pinned to bottom, hidden when keyboard is visible
+                VStack {
+                    Spacer()
+                    
+                    ProgressBar(progress: Double(currentStep) / Double(conversationSteps.count - 1), foregroundColor: .accentGold)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 20)
+                        .opacity(keyboardManager.keyboardHeight > 0 ? 0 : 1)
+                        .animation(.easeInOut(duration: 0.3), value: keyboardManager.keyboardHeight)
+                }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             if showZodiacAlert {
@@ -601,12 +602,22 @@ struct ZodiacChatView: View {
         
         onUserDataUpdate(trimmedInput, conversationSteps[currentStep])
         currentInput = ""
+        
+        // Check if this was the final step
+        let wasFinalStep = conversationSteps[currentStep].isFinal
         currentStep += 1
         onStepComplete(currentStep)
         
-        // Trigger next question after a delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            triggerNextQuestion()
+        if wasFinalStep {
+            // For final steps, complete the conversation after a delay to show the user's response
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                handleConversationComplete()
+            }
+        } else {
+            // Trigger next question after a delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                triggerNextQuestion()
+            }
         }
     }
     
@@ -670,7 +681,7 @@ struct ZodiacChatView: View {
                 displayQuestionMessage(personalizedMessage)
             }
         } else {
-            onConversationComplete()
+            handleConversationComplete()
         }
     }
     
@@ -716,6 +727,19 @@ struct ZodiacChatView: View {
 //                }
             }
         }
+    }
+    
+    // MARK: - Conversation Completion Handler
+    private func handleConversationComplete() {
+        // Earn 20 stardust for completing the conversation
+        stardustManager.earnStardust(
+            amount: 20,
+            type: .achievement,
+            description: "Completed conversation"
+        )
+        
+        // Call the original completion callback
+        onConversationComplete()
     }
     
     // MARK: - Fade Effect Helper

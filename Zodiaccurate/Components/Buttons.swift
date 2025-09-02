@@ -1,5 +1,7 @@
 import SwiftUI
 
+
+
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -44,13 +46,19 @@ struct CircleIconButton: View {
     let isEnabled: Bool
     let isFiery: Bool
     let isHighlighted: Bool
+    let isUnfinished: Bool
+    
+    // Animation states for unfinished pulsating effect
+    @State private var iconScale: CGFloat = 1.0
+    @State private var iconOpacity: Double = 1.0
 
-    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, isFiery: Bool = false, isHighlighted: Bool = false, action: @escaping () -> Void) {
+    init(systemName: String, accessibilityLabel: String, isEnabled: Bool = true, isFiery: Bool = false, isHighlighted: Bool = false, isUnfinished: Bool = false, action: @escaping () -> Void) {
         self.systemName = systemName
         self.accessibilityLabel = accessibilityLabel
         self.isEnabled = isEnabled
         self.isFiery = isFiery
         self.isHighlighted = isHighlighted
+        self.isUnfinished = isUnfinished
         self.action = action
     }
     
@@ -77,7 +85,24 @@ struct CircleIconButton: View {
                     // Icon
                     Image(systemName: systemName)
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(isEnabled ? .white : .white.opacity(0.6))
+                        .foregroundColor(
+                            isUnfinished ? Color.deepPink : 
+                            (isEnabled ? .white : .white.opacity(0.6))
+                        )
+                        .scaleEffect(iconScale)
+                        .opacity(iconOpacity)
+                        .onAppear {
+                            if isUnfinished {
+                                startPulsatingAnimation()
+                            }
+                        }
+                        .onChange(of: isUnfinished) { newValue in
+                            if newValue {
+                                startPulsatingAnimation()
+                            } else {
+                                stopPulsatingAnimation()
+                            }
+                        }
                 }
                 .overlay(
                     Circle()
@@ -110,6 +135,24 @@ struct CircleIconButton: View {
             .disabled(!isEnabled)
         }
         .frame(width: isFiery ? 56 : 40, height: isFiery ? 56 : 40)
+    }
+    
+    // MARK: - Animation Functions
+    private func startPulsatingAnimation() {
+        withAnimation(
+            .easeInOut(duration: 1.2)
+            .repeatForever(autoreverses: true)
+        ) {
+            iconScale = 1.2
+            iconOpacity = 0.7
+        }
+    }
+    
+    private func stopPulsatingAnimation() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            iconScale = 1.0
+            iconOpacity = 1.0
+        }
     }
 }
 
@@ -363,6 +406,98 @@ struct AudioControlButton: View {
         .accessibilityLabel(isEnabled ? (isPlaying ? "Pause audio" : "Play audio") : "No audio available")
         .accessibilityHint(isEnabled ? "Tap to \(isPlaying ? "pause" : "play") the audio content" : "This card has no audio content")
     }
+}
+
+// MARK: - Canvas Preview
+#Preview {
+    VStack(spacing: 30) {
+        Text("CircleIconButton with Unfinished State")
+            .font(.title2)
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+        
+        // Icon pulsating effect demo
+        Text("Icon Pulsating Effect (Unfinished State)")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        // Buttons with different states
+        Text("Buttons with Different States")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        HStack(spacing: 20) {
+            CircleIconButton(
+                systemName: "heart.fill",
+                accessibilityLabel: "Wellness",
+                isEnabled: true,
+                isFiery: false,
+                isHighlighted: false,
+                isUnfinished: true
+            ) {}
+            
+            CircleIconButton(
+                systemName: "person.2.fill",
+                accessibilityLabel: "Relationships",
+                isEnabled: true,
+                isFiery: true,
+                isHighlighted: false,
+                isUnfinished: false
+            ) {}
+            
+            CircleIconButton(
+                systemName: "star.fill",
+                accessibilityLabel: "Important People",
+                isEnabled: true,
+                isFiery: false,
+                isHighlighted: true,
+                isUnfinished: false
+            ) {}
+        }
+        
+        // All unfinished demo
+        Text("All Buttons with Unfinished State")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        HStack(spacing: 20) {
+            CircleIconButton(
+                systemName: "heart.fill",
+                accessibilityLabel: "Wellness",
+                isEnabled: true,
+                isFiery: false,
+                isHighlighted: false,
+                isUnfinished: true
+            ) {}
+            
+            CircleIconButton(
+                systemName: "person.2.fill",
+                accessibilityLabel: "Relationships",
+                isEnabled: true,
+                isFiery: false,
+                isHighlighted: false,
+                isUnfinished: true
+            ) {}
+            
+            CircleIconButton(
+                systemName: "star.fill",
+                accessibilityLabel: "Important People",
+                isEnabled: true,
+                isFiery: false,
+                isHighlighted: false,
+                isUnfinished: true
+            ) {}
+        }
+    }
+    .padding(30)
+    .background(
+        LinearGradient(
+            gradient: Gradient(colors: [Color.black, Color(hex: "1a1a1a")]),
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    )
+    .previewLayout(.sizeThatFits)
 }
 
 // Preview

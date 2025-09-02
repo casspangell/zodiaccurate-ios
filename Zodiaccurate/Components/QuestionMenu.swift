@@ -31,6 +31,61 @@ struct QuestionMenu: View {
     
     // Highlighted button state
     let highlightedButton: QuestionMenuButton
+    
+    // MARK: - Computed Properties for Unfinished State
+    
+    /// Determines if a topic is unfinished based on conversation progress
+    /// Returns true only if there's some progress but not complete
+    private var isWellnessUnfinished: Bool {
+        let progress = ConversationProgressManager.getProgress(for: "wellness")
+        let totalSteps = getTotalStepsForTopic("wellness")
+        return progress > 0 && progress < totalSteps
+    }
+    
+    private var isRelationshipUnfinished: Bool {
+        let progress = ConversationProgressManager.getProgress(for: "relationship")
+        let totalSteps = getTotalStepsForTopic("relationship")
+        return progress > 0 && progress < totalSteps
+    }
+    
+    private var isImportantPeopleUnfinished: Bool {
+        let progress = ConversationProgressManager.getProgress(for: "importantPeople")
+        let totalSteps = getTotalStepsForTopic("importantPeople")
+        return progress > 0 && progress < totalSteps
+    }
+    
+    private var isChildrenUnfinished: Bool {
+        let progress = ConversationProgressManager.getProgress(for: "children")
+        let totalSteps = getTotalStepsForTopic("children")
+        return progress > 0 && progress < totalSteps
+    }
+    
+    private var isEmploymentUnfinished: Bool {
+        let progress = ConversationProgressManager.getProgress(for: "employment")
+        let totalSteps = getTotalStepsForTopic("employment")
+        return progress > 0 && progress < totalSteps
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Get the total number of steps for a specific topic
+    /// This should match the actual conversation steps defined in your app
+    private func getTotalStepsForTopic(_ topic: String) -> Int {
+        switch topic.lowercased() {
+        case "wellness":
+            return 5 // Adjust based on your actual wellness conversation steps
+        case "relationship":
+            return 5 // Adjust based on your actual relationship conversation steps
+        case "importantpeople":
+            return 5 // Adjust based on your actual important people conversation steps
+        case "children":
+            return 5 // Adjust based on your actual children conversation steps
+        case "employment":
+            return 5 // Adjust based on your actual employment conversation steps
+        default:
+            return 5 // Default fallback
+        }
+    }
 
     // Local interactive state that starts from the passed fiery flags, then turns off after tap
     @State private var isWellnessFieryState: Bool = false
@@ -89,8 +144,9 @@ struct QuestionMenu: View {
                 systemName: "heart.fill",
                 accessibilityLabel: "Wellness Questions",
                 isEnabled: isWellnessEnabled,
-                isFiery: isWellnessFieryState,
+                isFiery: isWellnessUnfinished ? false : isWellnessFieryState,
                 isHighlighted: highlightedButton == .wellness,
+                isUnfinished: isWellnessUnfinished,
                 action: {
                     if isWellnessEnabled { isWellnessFieryState = false }
                     onWellness()
@@ -102,8 +158,9 @@ struct QuestionMenu: View {
                 systemName: "person.2.fill",
                 accessibilityLabel: "Relationship Questions",
                 isEnabled: isRelationshipEnabled,
-                isFiery: isRelationshipFieryState,
+                isFiery: isRelationshipUnfinished ? false : isRelationshipFieryState,
                 isHighlighted: highlightedButton == .relationship,
+                isUnfinished: isRelationshipUnfinished,
                 action: {
                     if isRelationshipEnabled { isRelationshipFieryState = false }
                     onRelationship()
@@ -115,8 +172,9 @@ struct QuestionMenu: View {
                 systemName: "star.fill",
                 accessibilityLabel: "Important People Questions",
                 isEnabled: isImportantPeopleEnabled,
-                isFiery: isImportantPeopleFieryState,
+                isFiery: isImportantPeopleUnfinished ? false : isImportantPeopleFieryState,
                 isHighlighted: highlightedButton == .importantPeople,
+                isUnfinished: isImportantPeopleUnfinished,
                 action: {
                     if isImportantPeopleEnabled { isImportantPeopleFieryState = false }
                     onImportantPeople()
@@ -128,8 +186,9 @@ struct QuestionMenu: View {
                 systemName: "gamecontroller.fill",
                 accessibilityLabel: "Children Questions",
                 isEnabled: isChildrenEnabled,
-                isFiery: isChildrenFieryState,
+                isFiery: isChildrenUnfinished ? false : isChildrenFieryState,
                 isHighlighted: highlightedButton == .children,
+                isUnfinished: isChildrenUnfinished,
                 action: {
                     if isChildrenEnabled { isChildrenFieryState = false }
                     onChildren()
@@ -141,8 +200,9 @@ struct QuestionMenu: View {
                 systemName: "briefcase.fill",
                 accessibilityLabel: "Employment Questions",
                 isEnabled: isEmploymentEnabled,
-                isFiery: isEmploymentFieryState,
+                isFiery: isEmploymentUnfinished ? false : isEmploymentFieryState,
                 isHighlighted: highlightedButton == .employment,
+                isUnfinished: isEmploymentUnfinished,
                 action: {
                     if isEmploymentEnabled { isEmploymentFieryState = false }
                     onEmployment()
@@ -153,45 +213,99 @@ struct QuestionMenu: View {
     }
 }
 
-struct QuestionMenu_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack(spacing: 28) {
-            // Default
-            QuestionMenu(
-                isWellnessEnabled: true,
-                isRelationshipEnabled: true,
-                isImportantPeopleEnabled: true,
-                isChildrenEnabled: true,
-                isEmploymentEnabled: true
-            )
+#Preview {
+    VStack(spacing: 28) {
+        Text("QuestionMenu with Pulsating Pink Backgrounds")
+            .font(.title2)
+            .fontWeight(.bold)
+            .foregroundColor(.white)
+            .padding(.bottom, 10)
+        
+        // Default
+        Text("Default State")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        QuestionMenu(
+            isWellnessEnabled: true,
+            isRelationshipEnabled: true,
+            isImportantPeopleEnabled: true,
+            isChildrenEnabled: true,
+            isEmploymentEnabled: true
+        )
 
-            // Fiery states demo
-            QuestionMenu(
-                isWellnessEnabled: true,
-                isRelationshipEnabled: true,
-                isImportantPeopleEnabled: true,
-                isChildrenEnabled: true,
-                isEmploymentEnabled: true,
-                isWellnessFiery: true,
-                isRelationshipFiery: false,
-                isImportantPeopleFiery: false,
-                isChildrenFiery: true,
-                isEmploymentFiery: false
-            )
-            
-            // Highlighted state demo
-            QuestionMenu(
-                isWellnessEnabled: true,
-                isRelationshipEnabled: true,
-                isImportantPeopleEnabled: true,
-                isChildrenEnabled: true,
-                isEmploymentEnabled: true,
-                highlightedButton: .wellness
-            )
-        }
-        .padding(24)
-        .background(Color.backgroundPrimary)
-        .previewLayout(.sizeThatFits)
+        // Fiery states demo with pulsating pink backgrounds
+        Text("Fiery States with Pulsating Pink Backgrounds")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        QuestionMenu(
+            isWellnessEnabled: true,
+            isRelationshipEnabled: true,
+            isImportantPeopleEnabled: true,
+            isChildrenEnabled: true,
+            isEmploymentEnabled: true,
+            isWellnessFiery: true,
+            isRelationshipFiery: false,
+            isImportantPeopleFiery: false,
+            isChildrenFiery: true,
+            isEmploymentFiery: false
+        )
+        
+        // Highlighted state demo
+        Text("Highlighted State")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        QuestionMenu(
+            isWellnessEnabled: true,
+            isRelationshipEnabled: true,
+            isImportantPeopleEnabled: true,
+            isChildrenEnabled: true,
+            isEmploymentEnabled: true,
+            highlightedButton: .wellness
+        )
+        
+        // All fiery demo
+        Text("All Buttons with Pulsating Pink Backgrounds")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        QuestionMenu(
+            isWellnessEnabled: true,
+            isRelationshipEnabled: true,
+            isImportantPeopleEnabled: true,
+            isChildrenEnabled: true,
+            isEmploymentEnabled: true,
+            isWellnessFiery: true,
+            isRelationshipFiery: true,
+            isImportantPeopleFiery: true,
+            isChildrenFiery: true,
+            isEmploymentFiery: true
+        )
+        
+        // Unfinished states demo (now automatically determined)
+        Text("Unfinished States (Automatically Determined)")
+            .font(.caption)
+            .foregroundColor(.gray)
+        
+        QuestionMenu(
+            isWellnessEnabled: true,
+            isRelationshipEnabled: true,
+            isImportantPeopleEnabled: true,
+            isChildrenEnabled: true,
+            isEmploymentEnabled: true
+        )
+        
+        // Note about automatic unfinished detection
+        Text("Note: Unfinished state is now automatically determined based on conversation progress")
+            .font(.caption2)
+            .foregroundColor(.gray)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
     }
+    .padding(24)
+    .background(Color.backgroundPrimary)
+    .previewLayout(.sizeThatFits)
 }
 

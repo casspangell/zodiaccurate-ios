@@ -42,6 +42,14 @@ struct QuestionMenu: View {
     @State private var isChildrenUnfinished: Bool = false
     @State private var isEmploymentUnfinished: Bool = false
     
+    /// Determines if a topic is completed based on conversation progress
+    /// Returns true if the topic has reached the final step
+    @State private var isWellnessCompleted: Bool = false
+    @State private var isRelationshipCompleted: Bool = false
+    @State private var isImportantPeopleCompleted: Bool = false
+    @State private var isChildrenCompleted: Bool = false
+    @State private var isEmploymentCompleted: Bool = false
+    
     // MARK: - Helper Methods
     
     /// Update all unfinished states based on current progress
@@ -52,32 +60,28 @@ struct QuestionMenu: View {
         let childrenProgress = ConversationProgressManager.getProgress(for: "children")
         let employmentProgress = ConversationProgressManager.getProgress(for: "employment")
         
-        isWellnessUnfinished = wellnessProgress > 0 && wellnessProgress < getTotalStepsForTopic("wellness")
-        isRelationshipUnfinished = relationshipProgress > 0 && relationshipProgress < getTotalStepsForTopic("relationship")
-        isImportantPeopleUnfinished = importantPeopleProgress > 0 && importantPeopleProgress < getTotalStepsForTopic("importantPeople")
-        isChildrenUnfinished = childrenProgress > 0 && childrenProgress < getTotalStepsForTopic("children")
-        isEmploymentUnfinished = employmentProgress > 0 && employmentProgress < getTotalStepsForTopic("employment")
+        isWellnessUnfinished = wellnessProgress > 0 && wellnessProgress < ConversationProgressManager.getTotalStepsForTopic("wellness")
+        isRelationshipUnfinished = relationshipProgress > 0 && relationshipProgress < ConversationProgressManager.getTotalStepsForTopic("relationship")
+        isImportantPeopleUnfinished = importantPeopleProgress > 0 && importantPeopleProgress < ConversationProgressManager.getTotalStepsForTopic("importantPeople")
+        isChildrenUnfinished = childrenProgress > 0 && childrenProgress < ConversationProgressManager.getTotalStepsForTopic("children")
+        isEmploymentUnfinished = employmentProgress > 0 && employmentProgress < ConversationProgressManager.getTotalStepsForTopic("employment")
+        
+        // Update completion states
+        isWellnessCompleted = ConversationProgressManager.isTopicCompleted(for: "wellness")
+        isRelationshipCompleted = ConversationProgressManager.isTopicCompleted(for: "relationship")
+        isImportantPeopleCompleted = ConversationProgressManager.isTopicCompleted(for: "importantPeople")
+        isChildrenCompleted = ConversationProgressManager.isTopicCompleted(for: "children")
+        isEmploymentCompleted = ConversationProgressManager.isTopicCompleted(for: "employment")
         
         print("🔄 QuestionMenu: Updated unfinished states - Wellness: \(isWellnessUnfinished), Relationship: \(isRelationshipUnfinished), Important People: \(isImportantPeopleUnfinished), Children: \(isChildrenUnfinished), Employment: \(isEmploymentUnfinished)")
-    }
-    
-    /// Get the total number of steps for a specific topic
-    /// This should match the actual conversation steps defined in your app
-    private func getTotalStepsForTopic(_ topic: String) -> Int {
-        switch topic.lowercased() {
-        case "wellness":
-            return 5 // Adjust based on your actual wellness conversation steps
-        case "relationship":
-            return 5 // Adjust based on your actual relationship conversation steps
-        case "importantpeople":
-            return 5 // Adjust based on your actual important people conversation steps
-        case "children":
-            return 5 // Adjust based on your actual children conversation steps
-        case "employment":
-            return 5 // Adjust based on your actual employment conversation steps
-        default:
-            return 5 // Default fallback
-        }
+        print("🔄 QuestionMenu: Updated completion states - Wellness: \(isWellnessCompleted), Relationship: \(isRelationshipCompleted), Important People: \(isImportantPeopleCompleted), Children: \(isChildrenCompleted), Employment: \(isEmploymentCompleted)")
+        
+        // Reset fiery state for completed topics
+        if isWellnessCompleted { isWellnessFieryState = false }
+        if isRelationshipCompleted { isRelationshipFieryState = false }
+        if isImportantPeopleCompleted { isImportantPeopleFieryState = false }
+        if isChildrenCompleted { isChildrenFieryState = false }
+        if isEmploymentCompleted { isEmploymentFieryState = false }
     }
 
     // Local interactive state that starts from the passed fiery flags, then turns off after tap
@@ -136,14 +140,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "heart.fill",
                 accessibilityLabel: "Wellness Questions",
-                isEnabled: isWellnessEnabled,
-                isFiery: isWellnessUnfinished ? false : isWellnessFieryState,
+                isEnabled: isWellnessEnabled && !isWellnessCompleted,
+                isFiery: isWellnessCompleted ? false : (isWellnessUnfinished ? false : isWellnessFieryState),
                 isHighlighted: highlightedButton == .wellness,
                 isUnfinished: isWellnessUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Wellness button tapped")
-                    if isWellnessEnabled { isWellnessFieryState = false }
-                    onWellness()
+                    if isWellnessEnabled && !isWellnessCompleted { isWellnessFieryState = false }
+                    if !isWellnessCompleted { onWellness() }
                 }
             )
             Spacer()
@@ -151,14 +155,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "person.2.fill",
                 accessibilityLabel: "Relationship Questions",
-                isEnabled: isRelationshipEnabled,
-                isFiery: isRelationshipUnfinished ? false : isRelationshipFieryState,
+                isEnabled: isRelationshipEnabled && !isRelationshipCompleted,
+                isFiery: isRelationshipCompleted ? false : (isRelationshipUnfinished ? false : isRelationshipFieryState),
                 isHighlighted: highlightedButton == .relationship,
                 isUnfinished: isRelationshipUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Relationship button tapped")
-                    if isRelationshipEnabled { isRelationshipFieryState = false }
-                    onRelationship()
+                    if isRelationshipEnabled && !isRelationshipCompleted { isRelationshipFieryState = false }
+                    if !isRelationshipCompleted { onRelationship() }
                 }
             )
             Spacer()
@@ -166,16 +170,16 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "star.fill",
                 accessibilityLabel: "Important People Questions",
-                isEnabled: isImportantPeopleEnabled,
-                isFiery: isImportantPeopleUnfinished ? false : isImportantPeopleFieryState,
+                isEnabled: isImportantPeopleEnabled && !isImportantPeopleCompleted,
+                isFiery: isImportantPeopleCompleted ? false : (isImportantPeopleUnfinished ? false : isImportantPeopleFieryState),
                 isHighlighted: highlightedButton == .importantPeople,
                 isUnfinished: isImportantPeopleUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Important People button tapped")
                     print("🔍 QuestionMenu: isImportantPeopleEnabled = \(isImportantPeopleEnabled)")
                     print("🔍 QuestionMenu: isImportantPeopleFieryState = \(isImportantPeopleFieryState)")
-                    if isImportantPeopleEnabled { isImportantPeopleFieryState = false }
-                    onImportantPeople()
+                    if isImportantPeopleEnabled && !isImportantPeopleCompleted { isImportantPeopleFieryState = false }
+                    if !isImportantPeopleCompleted { onImportantPeople() }
                 }
             )
             Spacer()
@@ -183,14 +187,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "gamecontroller.fill",
                 accessibilityLabel: "Children Questions",
-                isEnabled: isChildrenEnabled,
-                isFiery: isChildrenUnfinished ? false : isChildrenFieryState,
+                isEnabled: isChildrenEnabled && !isChildrenCompleted,
+                isFiery: isChildrenCompleted ? false : (isChildrenUnfinished ? false : isChildrenFieryState),
                 isHighlighted: highlightedButton == .children,
                 isUnfinished: isChildrenUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Children button tapped")
-                    if isChildrenEnabled { isChildrenFieryState = false }
-                    onChildren()
+                    if isChildrenEnabled && !isChildrenCompleted { isChildrenFieryState = false }
+                    if !isChildrenCompleted { onChildren() }
                 }
             )
             Spacer()
@@ -198,14 +202,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "briefcase.fill",
                 accessibilityLabel: "Employment Questions",
-                isEnabled: isEmploymentEnabled,
-                isFiery: isEmploymentUnfinished ? false : isEmploymentFieryState,
+                isEnabled: isEmploymentEnabled && !isEmploymentCompleted,
+                isFiery: isEmploymentCompleted ? false : (isEmploymentUnfinished ? false : isEmploymentFieryState),
                 isHighlighted: highlightedButton == .employment,
                 isUnfinished: isEmploymentUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Employment button tapped")
-                    if isEmploymentEnabled { isEmploymentFieryState = false }
-                    onEmployment()
+                    if isEmploymentEnabled && !isEmploymentCompleted { isEmploymentFieryState = false }
+                    if !isEmploymentCompleted { onEmployment() }
                 }
             )
         }

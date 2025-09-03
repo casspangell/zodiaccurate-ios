@@ -12,6 +12,7 @@ import SwiftUI
 // MARK: - Notification Names
 extension Notification.Name {
     static let stardustEarned = Notification.Name("stardustEarned")
+    static let stardustAnimationCompleted = Notification.Name("stardustAnimationCompleted")
     static let badgeAnimationTriggered = Notification.Name("badgeAnimationTriggered")
     static let consentAccepted = Notification.Name("consentAccepted")
     static let setHeaderBackgroundOpacity = Notification.Name("setHeaderBackgroundOpacity")

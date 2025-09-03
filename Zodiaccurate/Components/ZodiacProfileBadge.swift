@@ -878,6 +878,8 @@ struct LocalizedStardustAnimation: View {
         // Reset
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             isShowing = false
+            // Notify that the stardust animation has completed
+            NotificationCenter.default.post(name: .stardustAnimationCompleted, object: nil)
         }
     }
 }

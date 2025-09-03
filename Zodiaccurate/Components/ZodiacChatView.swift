@@ -762,11 +762,12 @@ struct ZodiacChatView: View {
         stardustManager.earnStardust(
             amount: 20,
             type: .achievement,
-            description: "Completed conversation"
+            description: "Completed conversation",
+            onAnimationComplete: {
+                // Proceed only after stardust animation finishes (or times out)
+                onConversationComplete()
+            }
         )
-        
-        // Call the original completion callback
-        onConversationComplete()
     }
     
     // MARK: - Fade Effect Helper

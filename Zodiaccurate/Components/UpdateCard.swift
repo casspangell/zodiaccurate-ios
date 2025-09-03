@@ -339,6 +339,17 @@ struct UpdateCard: View {
             // Don't change UpdateCard state when FlipBook collapses - keep current state
             // This allows UpdateCard to remain minimized if it was already minimized
         }
+        .onReceive(NotificationCenter.default.publisher(for: .updateCardShouldMinimize)) { _ in
+            // Minimize UpdateCard after 5 seconds as requested
+            print("🔄 UpdateCard: Received updateCardShouldMinimize notification, minimizing card")
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                cardHeight = cardHeightMinimized
+                isExpanded = false
+                isMinimized = true
+                dragOffset = 0
+            }
+            postStateChangeNotification(state: .minimized)
+        }
         .onDisappear {
             removeKeyboardObservers()
             resetTimer?.invalidate()

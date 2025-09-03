@@ -35,6 +35,7 @@ struct MainZodiacView: View {
     @State private var flipBookCardBottomPosition: CGFloat = 0
     @State private var currentFlipBookIndex: Int = 0
     @State private var showHandAnimation: Bool = true
+    @State private var updateCardShouldMinimize: Bool = false
     
     var headerFlipBookSpacingDefault: CGFloat {
         return headerHeight + getQuestionMenuHeight() //getSafeAreaTop() + headerHeight + getQuestionMenuHeight()
@@ -146,6 +147,12 @@ struct MainZodiacView: View {
                     
                     // Don't trigger stardust animation automatically - wait for tutorial dismissal
                     // Animation will be triggered after stardust tutorial is dismissed
+                    
+                    // Set timer to minimize UpdateCard after 5 seconds
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                        print("🔄 MainZodiacView: 5 seconds elapsed, posting updateCardShouldMinimize notification")
+                        NotificationCenter.default.post(name: .updateCardShouldMinimize, object: nil)
+                    }
                 }
             }
             if completedOnboarding {
@@ -314,6 +321,9 @@ struct MainZodiacView: View {
                     UpdateCard()
                         .allowsHitTesting(hasAcceptedConsentPolicies)
                         .zIndex(activeComponent == .updateCard ? getZIndex(.active) : getZIndex(.three))
+                        .onReceive(NotificationCenter.default.publisher(for: .updateCardShouldMinimize)) { _ in
+                            updateCardShouldMinimize = true
+                        }
                         .onReceive(NotificationCenter.default.publisher(for: .updateCardActivated)) { _ in
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 activeComponent = .updateCard

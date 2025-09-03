@@ -99,7 +99,12 @@ class StardustManager: ObservableObject {
     // MARK: - Transaction Methods
     
     /// Earn stardust (with SwiftData sync)
-    func earnStardust(amount: Int, type: StardustTransactionType, description: String) {
+    /// - Parameters:
+    ///   - amount: Amount to earn (> 0)
+    ///   - type: Transaction type
+    ///   - description: Description for history
+    ///   - onAnimationComplete: Optional completion invoked after the localized badge animation completes
+    func earnStardust(amount: Int, type: StardustTransactionType, description: String, onAnimationComplete: (() -> Void)? = nil) {
         guard amount > 0 else {
             print("⚠️ StardustManager: Cannot earn negative or zero stardust")
             return
@@ -136,6 +141,28 @@ class StardustManager: ObservableObject {
         print("✅ StardustManager: Successfully updated stardust data")
         print("📊 StardustManager: Current balance: \(currentBalance), Total earned: \(totalEarned)")
         
+        // If caller provided a completion, listen once for animation completion (with timeout)
+        var completionObserver: NSObjectProtocol?
+        var didCompleteViaNotification = false
+        if let onAnimationComplete = onAnimationComplete {
+            completionObserver = NotificationCenter.default.addObserver(
+                forName: .stardustAnimationCompleted,
+                object: nil,
+                queue: .main
+            ) { _ in
+                didCompleteViaNotification = true
+                NotificationCenter.default.removeObserver(completionObserver!)
+                onAnimationComplete()
+            }
+            // Fallback timeout in case UI isn't visible to run the animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                if !didCompleteViaNotification {
+                    if let obs = completionObserver { NotificationCenter.default.removeObserver(obs) }
+                    onAnimationComplete()
+                }
+            }
+        }
+
         // Trigger localized earning animation via notification
         NotificationCenter.default.post(
             name: .stardustEarned,

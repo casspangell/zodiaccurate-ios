@@ -96,6 +96,36 @@ class ConversationProgressManager {
         return topics.filter { hasProgress(for: $0) }
     }
     
+    /// Check if a topic is completed (reached the final step)
+    /// - Parameter topic: The conversation topic
+    /// - Returns: True if the topic is completed, false otherwise
+    static func isTopicCompleted(for topic: String) -> Bool {
+        let progress = getProgress(for: topic)
+        let totalSteps = getTotalStepsForTopic(topic)
+        return progress >= totalSteps
+    }
+    
+    /// Get the total number of steps for a specific topic
+    /// This should match the actual conversation steps defined in your app
+    /// - Parameter topic: The conversation topic
+    /// - Returns: The total number of steps for the topic
+    static func getTotalStepsForTopic(_ topic: String) -> Int {
+        switch topic.lowercased() {
+        case "wellness":
+            return 5 // Adjust based on your actual wellness conversation steps
+        case "relationship":
+            return 5 // Adjust based on your actual relationship conversation steps
+        case "importantpeople", "important people":
+            return 5 // Adjust based on your actual important people conversation steps
+        case "children":
+            return 5 // Adjust based on your actual children conversation steps
+        case "employment":
+            return 5 // Adjust based on your actual employment conversation steps
+        default:
+            return 5 // Default fallback
+        }
+    }
+    
     // MARK: - Helper Methods
     
     /// Get the UserDefaults key for a specific topic
@@ -142,4 +172,5 @@ class ConversationProgressManager {
 // MARK: - Notification Names
 extension Notification.Name {
     static let conversationProgressUpdated = Notification.Name("conversationProgressUpdated")
+    static let updateCardShouldMinimize = Notification.Name("updateCardShouldMinimize")
 }

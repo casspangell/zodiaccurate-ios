@@ -34,6 +34,9 @@ struct FlipBookCard: View {
 //    private let cardHeightMinimized: CGFloat = 0.05
     private let cardHeightNormal: CGFloat = 0.5
     private let cardHeightExpanded: CGFloat = 0.8
+    // Reserve vertical space at the top of the card content for the overlayed
+    // play/expand controls so text renders below them.
+    private let topControlsInset: CGFloat = 60
     
     init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = horoscope
@@ -94,12 +97,14 @@ struct FlipBookCard: View {
                         ScrollViewReader { scrollProxy in
                             ScrollView(.vertical, showsIndicators: false) {
                                 VStack(alignment: .leading, spacing: 16) {
+                                    // Spacer to push content below top-right overlay controls
+                                    Color.clear
+                                        .frame(height: topControlsInset)
                                     // Header
                                     Text(horoscope.title)
                                         .font(.dmSansSemibold(size: 24))
                                         .foregroundColor(globalFlipBookExpanded ? .black : .whiteCustom)
                                         .padding(.horizontal, 20)
-                                        .padding(.top, 20)
                                         .id("top") // Add ID for scrolling to top
 
                                     // Content
@@ -225,7 +230,7 @@ struct FlipBookCard: View {
                         }
                         .padding(.top, 12)
                         .padding(.trailing, 12)
-                        .zIndex(1)
+                        .zIndex(10)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(

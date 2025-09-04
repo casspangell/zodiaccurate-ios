@@ -213,14 +213,14 @@ func getFlipBookCardAvailableHeight(
     
     let availableHeight = screenHeight - safeAreaTop - indicatorHeight - updateCardHeight - safeAreaBottom - gapBetweenCards
     
-    print("📐 Height Calculation:")
-    print("   Screen height: \(screenHeight)")
-    print("   Safe area top: \(safeAreaTop)")
-    print("   Indicator height: \(indicatorHeight)")
-    print("   UpdateCard height (\(updateCardState)): \(updateCardHeight)")
-    print("   Safe area bottom: \(safeAreaBottom)")
-    print("   Gap between cards: \(gapBetweenCards)")
-    print("   Available height: \(availableHeight)")
+//    print("📐 Height Calculation:")
+//    print("   Screen height: \(screenHeight)")
+//    print("   Safe area top: \(safeAreaTop)")
+//    print("   Indicator height: \(indicatorHeight)")
+//    print("   UpdateCard height (\(updateCardState)): \(updateCardHeight)")
+//    print("   Safe area bottom: \(safeAreaBottom)")
+//    print("   Gap between cards: \(gapBetweenCards)")
+//    print("   Available height: \(availableHeight)")
     
     return availableHeight
 }

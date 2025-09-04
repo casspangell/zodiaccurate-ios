@@ -13,6 +13,7 @@ struct ConversationalOnboardingView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @Environment(\.modelContext) private var modelContext
     @State private var stardustManager: StardustManager?
+    @StateObject private var userProfileManager = UserProfileManager()
     // Create a new User instance for this onboarding session
     @State private var user = User()
     @State private var stardust = Stardust()
@@ -106,6 +107,29 @@ struct ConversationalOnboardingView: View {
         print("   Zodiac Sign: '\(user.zodiacSign)'")
         print("   Created: \(user.createdAt)")
         print("   Updated: \(user.updatedAt)")
+
+        // Persist onboarding user data into UserProfileManager (UserDefaults)
+        userProfileManager.updateFirstName(user.firstName)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        if let parsedBirthDate = dateFormatter.date(from: user.birthDate) {
+            userProfileManager.updateBirthDate(parsedBirthDate)
+        } else {
+            print("⚠️ Failed to parse birthDate '\(user.birthDate)' with .medium format")
+        }
+        if let parsedBirthTime = timeFormatter.date(from: user.birthTime) {
+            userProfileManager.updateBirthTime(parsedBirthTime)
+        } else {
+            print("⚠️ Failed to parse birthTime '\(user.birthTime)' with .short format")
+        }
+        do {
+            try userProfileManager.saveChanges()
+            print("✅ UserProfileManager saved onboarding data to UserDefaults")
+        } catch {
+            print("❌ Failed saving onboarding data via UserProfileManager: \(error)")
+        }
         
         // Add 25 stardust for completing onboarding
         stardust.addStardust(

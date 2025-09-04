@@ -6,6 +6,7 @@ struct MainZodiacView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var stardustManager: StardustManager?
     @State private var intakeDataManager: IntakeDataManager?
+    @StateObject private var userProfileManager = UserProfileManager()
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
@@ -163,7 +164,7 @@ struct MainZodiacView: View {
                         // Header layer - pinned to top
                         ZStack {
                             ZodiacHeader(
-                                profileImage: "logo",
+                                profileImage: zodiacImageName(),
                                 onSettingsTap: {
                                     showingSettings = true
                                  }, displayMode: .main,
@@ -382,6 +383,9 @@ struct MainZodiacView: View {
                 }
             }
             
+        }
+        .onAppear {
+            printUserProfileDetails()
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
@@ -625,6 +629,22 @@ struct MainZodiacView: View {
     
     // MARK: - Helper Functions
     
+    private func zodiacImageName() -> String {
+        let signName = userProfileManager.zodiacSign
+        if !signName.isEmpty, let sign = ZodiacSign(rawValue: signName) {
+            return sign.assetName
+        }
+        return "logo"
+    }
+
+    private func printUserProfileDetails() {
+        print("👤 MainZodiacView loaded. User profile details →")
+        print("   • First Name: '\(userProfileManager.firstName)'")
+        print("   • Birth Date: '\(userProfileManager.birthDate)'")
+        print("   • Birth Time: '\(userProfileManager.birthTime)'")
+        print("   • Zodiac Sign: '\(userProfileManager.zodiacSign)'\n")
+    }
+
     private func getQuestionCategoryFromDisplayName(_ displayName: String) -> QuestionMenuButton {
         print("🔍 MainZodiacView: getQuestionCategoryFromDisplayName called with '\(displayName)'")
         let result: QuestionMenuButton

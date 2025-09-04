@@ -286,7 +286,7 @@ struct FlipBookCard: View {
                 print("🎯 FlipBookCard: Card appeared - showStartButton: \(showStartButton)")
             }
             .onDisappear {
-                print("🎯 FlipBookCard: Card disappeared")
+//                print("🎯 FlipBookCard: Card disappeared")
             }
             .background(
                 GeometryReader { cardGeometry in

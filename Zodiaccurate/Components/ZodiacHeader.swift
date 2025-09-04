@@ -200,7 +200,7 @@ struct ZodiacHeader: View {
                         ZStack {
                             // Profile badge that animates between states
                             ZodiacProfileBadgeWithStardust(
-                                zodiacImage: Image("Leo"),
+                                zodiacImage: Image(badgeAnimationManager.currentProfileImage),
                                 stardustPoints: 1250,
                                 frameSize: displayMode == .main ? ZodiacHeader.profileBadgeHeight() : 150
                             )
@@ -415,6 +415,10 @@ struct ZodiacHeader: View {
             if displayMode == .main {
                 headerBackgroundOpacity = 0.0
             }
+        }
+        .onChange(of: profileImage) { _, newValue in
+            // Update current profile image when prop changes (e.g., when user zodiac updates)
+            badgeAnimationManager.currentProfileImage = newValue
         }
         .onReceive(NotificationCenter.default.publisher(for: .badgeAnimationTriggered)) { notification in
             if let userInfo = notification.userInfo,

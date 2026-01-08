@@ -7,6 +7,7 @@ struct MainZodiacView: View {
     @State private var stardustManager: StardustManager?
     @State private var intakeDataManager: IntakeDataManager?
     @StateObject private var userProfileManager = UserProfileManager()
+    @Query private var users: [User]
     @State private var showingSettings = false
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
@@ -390,6 +391,12 @@ struct MainZodiacView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .onChange(of: showingSettings) { _, newValue in
+            // When settings are dismissed, refresh the header by syncing SwiftData to UserProfileManager
+            if !newValue {
+                syncUserDataToProfileManager()
+            }
+        }
         .sheet(isPresented: $showWellnessConversation) {
             ConversationView(
                 conversationSteps: wellnessConversationSteps,
@@ -630,11 +637,44 @@ struct MainZodiacView: View {
     // MARK: - Helper Functions
     
     private func zodiacImageName() -> String {
+        // First check SwiftData User, then fallback to UserProfileManager
+        if let user = users.first, !user.zodiacSign.isEmpty, let sign = ZodiacSign(rawValue: user.zodiacSign) {
+            return sign.assetName
+        }
         let signName = userProfileManager.zodiacSign
         if !signName.isEmpty, let sign = ZodiacSign(rawValue: signName) {
             return sign.assetName
         }
         return "logo"
+    }
+    
+    private func syncUserDataToProfileManager() {
+        // Sync SwiftData User data to UserProfileManager for compatibility
+        if let user = users.first {
+            // Update first name
+            if !user.firstName.isEmpty {
+                userProfileManager.updateFirstName(user.firstName)
+            }
+            
+            // Update birth date and time to trigger zodiac sign recalculation
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            if let birthDate = dateFormatter.date(from: user.birthDate) {
+                userProfileManager.updateBirthDate(birthDate)
+            }
+            
+            let timeFormatter = DateFormatter()
+            timeFormatter.timeStyle = .short
+            if let birthTime = timeFormatter.date(from: user.birthTime) {
+                userProfileManager.updateBirthTime(birthTime)
+            }
+            
+            // Also directly sync zodiac sign in case it was updated independently
+            if !user.zodiacSign.isEmpty {
+                userProfileManager.zodiacSign = user.zodiacSign
+                UserDefaults.standard.set(user.zodiacSign, forKey: "userZodiacSign")
+            }
+        }
     }
 
     private func printUserProfileDetails() {

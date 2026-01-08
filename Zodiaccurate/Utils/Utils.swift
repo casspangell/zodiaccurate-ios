@@ -272,3 +272,12 @@ struct FlipBookCardBottomPreferenceKey: PreferenceKey {
         value = nextValue()
     }
 }
+
+/// Preference key for FlipBookCard content height
+struct FlipBookCardContentHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}

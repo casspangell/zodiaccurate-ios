@@ -20,6 +20,7 @@ struct FlipBookCard: View {
     @State private var isExpanded = false
     @State private var cardHeight: CGFloat = 0.5
     @State private var globalFlipBookExpanded = false
+    @State private var contentHeight: CGFloat = 0
     
     // Animation states for unfinished pulsating effect
     @State private var cardScale: CGFloat = 1.0
@@ -37,6 +38,198 @@ struct FlipBookCard: View {
     // Reserve vertical space at the top of the card content for the overlayed
     // play/expand controls so text renders below them.
     private let topControlsInset: CGFloat = 60
+    
+    // MARK: - Helper Views
+    
+    @ViewBuilder
+    private func horoscopeContentView(horoscope: Horoscope, geometry: GeometryProxy) -> some View {
+        ZStack(alignment: .topTrailing) {
+            scrollViewContent(horoscope: horoscope, geometry: geometry)
+            topButtonsContainer(horoscope: horoscope)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(cardBackground)
+        .shadow(color: isCardUnfinished ? Color.deepPink.opacity(0.3) : Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
+        .scaleEffect(cardScale)
+        .opacity(cardOpacity)
+        .onAppear {
+            if isCardUnfinished {
+                startPulsatingAnimation()
+            }
+        }
+        .onChange(of: isCardUnfinished) { newValue in
+            if newValue {
+                startPulsatingAnimation()
+            } else {
+                stopPulsatingAnimation()
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func scrollViewContent(horoscope: Horoscope, geometry: GeometryProxy) -> some View {
+        ScrollViewReader { scrollProxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Color.clear.frame(height: topControlsInset)
+                    
+                    Text(horoscope.title)
+                        .font(.dmSansSemibold(size: 24))
+                        .foregroundColor(globalFlipBookExpanded ? .black : .whiteCustom)
+                        .padding(.horizontal, 20)
+                        .id("top")
+                    
+                    Text(getContentText())
+                        .font(.dmSansMedium(size: 16))
+                        .foregroundColor(globalFlipBookExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
+                        .lineSpacing(4)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 20)
+                        .onAppear {
+                            print("🎯 FlipBookCard: Content text displayed - '\(getContentText())'")
+                        }
+                        .onChange(of: isCardUnfinished) { _, newValue in
+                            print("🎯 FlipBookCard: Content text changed - isCardUnfinished: \(newValue)")
+                        }
+                    
+                    if showStartButton {
+                        startButtonView
+                    }
+                    
+                    Spacer(minLength: 20)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    GeometryReader { contentGeometry in
+                        Color.clear
+                            .preference(
+                                key: FlipBookCardContentHeightPreferenceKey.self,
+                                value: contentGeometry.size.height
+                            )
+                    }
+                )
+                .layoutPriority(1)
+            }
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: contentHeight > 0 ? min(contentHeight, geometry.size.height) : geometry.size.height
+            )
+            .animation(.none, value: isExpanded)
+            .onPreferenceChange(FlipBookCardContentHeightPreferenceKey.self) { height in
+                contentHeight = height
+            }
+            .onChange(of: showStartButton) { _, _ in
+                contentHeight = 0
+            }
+            .onChange(of: isCardUnfinished) { _, _ in
+                contentHeight = 0
+            }
+            .onChange(of: self.horoscope?.key) { _, _ in
+                contentHeight = 0
+            }
+            .onChange(of: isExpanded) { _, newValue in
+                print("🎯 FlipBookCard: ScrollView expansion state changed to \(newValue)")
+                if !newValue {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        scrollProxy.scrollTo("top", anchor: .top)
+                    }
+                }
+            }
+        }
+    }
+    
+    private var startButtonView: some View {
+        HStack {
+            Spacer()
+            PrimaryGradientButton(title: isCardUnfinished ? "Continue" : "Start!") {
+                print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tapped!")
+                onStartButtonTap?()
+            }
+            .onAppear {
+                print("🎯 FlipBookCard: Button text - isCardUnfinished: \(isCardUnfinished), showing: '\(isCardUnfinished ? "Continue" : "Start!")'")
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .onAppear {
+            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button appeared - showStartButton: \(showStartButton)")
+        }
+        .onTapGesture {
+            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tap gesture detected")
+        }
+        .allowsHitTesting(true)
+        .zIndex(1000)
+        .onChange(of: isExpanded) { _, newValue in
+            print("🎯 FlipBookCard: Card expansion changed to \(newValue)")
+        }
+    }
+    
+    @ViewBuilder
+    private func topButtonsContainer(horoscope: Horoscope) -> some View {
+        HStack(spacing: 8) {
+            AudioControlButton(
+                isPlaying: audioManager.isPlaying && audioManager.currentAudioKey == horoscope.key,
+                onToggle: {
+                    if audioManager.hasAudio(for: horoscope) {
+                        audioManager.toggleAudio(for: horoscope)
+                    }
+                },
+                size: 44,
+                isEnabled: audioManager.hasAudio(for: horoscope),
+                iconColor: globalFlipBookExpanded ? .black : .white,
+                borderColor: AnyShapeStyle(globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7))
+            )
+            
+            CircleIconButtonNoBackground(
+                systemName: isExpanded ? "chevron.down" : "chevron.up",
+                accessibilityLabel: isExpanded ? "Collapse card" : "Expand card",
+                iconColor: globalFlipBookExpanded ? .black : .white,
+                strokeColor: globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7),
+                action: expandCollapseAction
+            )
+        }
+        .padding(.top, 12)
+        .padding(.trailing, 12)
+        .zIndex(10)
+    }
+    
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(globalFlipBookExpanded ? Color.white : (isCardUnfinished ? Color.deepPink.opacity(0.1) : Color.bubbleMist.opacity(0.8)))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(isCardUnfinished ? Color.deepPink.opacity(borderOpacity) : Color.accentPurple.opacity(borderOpacity), lineWidth: isCardUnfinished ? 2 : 1)
+            )
+    }
+    
+    private func expandCollapseAction() {
+        if isExpanded {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                cardHeight = cardHeightNormal
+                isExpanded = false
+            }
+            NotificationCenter.default.post(name: .flipBookCollapsed, object: nil)
+            NotificationCenter.default.post(name: .componentDeactivated, object: nil)
+            NotificationCenter.default.post(
+                name: .flipBookExpansionStateChanged,
+                object: nil,
+                userInfo: ["isExpanded": false]
+            )
+        } else {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                cardHeight = cardHeightExpanded
+                isExpanded = true
+            }
+            NotificationCenter.default.post(name: .flipBookMoveToTop, object: nil)
+            NotificationCenter.default.post(name: .flipBookActivated, object: nil)
+            NotificationCenter.default.post(
+                name: .flipBookExpansionStateChanged,
+                object: nil,
+                userInfo: ["isExpanded": true]
+            )
+            onCardTap?()
+        }
+    }
     
     init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = horoscope
@@ -73,7 +266,7 @@ struct FlipBookCard: View {
             VStack {
                 Spacer()
                 ZStack(alignment: .topTrailing) {
-                if isLoading {
+                    if isLoading {
                     // Loading state with spinner
                     VStack {
                         Spacer()
@@ -92,170 +285,7 @@ struct FlipBookCard: View {
                     )
                     .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
                 } else if let horoscope = horoscope {
-                    // Content state
-                    ZStack(alignment: .topTrailing) {
-                        ScrollViewReader { scrollProxy in
-                            ScrollView(.vertical, showsIndicators: false) {
-                                VStack(alignment: .leading, spacing: 16) {
-                                    // Spacer to push content below top-right overlay controls
-                                    Color.clear
-                                        .frame(height: topControlsInset)
-                                    // Header
-                                    Text(horoscope.title)
-                                        .font(.dmSansSemibold(size: 24))
-                                        .foregroundColor(globalFlipBookExpanded ? .black : .whiteCustom)
-                                        .padding(.horizontal, 20)
-                                        .id("top") // Add ID for scrolling to top
-
-                                    // Content
-                                    Text(getContentText())
-                                        .font(.dmSansMedium(size: 16))
-                                        .foregroundColor(globalFlipBookExpanded ? .black.opacity(0.8) : .whiteCustom.opacity(0.8))
-                                        .lineSpacing(4)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(.horizontal, 20)
-                                        .onAppear {
-                                            print("🎯 FlipBookCard: Content text displayed - '\(getContentText())'")
-                                        }
-                                        .onChange(of: isCardUnfinished) { _, newValue in
-                                            print("🎯 FlipBookCard: Content text changed - isCardUnfinished: \(newValue)")
-                                        }
-                                    
-                                    // Continue/Start Button (if enabled)
-                                    if showStartButton {
-                                        HStack {
-                                            Spacer()
-                                            PrimaryGradientButton(title: isCardUnfinished ? "Continue" : "Start!") {
-                                                print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tapped!")
-                                                onStartButtonTap?()
-                                            }
-                                            .onAppear {
-                                                print("🎯 FlipBookCard: Button text - isCardUnfinished: \(isCardUnfinished), showing: '\(isCardUnfinished ? "Continue" : "Start!")'")
-                                            }
-                                            Spacer()
-                                        }
-                                        .padding(.horizontal, 20)
-                                        .onAppear {
-                                            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button appeared - showStartButton: \(showStartButton)")
-                                        }
-                                        .onTapGesture {
-                                            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tap gesture detected")
-                                        }
-                                        .allowsHitTesting(true)
-                                        .zIndex(1000) // Ensure button is on top
-                                        .onChange(of: isExpanded) { _, newValue in
-                                            print("🎯 FlipBookCard: Card expansion changed to \(newValue)")
-                                        }
-                                    }
-                                    
-                                    Spacer(minLength: 20)
-                                }
-                                .frame(maxWidth: .infinity, minHeight: geometry.size.height)
-                                .layoutPriority(1) // Ensure proper layout priority
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .animation(.none, value: isExpanded) // Disable animations during frame changes
-                            .onChange(of: isExpanded) { _, newValue in
-                                print("🎯 FlipBookCard: ScrollView expansion state changed to \(newValue)")
-                            }
-                            .onChange(of: isExpanded) { _, newValue in
-                                if !newValue {
-                                    // Scroll to top when contracting
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        scrollProxy.scrollTo("top", anchor: .top)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Top right buttons container
-                        HStack(spacing: 8) {
-                            // Audio Control Button (always visible, disabled if no audio)
-                            AudioControlButton(
-                                isPlaying: audioManager.isPlaying && audioManager.currentAudioKey == horoscope.key,
-                                onToggle: {
-                                    if audioManager.hasAudio(for: horoscope) {
-                                        audioManager.toggleAudio(for: horoscope)
-                                    }
-                                },
-                                size: 44,
-                                isEnabled: audioManager.hasAudio(for: horoscope),
-                                iconColor: globalFlipBookExpanded ? .black : .white,
-                                borderColor: AnyShapeStyle(globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7))
-                            )
-                            
-                            // Expand/Contract Button
-                            CircleIconButtonNoBackground(
-                                systemName: isExpanded ? "chevron.down" : "chevron.up",
-                                accessibilityLabel: isExpanded ? "Collapse card" : "Expand card",
-                                iconColor: globalFlipBookExpanded ? .black : .white,
-                                strokeColor: globalFlipBookExpanded ? .black.opacity(0.3) : .white.opacity(0.7),
-                                action: {
-                                    if isExpanded {
-                                        // Tap to collapse from expanded state
-                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                            cardHeight = cardHeightNormal
-                                            isExpanded = false
-                                        }
-                                        // Post notification to reset spacing
-                                        NotificationCenter.default.post(name: .flipBookCollapsed, object: nil)
-                                        // Post notification to deactivate component
-                                        NotificationCenter.default.post(name: .componentDeactivated, object: nil)
-                                        // Post notification to update global expansion state
-                                        NotificationCenter.default.post(
-                                            name: .flipBookExpansionStateChanged,
-                                            object: nil,
-                                            userInfo: ["isExpanded": false]
-                                        )
-                                    } else {
-                                        // Tap to expand from normal state
-                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                            cardHeight = cardHeightExpanded
-                                            isExpanded = true
-                                        }
-                                        // Post notification to move FlipBook to top
-                                        NotificationCenter.default.post(name: .flipBookMoveToTop, object: nil)
-                                        // Post notification to activate FlipBook
-                                        NotificationCenter.default.post(name: .flipBookActivated, object: nil)
-                                        // Post notification to update global expansion state
-                                        NotificationCenter.default.post(
-                                            name: .flipBookExpansionStateChanged,
-                                            object: nil,
-                                            userInfo: ["isExpanded": true]
-                                        )
-                                        onCardTap?()
-                                    }
-                                }
-                            )
-                        }
-                        .padding(.top, 12)
-                        .padding(.trailing, 12)
-                        .zIndex(10)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16) //kilroy
-                            .fill(globalFlipBookExpanded ? Color.white : (isCardUnfinished ? Color.deepPink.opacity(0.1) : Color.bubbleMist.opacity(0.8)))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(isCardUnfinished ? Color.deepPink.opacity(borderOpacity) : Color.accentPurple.opacity(borderOpacity), lineWidth: isCardUnfinished ? 2 : 1)
-                            )
-                    )
-                    .shadow(color: isCardUnfinished ? Color.deepPink.opacity(0.3) : Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)
-                    .scaleEffect(cardScale)
-                    .opacity(cardOpacity)
-                    .onAppear {
-                        if isCardUnfinished {
-                            startPulsatingAnimation()
-                        }
-                    }
-                    .onChange(of: isCardUnfinished) { newValue in
-                        if newValue {
-                            startPulsatingAnimation()
-                        } else {
-                            stopPulsatingAnimation()
-                        }
-                    }
+                    horoscopeContentView(horoscope: horoscope, geometry: geometry)
                     
                 } else {
                     // Empty state (shouldn't happen with proper usage)

@@ -18,10 +18,8 @@ struct UpdateCard: View {
     private let cardHeightExpandedWithKeyboard: CGFloat = 0.75
     
     @State private var cardHeight: CGFloat = 0.25
-    @State private var dragOffset: CGFloat = 0
     @State private var isExpanded = false
     @State private var isMinimized = false
-    @State private var isDragging = false
     @State private var currentInput = ""
     @State private var selectedDate = Date()
     @State private var selectedTime = Date()
@@ -177,147 +175,65 @@ struct UpdateCard: View {
                         }
                     )
                     .cornerRadius(24)
-                }
-                .offset(y: dragOffset)
-            }
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        isDragging = true
-                        let translation = value.translation.height
-                        let screenHeight = geometry.size.height
-                        
+                    .overlay(
+                        // Gold border to visualize hit area
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(Color.accentGold, lineWidth: 3)
+                    )
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        // Post notification to activate UpdateCard
+                        NotificationCenter.default.post(name: .updateCardActivated, object: nil)
                         if isExpanded {
-                            // When expanded, allow normal drag behavior
-                            let heightDifference = (cardHeightExpanded - cardHeightDismissed) * screenHeight
-                            let maxDrag = heightDifference * 0.3
-                            dragOffset = max(-maxDrag, min(translation, maxDrag))
-                        } else {
-                            // When dismissed, allow swiping down to minimize further
-                            let heightDifference = (cardHeightDismissed - cardHeightMinimized) * screenHeight
-                            let maxDrag = heightDifference * 0.5
-                            dragOffset = max(0, min(translation, maxDrag))
-                        }
-                    }
-                    .onEnded { value in
-                        let translation = value.translation.height
-                        let velocity = value.velocity.height
-                        let screenHeight = geometry.size.height
-                        
-                        if isExpanded {
-                            // When expanded, determine if we should expand or collapse
-                            let shouldExpand = translation < -50 || velocity < -500
-                            let shouldCollapse = translation > 50 || velocity > 500
+                            // Dismiss keyboard first
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                             
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                if shouldCollapse && isExpanded {
+                            // Then animate card collapse
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
                                     cardHeight = cardHeightDismissed
                                     isExpanded = false
                                     isMinimized = false
-                                    postStateChangeNotification(state: .dismissed)
-                                    // Post specific notification that UpdateCard is dismissed
-                                    NotificationCenter.default.post(name: .updateCardDismissed, object: nil)
                                 }
-                                dragOffset = 0
+                                postStateChangeNotification(state: .dismissed)
+                                NotificationCenter.default.post(name: .updateCardDismissed, object: nil)
                             }
-                        } else {
-                            // When dismissed, determine if we should minimize or return to dismissed
-                            let shouldMinimize = translation > 30 || velocity > 300
-                            let shouldReturnToDismissed = translation < -30 || velocity < -300
-                            
+                        } else if isMinimized {
+                            // Tap to return to dismissed state from minimized
                             withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-                                if shouldMinimize && !isMinimized {
-                                    cardHeight = cardHeightMinimized
-                                    isMinimized = true
-                                    postStateChangeNotification(state: .minimized)
-                                } else if shouldReturnToDismissed && isMinimized {
-                                    cardHeight = cardHeightDismissed
-                                    isMinimized = false
-                                    postStateChangeNotification(state: .dismissed)
-                                    // Post specific notification that UpdateCard is dismissed
-                                    NotificationCenter.default.post(name: .updateCardDismissed, object: nil)
-                                } else if !isMinimized {
-                                    // Check if we should expand from dismissed state
-                                    let shouldExpand = translation < -50 || velocity < -500
-                                    if shouldExpand {
-                                     if !hasDismissedTutorial {
-                                            cardHeight = cardHeightExpandedWithTutorial
-                                            isExpanded = true
-                                            postStateChangeNotification(state: .expandedWithTutorial)
-                                            
-                                            // Show tutorial on first expansion
-                                         if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                                        showTutorialBubble = true
-                                                        hasShownTutorial = true
-                                                    }
-                                                }
+                                cardHeight = cardHeightDismissed
+                                isMinimized = false
+                            }
+                            postStateChangeNotification(state: .dismissed)
+                            NotificationCenter.default.post(name: .updateCardDismissed, object: nil)
+                        } else {
+                            // Expand from dismissed state
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                                if !hasDismissedTutorial {
+                                    cardHeight = cardHeightExpandedWithTutorial
+                                    isExpanded = true
+                                    postStateChangeNotification(state: .expandedWithTutorial)
+                                    
+                                    // Show tutorial on first expansion
+                                    if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                            withAnimation(.easeInOut(duration: 0.3)) {
+                                                showTutorialBubble = true
+                                                hasShownTutorial = true
                                             }
-                                        } else {
-                                            cardHeight = cardHeightExpanded
-                                            isExpanded = true
-                                            postStateChangeNotification(state: .expanded)
                                         }
                                     }
+                                } else {
+                                    cardHeight = cardHeightExpanded
+                                    isExpanded = true
+                                    postStateChangeNotification(state: .expanded)
                                 }
-                                dragOffset = 0
+                                isMinimized = false
                             }
                         }
-                        
-                        isDragging = false
                     }
-            )
-//            .onTapGesture {
-//                // Post notification to activate UpdateCard
-//                NotificationCenter.default.post(name: .updateCardActivated, object: nil)
-//                if isExpanded {
-//                    // Dismiss keyboard first
-//                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-//                    
-//                    // Then animate card collapse
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                        withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-//                            cardHeight = cardHeightDismissed
-//                            isExpanded = false
-//                            isMinimized = false
-//                            dragOffset = 0
-//                        }
-//                        postStateChangeNotification(state: .dismissed)
-//                    }
-//                } else if isMinimized {
-//                    // Tap to return to dismissed state from minimized
-//                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-//                        cardHeight = cardHeightDismissed
-//                        isMinimized = false
-//                        dragOffset = 0
-//                    }
-//                    postStateChangeNotification(state: .dismissed)
-//                } else {
-//                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
-//                         if !hasDismissedTutorial {
-//                            cardHeight = cardHeightExpandedWithTutorial
-//                            isExpanded = true
-//                            postStateChangeNotification(state: .expandedWithTutorial)
-//                            
-//                            // Show tutorial on first expansion
-//                             if !hasShownTutorial && !hasDismissedUpdateCardTutorial {
-//                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-//                                    withAnimation(.easeInOut(duration: 0.3)) {
-//                                        showTutorialBubble = true
-//                                        hasShownTutorial = true
-//                                    }
-//                                }
-//                            }
-//                        } else {
-//                            cardHeight = cardHeightExpanded
-//                            isExpanded = true
-//                            postStateChangeNotification(state: .expanded)
-//                        }
-//                        dragOffset = 0
-//                    }
-//                }
-//            }
+                }
+            }
         }
         .onAppear {
             setupKeyboardObservers()
@@ -331,7 +247,6 @@ struct UpdateCard: View {
                 cardHeight = cardHeightMinimized
                 isExpanded = false
                 isMinimized = true
-                dragOffset = 0
             }
             postStateChangeNotification(state: .minimized)
         }
@@ -346,7 +261,6 @@ struct UpdateCard: View {
                 cardHeight = cardHeightMinimized
                 isExpanded = false
                 isMinimized = true
-                dragOffset = 0
             }
             postStateChangeNotification(state: .minimized)
         }
@@ -414,7 +328,6 @@ struct UpdateCard: View {
             cardHeight = cardHeightDismissed
             isExpanded = false
             isMinimized = false
-            dragOffset = 0
         }
         postStateChangeNotification(state: .dismissed)
         // Post notification to deactivate component
@@ -443,7 +356,6 @@ struct UpdateCard: View {
                 isExpanded = true
             }
             isMinimized = false
-            dragOffset = 0
         }
     }
 

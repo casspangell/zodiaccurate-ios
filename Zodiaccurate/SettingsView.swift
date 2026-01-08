@@ -475,18 +475,6 @@ struct EditProfileView: View {
                                     }
                                 )
                                 .disabled(isSaving)
-                                
-                                // Test Error Button (only in DEBUG builds)
-                                #if DEBUG
-                                Button("Test Error Alert") {
-                                    errorMessage = "This is a test error message to verify the ZodiacAlertView functionality. The error simulation is working correctly."
-                                    showError = true
-                                }
-                                .foregroundColor(.red)
-                                .padding()
-                                .background(Color.white.opacity(0.1))
-                                .cornerRadius(8)
-                                #endif
                             }
                         }
                         .padding(.bottom, 40)
@@ -1084,28 +1072,4 @@ struct StatusRow: View {
 #Preview {
     SettingsView()
         .environmentObject(AuthenticationManager())
-}
-
-// MARK: - EditProfileView Preview with Test Error Button
-#Preview("EditProfileView with Error Test") {
-    EditProfileView(onProfileSaved: {})
-        .overlay(
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button("Test Error") {
-                        // Simulate a mock error for testing
-                        let mockError = "This is a test error message to verify the ZodiacAlertView functionality. The error simulation is working correctly."
-                        // You can access this in the preview by adding @State variables to EditProfileView
-                        print("Mock error triggered: \(mockError)")
-                    }
-                    .foregroundColor(.red)
-                    .padding()
-                    .background(Color.white.opacity(0.2))
-                    .cornerRadius(8)
-                    .padding()
-                }
-            }
-        )
 } 

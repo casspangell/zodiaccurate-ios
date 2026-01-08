@@ -117,16 +117,6 @@ struct SettingsView: View {
                         // Account Section
                         SettingsSection(title: "Account") {
                             VStack(spacing: 12) {
-                                
-                                SettingsRow(
-                                    icon: "lock",
-                                    title: "Privacy & Security",
-                                    subtitle: "Manage your privacy settings",
-                                    action: {
-                                        // TODO: Navigate to privacy settings
-                                    }
-                                )
-                                
                                 SettingsRow(
                                     icon: "questionmark.circle",
                                     title: "Help & Support",
@@ -136,18 +126,6 @@ struct SettingsView: View {
                                             UIApplication.shared.open(url)
                                         }
                                     }
-                                )
-                            }
-                        }
-                        
-                        // About Section
-                        SettingsSection(title: "About") {
-                            VStack(spacing: 12) {
-                                SettingsRow(
-                                    icon: "info.circle",
-                                    title: "App Version",
-                                    subtitle: "Version 1.0.0",
-                                    action: nil
                                 )
                                 
                                 SettingsRow(
@@ -170,6 +148,18 @@ struct SettingsView: View {
                                             UIApplication.shared.open(url)
                                         }
                                     }
+                                )
+                            }
+                        }
+                        
+                        // About Section
+                        SettingsSection(title: "About") {
+                            VStack(spacing: 12) {
+                                SettingsRow(
+                                    icon: "info.circle",
+                                    title: "App Version",
+                                    subtitle: "Version 1.0.0",
+                                    action: nil
                                 )
                             }
                         }

@@ -24,7 +24,6 @@ struct SettingsView: View {
     
     // UI State
     @State private var showingEditProfile = false
-    @State private var showingHelp = false
     @State private var showingSecretsDebug = false
     
     init() {
@@ -133,7 +132,9 @@ struct SettingsView: View {
                                     title: "Help & Support",
                                     subtitle: "Get help and contact support",
                                     action: {
-                                        showingHelp = true
+                                        if let url = URL(string: "https://zodiaccurate.com/contact-page") {
+                                            UIApplication.shared.open(url)
+                                        }
                                     }
                                 )
                             }
@@ -280,9 +281,6 @@ struct SettingsView: View {
                 EditProfileView(onProfileSaved: {
                     // Profile data will automatically update via SwiftData @Query
                 })
-            }
-            .sheet(isPresented: $showingHelp) {
-                HelpSupportView()
             }
             .sheet(isPresented: $showingSecretsDebug) {
                 APIConfigDebugView()

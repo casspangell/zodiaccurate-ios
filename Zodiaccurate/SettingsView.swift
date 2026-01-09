@@ -271,6 +271,7 @@ struct SettingsView: View {
                 EditProfileView(onProfileSaved: {
                     // Profile data will automatically update via SwiftData @Query
                 })
+                .environmentObject(authManager)
             }
             .sheet(isPresented: $showingSecretsDebug) {
                 APIConfigDebugView()
@@ -289,6 +290,7 @@ struct SettingsView: View {
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var authManager: AuthenticationManager
     @Query private var users: [User]
     
     // Focus states for text fields
@@ -299,6 +301,7 @@ struct EditProfileView: View {
     
     // Loading and error states
     @State private var isSaving = false
+    @State private var isSyncing = false
     @State private var showError = false
     @State private var errorMessage = ""
     
@@ -306,6 +309,7 @@ struct EditProfileView: View {
     @State private var editingFirstName: String = ""
     @State private var editingBirthDate: Date = Date()
     @State private var editingBirthTime: Date = Date()
+    @State private var editingTimezone: String = ""
     
     // Computed property to get the current user
     private var currentUser: User? {
@@ -327,13 +331,17 @@ struct EditProfileView: View {
             firstName: editingFirstName,
             birthDate: birthDateString,
             birthTime: birthTimeString,
-            zodiacSign: determineZodiacSign(from: birthDateString)
+            zodiacSign: determineZodiacSign(from: birthDateString),
+            timezone: editingTimezone.isEmpty ? TimeZone.current.identifier : editingTimezone
         )
     }
     
     // Helper function to load user data into editing state
     private func loadUserDataIntoEditingState() {
-        guard let user = currentUser else { return }
+        guard let user = currentUser else { 
+            editingTimezone = TimeZone.current.identifier
+            return 
+        }
         
         editingFirstName = user.firstName
         
@@ -348,6 +356,8 @@ struct EditProfileView: View {
         if let birthTime = timeFormatter.date(from: user.birthTime) {
             editingBirthTime = birthTime
         }
+        
+        editingTimezone = user.timezone.isEmpty ? TimeZone.current.identifier : user.timezone
     }
     
     // Callback for when profile is saved
@@ -411,6 +421,9 @@ struct EditProfileView: View {
                                         showSubmitButton: false
                                     )
                                 }
+                                
+                                // Timezone Picker
+                                TimezonePickerView(selectedTimezone: $editingTimezone)
                             }
                         }
                         
@@ -423,43 +436,75 @@ struct EditProfileView: View {
                                     action: {
                                         isSaving = true
                                         
-                                        // Save profile changes to SwiftData
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                        // Save profile changes to SwiftData and Firebase
+                                        Task {
                                             do {
+                                                let updatedUser = createUserFromEditingState()
+                                                
+                                                // Update SwiftData
                                                 if let user = currentUser {
-                                                    // Update existing user data
-                                                    let updatedUser = createUserFromEditingState()
                                                     user.firstName = updatedUser.firstName
                                                     user.birthDate = updatedUser.birthDate
                                                     user.birthTime = updatedUser.birthTime
                                                     user.zodiacSign = updatedUser.zodiacSign
+                                                    user.timezone = updatedUser.timezone
                                                     
-                                                    // Save to SwiftData
                                                     try modelContext.save()
-                                                    
-                                                    print("✅ User profile updated successfully")
+                                                    print("✅ User profile updated in SwiftData")
                                                 } else {
                                                     // Create new user if none exists
-                                                    let newUser = createUserFromEditingState()
-                                                    modelContext.insert(newUser)
+                                                    modelContext.insert(updatedUser)
                                                     try modelContext.save()
+                                                    print("✅ New user created in SwiftData")
+                                                }
+                                                
+                                                // Save to Firebase if authenticated
+                                                if authManager.isAuthenticated, let userId = authManager.user?.uid {
+                                                    let firebaseService = FirebaseDatabaseService()
                                                     
-                                                    print("✅ New user created successfully")
+                                                    // Update /users/{uid} with name and timezone
+                                                    try await firebaseService.updateUserProfile(
+                                                        userId: userId,
+                                                        name: updatedUser.firstName,
+                                                        timezone: updatedUser.timezone
+                                                    )
+                                                    
+                                                    // Update /responses/{uid}/Onboarding with profile fields
+                                                    try await firebaseService.updateOnboardingProfileFields(
+                                                        userId: userId,
+                                                        firstName: updatedUser.firstName,
+                                                        birthDate: updatedUser.birthDate,
+                                                        birthTime: updatedUser.birthTime,
+                                                        zodiacSign: updatedUser.zodiacSign,
+                                                        timezone: updatedUser.timezone
+                                                    )
+                                                    
+                                                    print("✅ User profile updated in Firebase")
+                                                } else {
+                                                    print("⚠️ User not authenticated, skipping Firebase save")
                                                 }
                                                 
                                                 // Call the callback to refresh the main settings view
-                                                onProfileSaved?()
+                                                await MainActor.run {
+                                                    onProfileSaved?()
+                                                }
                                                 
-                                                // Show loading for 3 seconds before dismissing
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                                // Dismiss after a brief delay
+                                                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                                                
+                                                await MainActor.run {
                                                     isSaving = false
                                                     dismiss()
                                                 }
+                                                
                                             } catch {
                                                 // Handle error
-                                                isSaving = false
-                                                errorMessage = "Failed to save profile changes. Please try again."
-                                                showError = true
+                                                await MainActor.run {
+                                                    isSaving = false
+                                                    errorMessage = "Failed to save profile changes. Please try again."
+                                                    showError = true
+                                                    print("❌ Error saving profile: \(error)")
+                                                }
                                             }
                                         }
                                     }
@@ -475,13 +520,18 @@ struct EditProfileView: View {
             .overlay(
                 // Loading overlay
                 Group {
-                    if isSaving {
+                    if isSaving || isSyncing {
                         ZStack {
                             Color.black.opacity(0.5)
                                 .ignoresSafeArea()
                             
                             VStack(spacing: 20) {
                                 ZodiacLoadingSpinner(size: .large)
+                                if isSyncing {
+                                    Text("Syncing from Firebase...")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.white)
+                                }
                             }
                         }
                     }
@@ -515,8 +565,10 @@ struct EditProfileView: View {
                 }
             }
             .onAppear {
-                // Load current user data into editing state
-                loadUserDataIntoEditingState()
+                // Sync with Firebase first, then load data
+                Task {
+                    await syncUserProfileFromFirebase()
+                }
             }
         }
     }
@@ -525,6 +577,39 @@ struct EditProfileView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM yyyy"
         return formatter.string(from: Date())
+    }
+    
+    /// Sync user profile data from Firebase
+    private func syncUserProfileFromFirebase() async {
+        guard authManager.isAuthenticated else {
+            print("⚠️ EditProfileView: User not authenticated, skipping Firebase sync")
+            // Still load from SwiftData if available
+            await MainActor.run {
+                loadUserDataIntoEditingState()
+            }
+            return
+        }
+        
+        await MainActor.run {
+            isSyncing = true
+        }
+        
+        // Sync from Firebase
+        await authManager.syncUserProfileFromFirebase(modelContext: modelContext)
+        
+        // Wait a moment for SwiftData to update
+        do {
+            try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        } catch {
+            print("⚠️ EditProfileView: Task sleep error: \(error)")
+        }
+        
+        // Load the synced data into editing state
+        await MainActor.run {
+            loadUserDataIntoEditingState()
+            isSyncing = false
+            print("✅ EditProfileView: Firebase sync completed, data loaded into editing state")
+        }
     }
 }
 

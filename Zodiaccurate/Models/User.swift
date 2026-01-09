@@ -15,6 +15,7 @@ public class User {
     public var birthDate: String
     public var birthTime: String
     public var zodiacSign: String
+    public var timezone: String
     public let createdAt: Date
     public let updatedAt: Date
     
@@ -22,12 +23,14 @@ public class User {
          birthDate: String = "",
          birthTime: String = "",
          zodiacSign: String = "",
+         timezone: String = "",
          createdAt: Date = Date(),
          updatedAt: Date = Date()) {
         self.firstName = firstName
         self.birthDate = birthDate
         self.birthTime = birthTime
         self.zodiacSign = zodiacSign
+        self.timezone = timezone.isEmpty ? TimeZone.current.identifier : timezone
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }

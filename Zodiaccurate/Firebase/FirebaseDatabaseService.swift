@@ -49,6 +49,36 @@ class FirebaseDatabaseService: ObservableObject {
         }
     }
     
+    /// Update user profile data at /users/{uid} (name and timezone only, as email is not editable)
+    func updateUserProfile(userId: String, name: String, timezone: String?) async throws {
+        var updates: [String: Any] = [
+            "name": name
+        ]
+        
+        // Add timezone if provided
+        if let timezone = timezone, !timezone.isEmpty {
+            updates["timezone"] = timezone
+        } else {
+            // If timezone is nil/empty, remove it from Firebase
+            updates["timezone"] = NSNull()
+        }
+        
+        do {
+            // Update each field individually to avoid overwriting other fields like email, uuid
+            for (key, value) in updates {
+                if value is NSNull {
+                    try await database.child("users").child(userId).child(key).removeValue()
+                } else {
+                    try await database.child("users").child(userId).child(key).setValue(value)
+                }
+            }
+            print("✅ User profile updated in Firebase: /users/\(userId)")
+        } catch {
+            print("❌ Failed to update user profile in Firebase: \(error)")
+            throw error
+        }
+    }
+    
     // MARK: - Response Management
     
     /// Save or update onboarding responses to /responses/{uid}
@@ -69,6 +99,41 @@ class FirebaseDatabaseService: ObservableObject {
             print("✅ Response updated in Firebase: /responses/\(userId)/\(key)")
         } catch {
             print("❌ Failed to update response in Firebase: \(error)")
+            throw error
+        }
+    }
+    
+    /// Update onboarding profile fields in /responses/{uid}/Onboarding (firstName, birthDate, birthTime, zodiacSign, timezone)
+    func updateOnboardingProfileFields(userId: String, firstName: String, birthDate: String, birthTime: String, zodiacSign: String, timezone: String?) async throws {
+        let updates: [String: Any] = [
+            "firstName": firstName,
+            "birthDate": birthDate,
+            "birthTime": birthTime,
+            "zodiacSign": zodiacSign
+        ]
+        
+        do {
+            // Get existing onboarding responses first
+            var existingResponses: [String: Any] = [:]
+            if let responses = try? await getQuestionnaireResponses(userId: userId, questionnaireTitle: "Onboarding") {
+                existingResponses = responses
+            }
+            
+            // Merge updates with existing responses
+            for (key, value) in updates {
+                existingResponses[key] = value
+            }
+            
+            // Add timezone if provided
+            if let timezone = timezone, !timezone.isEmpty {
+                existingResponses["timezone"] = timezone
+            }
+            
+            // Save updated responses
+            try await saveQuestionnaireResponses(userId: userId, questionnaireTitle: "Onboarding", responses: existingResponses)
+            print("✅ Onboarding profile fields updated in Firebase: /responses/\(userId)/Onboarding")
+        } catch {
+            print("❌ Failed to update onboarding profile fields in Firebase: \(error)")
             throw error
         }
     }
@@ -95,6 +160,18 @@ class FirebaseDatabaseService: ObservableObject {
             print("❌ Failed to save questionnaire responses to Firebase: \(error)")
             throw error
         }
+    }
+    
+    /// Get questionnaire responses from /responses/{uuid}/{questionnaire title}
+    func getQuestionnaireResponses(userId: String, questionnaireTitle: String) async throws -> [String: Any]? {
+        let sanitizedTitle = questionnaireTitle.replacingOccurrences(of: " ", with: "_")
+        let snapshot = try await database.child("responses").child(userId).child(sanitizedTitle).getData()
+        
+        guard let value = snapshot.value as? [String: Any] else {
+            return nil
+        }
+        
+        return value
     }
     
     /// Get user data

@@ -111,6 +111,7 @@ struct ConversationalOnboardingView: View {
             birthDate: user.birthDate,
             birthTime: user.birthTime,
             zodiacSign: user.zodiacSign,
+            timezone: user.timezone,
             createdAt: user.createdAt,
             updatedAt: Date()
         )

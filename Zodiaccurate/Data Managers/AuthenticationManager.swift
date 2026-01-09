@@ -91,8 +91,23 @@ class AuthenticationManager: ObservableObject {
             // Fetch user data from Firebase
             let userData = try await firebaseDatabaseService.getUser(userId: userId)
             
-            // Fetch onboarding responses from Firebase
-            let responses = try await firebaseDatabaseService.getResponses(userId: userId)
+            // Try to fetch onboarding responses from the correct path first (/responses/{uid}/Onboarding)
+            var responses: [String: Any]? = nil
+            do {
+                responses = try await firebaseDatabaseService.getQuestionnaireResponses(userId: userId, questionnaireTitle: "Onboarding")
+                print("✅ AuthenticationManager: Found onboarding responses at /responses/\(userId)/Onboarding")
+            } catch {
+                print("⚠️ AuthenticationManager: No onboarding responses at /responses/\(userId)/Onboarding, trying fallback path...")
+                // Fallback to direct responses path (/responses/{uid})
+                do {
+                    responses = try await firebaseDatabaseService.getResponses(userId: userId)
+                    if responses != nil {
+                        print("✅ AuthenticationManager: Found responses at fallback path /responses/\(userId)")
+                    }
+                } catch {
+                    print("⚠️ AuthenticationManager: No responses found at fallback path either")
+                }
+            }
             
             // Sync User model to SwiftData
             await syncUserData(modelContext: modelContext, userData: userData, responses: responses)
@@ -110,11 +125,12 @@ class AuthenticationManager: ObservableObject {
     
     /// Sync User model to SwiftData
     private func syncUserData(modelContext: ModelContext, userData: [String: Any]?, responses: [String: Any]?) async {
-        // Get user data from Firebase responses (contains firstName, birthDate, birthTime, zodiacSign)
+        // Get user data from Firebase responses (contains firstName, birthDate, birthTime, zodiacSign, timezone)
         let firstName = responses?["firstName"] as? String ?? userData?["name"] as? String ?? ""
         let birthDate = responses?["birthDate"] as? String ?? ""
         let birthTime = responses?["birthTime"] as? String ?? ""
         let zodiacSign = responses?["zodiacSign"] as? String ?? ""
+        let timezone = responses?["timezone"] as? String ?? userData?["timezone"] as? String ?? TimeZone.current.identifier
         
         // Skip sync if no user data available
         guard !firstName.isEmpty && !birthDate.isEmpty && !birthTime.isEmpty else {
@@ -133,6 +149,7 @@ class AuthenticationManager: ObservableObject {
                 existingUser.birthDate = birthDate
                 existingUser.birthTime = birthTime
                 existingUser.zodiacSign = zodiacSign
+                existingUser.timezone = timezone
                 try modelContext.save()
                 print("✅ AuthenticationManager: Updated existing User in SwiftData")
             } else {
@@ -141,7 +158,8 @@ class AuthenticationManager: ObservableObject {
                     firstName: firstName,
                     birthDate: birthDate,
                     birthTime: birthTime,
-                    zodiacSign: zodiacSign
+                    zodiacSign: zodiacSign,
+                    timezone: timezone
                 )
                 modelContext.insert(newUser)
                 try modelContext.save()
@@ -153,9 +171,52 @@ class AuthenticationManager: ObservableObject {
             UserDefaults.standard.set(birthDate, forKey: "userBirthDate")
             UserDefaults.standard.set(birthTime, forKey: "userBirthTime")
             UserDefaults.standard.set(zodiacSign, forKey: "userZodiacSign")
+            UserDefaults.standard.set(timezone, forKey: "userTimezone")
             
         } catch {
             print("❌ AuthenticationManager: Failed to sync User data: \(error)")
+        }
+    }
+    
+    /// Public method to sync user profile data from Firebase (can be called from views)
+    func syncUserProfileFromFirebase(modelContext: ModelContext) async {
+        guard let userId = user?.uid else {
+            print("⚠️ AuthenticationManager: No user ID available for profile sync")
+            return
+        }
+        
+        print("🔄 AuthenticationManager: Syncing user profile from Firebase for user: \(userId)")
+        
+        do {
+            // Fetch user data from Firebase
+            let userData = try await firebaseDatabaseService.getUser(userId: userId)
+            
+            // Try to fetch onboarding responses from the correct path first (/responses/{uid}/Onboarding)
+            var responses: [String: Any]? = nil
+            do {
+                responses = try await firebaseDatabaseService.getQuestionnaireResponses(userId: userId, questionnaireTitle: "Onboarding")
+                print("✅ AuthenticationManager: Found onboarding responses at /responses/\(userId)/Onboarding")
+            } catch {
+                print("⚠️ AuthenticationManager: No onboarding responses at /responses/\(userId)/Onboarding, trying fallback path...")
+                // Fallback to direct responses path (/responses/{uid})
+                do {
+                    responses = try await firebaseDatabaseService.getResponses(userId: userId)
+                    if responses != nil {
+                        print("✅ AuthenticationManager: Found responses at fallback path /responses/\(userId)")
+                    }
+                } catch {
+                    print("⚠️ AuthenticationManager: No responses found at fallback path either")
+                }
+            }
+            
+            // Sync User model to SwiftData
+            await syncUserData(modelContext: modelContext, userData: userData, responses: responses)
+            
+            print("✅ AuthenticationManager: User profile sync completed")
+            
+        } catch {
+            print("❌ AuthenticationManager: Failed to sync user profile from Firebase: \(error)")
+            // Don't throw - allow fallback to local data
         }
     }
     

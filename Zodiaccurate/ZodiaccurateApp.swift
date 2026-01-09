@@ -140,6 +140,12 @@ struct RootView: View {
                         // Check if user has completed onboarding and trial status
                         if hasCompletedOnboarding {
                             print("✅ User has completed onboarding")
+                            // If user has completed onboarding but isn't authenticated, show login view
+                            if !authManager.isAuthenticated {
+                                print("🔐 User needs to log in, showing LoginView")
+                                shouldStartWithRegistration = false
+                                showLogin = true
+                            }
                         } else {
                             print("🆕 New user detected, showing onboarding flow")
                             showOnboarding = true
@@ -150,42 +156,41 @@ struct RootView: View {
             }
 
             if showOnboarding {
-//                ZStack {
-                    ConversationalOnboardingView(
-                        onComplete: {
-                            // Onboarding completion is now handled via notification from consent
-                            print("🔄 ConversationalOnboardingView completed")
-                            showMain = true
-                        },
-                        triggerBadgeAnimation: { newAssetName in
-                            // Post notification to trigger badge animation
-                            NotificationCenter.default.post(
-                                name: .badgeAnimationTriggered,
-                                object: nil,
-                                userInfo: ["newAssetName": newAssetName]
-                            )
+                ConversationalOnboardingView(
+                    onComplete: {
+                        print("🔄 ConversationalOnboardingView completed, navigating to sign up")
+                        withAnimation(.easeInOut(duration: 0.7)) {
+                            hasCompletedOnboarding = true
+                            showOnboarding = false
+                            shouldStartWithRegistration = true
+                            showLogin = true
                         }
-                    )
-                }
-//                .ignoresSafeArea(.all, edges: .top)ef
-//                .transition(.opacity)
-//            }
-//            
-//            if showLogin && !authManager.isAuthenticated {
-//                LoginView(isRegistering: shouldStartWithRegistration)
-//                    .transition(.opacity)
-//            }
-//            
-//            // If user is already authenticated and has completed onboarding, show main view
-//            if authManager.isAuthenticated && hasCompletedOnboarding {
-            if hasCompletedOnboarding || showMain {
-                ZStack {
-                    MainZodiacView(completedOnboarding: true)
-                        .transition(.opacity)
-                        .onAppear {
-                            print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
-                        }
-                }
+                    },
+                    triggerBadgeAnimation: { newAssetName in
+                        // Post notification to trigger badge animation
+                        NotificationCenter.default.post(
+                            name: .badgeAnimationTriggered,
+                            object: nil,
+                            userInfo: ["newAssetName": newAssetName]
+                        )
+                    }
+                )
+                .transition(.opacity)
+            }
+            
+            // Show login view if user has completed onboarding but isn't authenticated
+            if showLogin && !authManager.isAuthenticated {
+                LoginView(isRegistering: shouldStartWithRegistration)
+                    .transition(.opacity)
+            }
+            
+            // If user is already authenticated and has completed onboarding, show main view
+            if authManager.isAuthenticated && hasCompletedOnboarding {
+                MainZodiacView(completedOnboarding: true)
+                    .transition(.opacity)
+                    .onAppear {
+                        print("🚀 Authenticated user with completed onboarding, showing MainZodiacView")
+                    }
             }
 //            else if authManager.shouldShowOnboardingHoroscope && !hasCompletedOnboarding {
 //                HoroscopeSplashView(completedOnboarding: false)
@@ -216,12 +221,40 @@ struct RootView: View {
             }
         }
         .onChange(of: authManager.isAuthenticated) { oldValue, newValue in
+            // Handle successful login - when user goes from not authenticated to authenticated
+            if oldValue == false && newValue == true {
+                print("✅ User authenticated, hiding login view")
+                withAnimation(.easeInOut(duration: 0.7)) {
+                    showLogin = false
+                }
+            }
             // Handle logout - when user goes from authenticated to not authenticated
             if oldValue == true && newValue == false {
-                print("🚪 User logged out, returning to splash screen")
-                showSplash = true
-                showOnboarding = false
-                showLogin = false
+                print("🚪 User logged out")
+                if hasCompletedOnboarding {
+                    // If user has completed onboarding, show login view
+                    print("🔐 Showing login view after logout")
+                    withAnimation(.easeInOut(duration: 0.7)) {
+                        shouldStartWithRegistration = false
+                        showLogin = true
+                        showOnboarding = false
+                        showSplash = false
+                    }
+                } else {
+                    // If user hasn't completed onboarding, return to splash screen
+                    print("🔄 Returning to splash screen")
+                    showSplash = true
+                    showOnboarding = false
+                    showLogin = false
+                }
+            }
+        }
+        .onAppear {
+            // Check initial state: if user has completed onboarding but isn't authenticated, show login
+            if hasCompletedOnboarding && !authManager.isAuthenticated && !showSplash && !showOnboarding && !showLogin {
+                print("🔐 App appeared: User completed onboarding but not authenticated, showing LoginView")
+                shouldStartWithRegistration = false
+                showLogin = true
             }
         }
     }

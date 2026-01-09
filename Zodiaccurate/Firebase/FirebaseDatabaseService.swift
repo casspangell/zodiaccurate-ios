@@ -94,4 +94,29 @@ class FirebaseDatabaseService: ObservableObject {
         
         return value
     }
+    
+    // MARK: - Horoscope Management
+    
+    /// Save horoscope to /zodiac/{uuid}/{key}
+    func saveHoroscope(userId: String, horoscope: Horoscope) async throws {
+        var horoscopeData: [String: Any] = [
+            "title": horoscope.title,
+            "message": horoscope.message,
+            "key": horoscope.key,
+            "createdAt": horoscope.createdAt.timeIntervalSince1970
+        ]
+        
+        // Add audioFilePath if available
+        if let audioFilePath = horoscope.audioFilePath {
+            horoscopeData["audioFilePath"] = audioFilePath
+        }
+        
+        do {
+            try await database.child("zodiac").child(userId).child(horoscope.key).setValue(horoscopeData)
+            print("✅ Horoscope saved to Firebase: /zodiac/\(userId)/\(horoscope.key)")
+        } catch {
+            print("❌ Failed to save horoscope to Firebase: \(error)")
+            throw error
+        }
+    }
 }

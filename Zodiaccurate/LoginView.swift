@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import FirebaseAuth
 
 struct LoginView: View {
@@ -262,10 +263,39 @@ struct LoginView: View {
                                                 print("🔘 LoginView: Calling signUp...")
                                                 try await authManager.signUp(email: email, password: password)
                                                 print("🔘 LoginView: signUp completed successfully")
+                                                
+                                                // Save welcome horoscope to Firebase at /zodiac/{uuid}/welcome
+                                                if let userId = authManager.user?.uid {
+                                                    do {
+                                                        // Fetch welcome horoscope from SwiftData
+                                                        let descriptor = FetchDescriptor<Horoscope>(
+                                                            predicate: #Predicate<Horoscope> { $0.key == "welcome" }
+                                                        )
+                                                        let horoscopes = try modelContext.fetch(descriptor)
+                                                        
+                                                        if let welcomeHoroscope = horoscopes.first {
+                                                            let firebaseService = FirebaseDatabaseService()
+                                                            try await firebaseService.saveHoroscope(userId: userId, horoscope: welcomeHoroscope)
+                                                            print("✅ Welcome horoscope saved to Firebase: /zodiac/\(userId)/welcome")
+                                                        } else {
+                                                            print("⚠️ No welcome horoscope found in SwiftData to save to Firebase")
+                                                        }
+                                                    } catch {
+                                                        print("❌ Failed to save welcome horoscope to Firebase: \(error)")
+                                                        // Continue even if Firebase save fails
+                                                    }
+                                                } else {
+                                                    print("⚠️ No user ID available to save welcome horoscope to Firebase")
+                                                }
                                             } else {
                                                 print("🔘 LoginView: Calling signIn...")
                                                 try await authManager.signIn(email: email, password: password)
                                                 print("🔘 LoginView: signIn completed successfully")
+                                                
+                                                // Sync Firebase data to SwiftData after successful login
+                                                print("🔄 LoginView: Starting data sync from Firebase...")
+                                                await authManager.syncDataFromFirebase(modelContext: modelContext)
+                                                print("✅ LoginView: Data sync completed")
                                             }
                                         } catch {
                                             print("🔘 LoginView: Authentication error - \(error)")

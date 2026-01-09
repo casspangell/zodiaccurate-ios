@@ -381,7 +381,7 @@ struct EditProfileView: View {
                         // Profile Information Section
                         SettingsSection(title: "Profile Information") {
                             VStack(spacing: 16) {
-                                // First Name Field
+                                // First Name Field (Disabled)
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("First Name")
                                         .font(.system(size: 16, weight: .medium))
@@ -394,20 +394,26 @@ struct EditProfileView: View {
                                         onSubmit: {},
                                         highlightInputField: $highlightFirstNameField
                                     )
+                                    .disabled(true)
+                                    .allowsHitTesting(false)
+                                    .opacity(0.6)
                                 }
                                 
-                                // Birth Date Picker
+                                // Birth Date Picker (Disabled)
                                 VStack(alignment: .leading, spacing: 8) {
                                     DatePickerView(
                                         selectedDate: $editingBirthDate,
                                         onDateSelected: { date in
                                             editingBirthDate = date
                                         },
-                                        showSubmitButton: false
+                                        showSubmitButton: false,
+                                        isDisabled: true
                                     )
+                                    .allowsHitTesting(false)
+                                    .opacity(0.6)
                                 }
                                 
-                                // Birth Time Picker
+                                // Birth Time Picker (Disabled)
                                 VStack(alignment: .leading, spacing: 8) {
                                     TimePickerView(
                                         selectedTime: $editingBirthTime,
@@ -418,8 +424,11 @@ struct EditProfileView: View {
                                             // Handle unknown time
                                             editingBirthTime = Date()
                                         },
-                                        showSubmitButton: false
+                                        showSubmitButton: false,
+                                        isDisabled: true
                                     )
+                                    .allowsHitTesting(false)
+                                    .opacity(0.6)
                                 }
                                 
                                 // Timezone Picker

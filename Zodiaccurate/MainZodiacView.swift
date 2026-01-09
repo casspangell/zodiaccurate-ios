@@ -208,6 +208,11 @@ struct MainZodiacView: View {
                         intakeDataManager = IntakeDataManager(modelContext: modelContext)
                     }
                     
+                    // Load welcome horoscope from SwiftData immediately when view appears
+                    Task { @MainActor in
+                        await loadWelcomeHoroscopeFromSwiftData()
+                    }
+                    
                     // Trigger header animation to main mode when view loads
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
@@ -324,18 +329,26 @@ struct MainZodiacView: View {
                                 .padding(.bottom, 8)
                                 .zIndex(activeComponent == .flipBook ? getZIndex(.active) : getZIndex(.one))
                                 .onAppear {
-                                    // Check for welcome horoscope when view appears
-                                    _ = fetchWelcomeHoroscope()
+                                    // Initial fetch already happened in parent onAppear, but check again here
+                                    if !isWelcomeHoroscopeLoaded {
+                                        Task { @MainActor in
+                                            await loadWelcomeHoroscopeFromSwiftData()
+                                        }
+                                    }
                                 }
                                 .onReceive(Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()) { _ in
-                                    // Check for welcome horoscope periodically until loaded
+                                    // Poll for updates if not loaded yet (e.g., if it's being generated)
                                     if !isWelcomeHoroscopeLoaded {
-                                        _ = fetchWelcomeHoroscope()
+                                        Task { @MainActor in
+                                            await loadWelcomeHoroscopeFromSwiftData()
+                                        }
                                     }
                                 }
                                 .onReceive(NotificationCenter.default.publisher(for: .welcomeHoroscopeReady)) { _ in
-                                    // Refresh welcome horoscope when notification is received
-                                    _ = fetchWelcomeHoroscope()
+                                    // Refresh when notification is received (horoscope was just saved)
+                                    Task { @MainActor in
+                                        await loadWelcomeHoroscopeFromSwiftData()
+                                    }
                                 }
                                 .onReceive(NotificationCenter.default.publisher(for: .flipBookMoveToTop)) { _ in
                                     // Adjust spacing when FlipBook moves to top
@@ -369,7 +382,7 @@ struct MainZodiacView: View {
                                     flipBookCardBottomPosition = bottomPosition
                                     print("📍 FlipBookCard bottom position: \(bottomPosition)")
                                 }
-                                .id(isWelcomeHoroscopeLoaded) // Force re-creation only when loading state changes
+                                .id(welcomeHoroscope?.key ?? "loading") // Force re-creation when horoscope changes
                         }
                         
                         Spacer()
@@ -806,7 +819,8 @@ struct MainZodiacView: View {
         return result
     }
     
-    private func fetchWelcomeHoroscope() -> Horoscope? {
+    @MainActor
+    private func loadWelcomeHoroscopeFromSwiftData() async {
         do {
             let descriptor = FetchDescriptor<Horoscope>(
                 predicate: #Predicate<Horoscope> { $0.key == "welcome" }
@@ -814,22 +828,21 @@ struct MainZodiacView: View {
             let horoscopes = try modelContext.fetch(descriptor)
             let horoscope = horoscopes.first
             
-            // Update loading state and trigger UI refresh
-            DispatchQueue.main.async {
-                let wasLoaded = self.isWelcomeHoroscopeLoaded
-                self.welcomeHoroscope = horoscope
-                self.isWelcomeHoroscopeLoaded = horoscope != nil
-                
-                // If the loading state changed, print for debugging
-                if wasLoaded != self.isWelcomeHoroscopeLoaded {
-                    print("🎯 MainZodiacView: Welcome horoscope loading state changed to \(self.isWelcomeHoroscopeLoaded)")
+            // Update state on main thread
+            let wasLoaded = self.isWelcomeHoroscopeLoaded
+            self.welcomeHoroscope = horoscope
+            self.isWelcomeHoroscopeLoaded = horoscope != nil
+            
+            if wasLoaded != self.isWelcomeHoroscopeLoaded {
+                print("🎯 MainZodiacView: Welcome horoscope loading state changed to \(self.isWelcomeHoroscopeLoaded)")
+                if let horoscope = horoscope {
+                    print("✅ MainZodiacView: Loaded welcome horoscope from SwiftData - Title: '\(horoscope.title)'")
+                } else {
+                    print("⏳ MainZodiacView: Welcome horoscope not found in SwiftData yet, will continue polling")
                 }
             }
-            
-            return horoscope
         } catch {
-            print("❌ Failed to fetch welcome horoscope: \(error)")
-            return nil
+            print("❌ Failed to fetch welcome horoscope from SwiftData: \(error)")
         }
     }
 }

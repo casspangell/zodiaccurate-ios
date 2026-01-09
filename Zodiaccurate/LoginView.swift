@@ -264,7 +264,9 @@ struct LoginView: View {
                                                 try await authManager.signUp(email: email, password: password)
                                                 print("🔘 LoginView: signUp completed successfully")
                                                 
-                                                // Save welcome horoscope to Firebase at /zodiac/{uuid}/welcome
+                                                // Fallback: Try to save welcome horoscope to Firebase if it exists
+                                                // Note: Horoscope is typically generated during onboarding and saved to Firebase there,
+                                                // but this serves as a fallback in case it already exists or if onboarding was skipped
                                                 if let userId = authManager.user?.uid {
                                                     do {
                                                         // Fetch welcome horoscope from SwiftData
@@ -276,13 +278,14 @@ struct LoginView: View {
                                                         if let welcomeHoroscope = horoscopes.first {
                                                             let firebaseService = FirebaseDatabaseService()
                                                             try await firebaseService.saveHoroscope(userId: userId, horoscope: welcomeHoroscope)
-                                                            print("✅ Welcome horoscope saved to Firebase: /zodiac/\(userId)/welcome")
+                                                            print("✅ Welcome horoscope saved to Firebase (fallback): /zodiac/\(userId)/welcome")
                                                         } else {
-                                                            print("⚠️ No welcome horoscope found in SwiftData to save to Firebase")
+                                                            // This is expected - horoscope will be generated during onboarding
+                                                            print("ℹ️ Welcome horoscope not yet generated (will be created during onboarding)")
                                                         }
                                                     } catch {
-                                                        print("❌ Failed to save welcome horoscope to Firebase: \(error)")
-                                                        // Continue even if Firebase save fails
+                                                        print("❌ Failed to save welcome horoscope to Firebase (fallback): \(error)")
+                                                        // Continue even if Firebase save fails - it will be saved during onboarding
                                                     }
                                                 } else {
                                                     print("⚠️ No user ID available to save welcome horoscope to Firebase")

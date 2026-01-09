@@ -199,6 +199,20 @@ struct ConversationalOnboardingView: View {
                 try modelContext.save()
                 print("✅ Welcome horoscope saved to SwiftData successfully")
                 
+                // Save horoscope to Firebase if user is authenticated
+                if let userId = authManager.user?.uid {
+                    do {
+                        let firebaseService = FirebaseDatabaseService()
+                        try await firebaseService.saveHoroscope(userId: userId, horoscope: horoscope)
+                        print("✅ Welcome horoscope saved to Firebase: /zodiac/\(userId)/welcome")
+                    } catch {
+                        print("❌ Failed to save welcome horoscope to Firebase: \(error)")
+                        // Continue even if Firebase save fails
+                    }
+                } else {
+                    print("⚠️ No user ID available to save welcome horoscope to Firebase")
+                }
+                
                 // Notify that welcome horoscope is ready
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(name: .welcomeHoroscopeReady, object: nil)

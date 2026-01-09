@@ -5,11 +5,13 @@ struct DatePickerView: View {
     @Binding var selectedDate: Date
     let onDateSelected: (Date) -> Void
     let showSubmitButton: Bool
+    var isDisabled: Bool = false
     
-    init(selectedDate: Binding<Date>, onDateSelected: @escaping (Date) -> Void, showSubmitButton: Bool = true) {
+    init(selectedDate: Binding<Date>, onDateSelected: @escaping (Date) -> Void, showSubmitButton: Bool = true, isDisabled: Bool = false) {
         self._selectedDate = selectedDate
         self.onDateSelected = onDateSelected
         self.showSubmitButton = showSubmitButton
+        self.isDisabled = isDisabled
     }
     
     var body: some View {
@@ -24,6 +26,7 @@ struct DatePickerView: View {
                 )
                 .datePickerStyle(.compact)
                 .colorScheme(.dark)
+                .disabled(isDisabled)
                 .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 
                 if showSubmitButton {
@@ -61,12 +64,14 @@ struct TimePickerView: View {
     let onTimeSelected: (Date) -> Void
     let onUnknownTime: () -> Void
     let showSubmitButton: Bool
+    var isDisabled: Bool = false
     
-    init(selectedTime: Binding<Date>, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, showSubmitButton: Bool = true) {
+    init(selectedTime: Binding<Date>, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, showSubmitButton: Bool = true, isDisabled: Bool = false) {
         self._selectedTime = selectedTime
         self.onTimeSelected = onTimeSelected
         self.onUnknownTime = onUnknownTime
         self.showSubmitButton = showSubmitButton
+        self.isDisabled = isDisabled
     }
     
     var body: some View {
@@ -81,6 +86,7 @@ struct TimePickerView: View {
                 )
                 .datePickerStyle(.compact)
                 .colorScheme(.dark)
+                .disabled(isDisabled)
                 .clipShape(CustomBubbleShape(radius: bubbleCornerRadius, topRightRatio: bubbleTopRightRatio))
                 
                 if showSubmitButton {

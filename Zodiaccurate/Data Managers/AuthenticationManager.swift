@@ -12,6 +12,7 @@ class AuthenticationManager: ObservableObject {
     
     private let auth = Auth.auth()
     private var authStateListener: AuthStateDidChangeListenerHandle?
+    private let firebaseDatabaseService = FirebaseDatabaseService()
     
     init() {
         // Listen for authentication state changes
@@ -88,9 +89,80 @@ class AuthenticationManager: ObservableObject {
             user = result.user
             print("✅ AuthenticationManager: User created successfully, isAuthenticated = \(isAuthenticated)")
             
-            // Generate profile UUID
-            let profileUUID = UUID().uuidString
-
+            // Get onboarding data from UserDefaults
+            let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
+            let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
+            let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
+            let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+            
+            // Save user data to Firebase /users/{uid}
+            do {
+                try await firebaseDatabaseService.saveUser(
+                    userId: result.user.uid,
+                    email: email,
+                    name: firstName
+                )
+            } catch {
+                print("⚠️ Failed to save user to Firebase: \(error)")
+                // Continue even if Firebase save fails
+            }
+            
+            // Get all onboarding responses (stored as dictionary with both Q&A pairs)
+            var responses: [String: Any] = [:]
+            if let storedResponses = UserDefaults.standard.dictionary(forKey: "onboardingResponses") as? [String: String] {
+                // Copy all stored responses (includes both questions and answers)
+                responses = storedResponses
+            } else {
+                // Fallback: reconstruct from individual keys if dictionary format not available
+                if !firstName.isEmpty {
+                    responses["firstName"] = firstName
+                    // Try to get question if available
+                    if let question = UserDefaults.standard.string(forKey: "question_firstName") {
+                        responses["question_firstName"] = question
+                    }
+                }
+                if !birthDate.isEmpty {
+                    responses["birthDate"] = birthDate
+                    if let question = UserDefaults.standard.string(forKey: "question_birthDate") {
+                        responses["question_birthDate"] = question
+                    }
+                }
+                if !birthTime.isEmpty {
+                    responses["birthTime"] = birthTime
+                    if let question = UserDefaults.standard.string(forKey: "question_birthTime") {
+                        responses["question_birthTime"] = question
+                    }
+                }
+                if !zodiacSign.isEmpty {
+                    responses["zodiacSign"] = zodiacSign
+                }
+                
+                // Try to get any other questions/responses stored individually
+                let possibleKeys = ["intuition", "energy", "final"]
+                for key in possibleKeys {
+                    if let answer = UserDefaults.standard.string(forKey: key), !answer.isEmpty {
+                        responses[key] = answer
+                    }
+                    if let question = UserDefaults.standard.string(forKey: "question_\(key)") {
+                        responses["question_\(key)"] = question
+                    }
+                }
+            }
+            
+            // Add consent given flag
+            responses["consentGiven"] = true // Assuming consent was given if onboarding completed
+            
+            // Save all onboarding responses (including Q&A pairs) to Firebase /responses/{uid}
+            do {
+                try await firebaseDatabaseService.saveOnboardingResponses(
+                    userId: result.user.uid,
+                    responses: responses
+                )
+            } catch {
+                print("⚠️ Failed to save onboarding responses to Firebase: \(error)")
+                // Continue even if Firebase save fails
+            }
+            
             // Update profile data (SwiftData removed)
             updateProfileData(with: result.user.uid)
             

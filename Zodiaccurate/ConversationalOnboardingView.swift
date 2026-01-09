@@ -30,6 +30,7 @@ struct ConversationalOnboardingView: View {
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
     @State private var currentStepIndex: Int = 0
+    @State private var onboardingResponses: [String: String] = [:]
     let triggerBadgeAnimation: (String) -> Void
     
     var onComplete: () -> Void = {}
@@ -51,6 +52,26 @@ struct ConversationalOnboardingView: View {
     }
     
     private func updateUserData(input: String, step: ConversationStep) {
+        // Store the question and answer pair
+        // Use the personalized question message if available, otherwise use the step message
+        let personalizedQuestion = personalizeMessage(step.message, with: user.firstName)
+        
+        // Store answer with dataKey as the key
+        onboardingResponses[step.dataKey] = input
+        
+        // Store question with "question_{dataKey}" as the key
+        let questionKey = "question_\(step.dataKey)"
+        onboardingResponses[questionKey] = personalizedQuestion
+        
+        // Also store individual keys in UserDefaults for backward compatibility
+        UserDefaults.standard.set(personalizedQuestion, forKey: questionKey)
+        UserDefaults.standard.set(input, forKey: step.dataKey)
+        
+        // Store all onboarding responses (including both Q&A) as a dictionary in UserDefaults for Firebase
+        UserDefaults.standard.set(onboardingResponses, forKey: "onboardingResponses")
+        
+        print("💾 Stored Q&A - Question: '\(personalizedQuestion)', Answer: '\(input)', Key: '\(step.dataKey)'")
+        
         // Update the user data based on the conversation step
         switch step.dataKey {
         case "firstName":
@@ -252,6 +273,9 @@ struct ConversationalOnboardingView: View {
             user = User(createdAt: Date(), updatedAt: Date())
             // Initialize stardust with 0 balance
             stardust = Stardust(balance: 0)
+            // Clear previous onboarding responses
+            onboardingResponses = [:]
+            UserDefaults.standard.removeObject(forKey: "onboardingResponses")
             print("👤 New onboarding session started")
             print("🪙 Stardust initialized with balance: \(stardust.balance)")
         }

@@ -31,6 +31,13 @@ struct MainZodiacView: View {
     @State private var showEmploymentConversation = false
     @State private var employmentDisplayName: String = ""
     @State private var moveFlipbookToTop: Bool = false
+    
+    // Questionnaire response tracking
+    @State private var wellnessResponses: [String: Any] = [:]
+    @State private var relationshipResponses: [String: Any] = [:]
+    @State private var importantPeopleResponses: [String: Any] = [:]
+    @State private var childrenResponses: [String: Any] = [:]
+    @State private var employmentResponses: [String: Any] = [:]
     @State private var headerFlipBookSpacing: CGFloat = 50
     @State private var headerHeight: CGFloat = 0
     @State private var activeComponent: ActiveComponent = .none
@@ -69,8 +76,76 @@ struct MainZodiacView: View {
                 answer: input
             )
             print("📝 Updated IntakeData - Topic: \(topicString), Key: \(step.dataKey), Answer: \(input)")
+            
+            // Track question and answer for Firebase
+            let userName = userProfileManager.firstName.isEmpty ? (users.first?.firstName ?? "") : userProfileManager.firstName
+            let personalizedQuestion = personalizeMessage(step.message, with: userName)
+            
+            // Get the appropriate responses dictionary based on topic
+            switch topic {
+            case .wellness:
+                wellnessResponses[step.dataKey] = input
+                wellnessResponses["question_\(step.dataKey)"] = personalizedQuestion
+            case .relationship:
+                relationshipResponses[step.dataKey] = input
+                relationshipResponses["question_\(step.dataKey)"] = personalizedQuestion
+            case .importantPeople:
+                importantPeopleResponses[step.dataKey] = input
+                importantPeopleResponses["question_\(step.dataKey)"] = personalizedQuestion
+            case .children:
+                childrenResponses[step.dataKey] = input
+                childrenResponses["question_\(step.dataKey)"] = personalizedQuestion
+            case .employment:
+                employmentResponses[step.dataKey] = input
+                employmentResponses["question_\(step.dataKey)"] = personalizedQuestion
+            case .none:
+                break
+            }
         } else {
             print("⚠️ Unknown topic for QuestionMenuButton: \(topic)")
+        }
+    }
+    
+    /// Save questionnaire responses to Firebase
+    private func saveQuestionnaireToFirebase(topic: QuestionMenuButton, questionnaireTitle: String) {
+        guard let userId = authManager.user?.uid else {
+            print("⚠️ Cannot save questionnaire to Firebase: User not authenticated")
+            return
+        }
+        
+        let responses: [String: Any]
+        switch topic {
+        case .wellness:
+            responses = wellnessResponses
+        case .relationship:
+            responses = relationshipResponses
+        case .importantPeople:
+            responses = importantPeopleResponses
+        case .children:
+            responses = childrenResponses
+        case .employment:
+            responses = employmentResponses
+        case .none:
+            return
+        }
+        
+        guard !responses.isEmpty else {
+            print("⚠️ No responses to save for \(questionnaireTitle)")
+            return
+        }
+        
+        Task {
+            do {
+                let firebaseService = FirebaseDatabaseService()
+                try await firebaseService.saveQuestionnaireResponses(
+                    userId: userId,
+                    questionnaireTitle: questionnaireTitle,
+                    responses: responses
+                )
+                print("✅ Saved \(questionnaireTitle) questionnaire to Firebase")
+            } catch {
+                print("❌ Failed to save \(questionnaireTitle) questionnaire to Firebase: \(error)")
+            }
         }
     }
     
@@ -406,11 +481,16 @@ struct MainZodiacView: View {
                     handleConversationResponse(input: input, step: step, topic: .wellness)
                 },
                 onComplete: {
+                    saveQuestionnaireToFirebase(topic: .wellness, questionnaireTitle: "Wellness")
+                    wellnessResponses = [:]
                     showWellnessConversation = false
                 },
                 topInsetMode: .compact,
                 questionCategory: .wellness
             )
+            .onAppear {
+                wellnessResponses = [:]
+            }
             .onAppear {
                 print("🔍 MainZodiacView: Starting Wellness conversation with questionCategory = .wellness")
                 print("🔍 MainZodiacView: wellnessDisplayName = '\(wellnessDisplayName)'")
@@ -429,11 +509,16 @@ struct MainZodiacView: View {
                     handleConversationResponse(input: input, step: step, topic: .relationship)
                 },
                 onComplete: {
+                    saveQuestionnaireToFirebase(topic: .relationship, questionnaireTitle: "Relationship")
+                    relationshipResponses = [:]
                     showRelationshipConversation = false
                 },
                 topInsetMode: .compact,
                 questionCategory: .relationship
             )
+            .onAppear {
+                relationshipResponses = [:]
+            }
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
             .presentationCornerRadius(0)
@@ -448,11 +533,16 @@ struct MainZodiacView: View {
                     handleConversationResponse(input: input, step: step, topic: .importantPeople)
                 },
                 onComplete: {
+                    saveQuestionnaireToFirebase(topic: .importantPeople, questionnaireTitle: "Important People")
+                    importantPeopleResponses = [:]
                     showImportantPeopleConversation = false
                 },
                 topInsetMode: .compact,
                 questionCategory: .importantPeople
             )
+            .onAppear {
+                importantPeopleResponses = [:]
+            }
             .onAppear {
                 print("🔍 MainZodiacView: Starting Important People conversation with questionCategory = .importantPeople")
                 print("🔍 MainZodiacView: importantPeopleDisplayName = '\(importantPeopleDisplayName)'")
@@ -471,11 +561,16 @@ struct MainZodiacView: View {
                     handleConversationResponse(input: input, step: step, topic: .children)
                 },
                 onComplete: {
+                    saveQuestionnaireToFirebase(topic: .children, questionnaireTitle: "Children")
+                    childrenResponses = [:]
                     showChildrenConversation = false
                 },
                 topInsetMode: .compact,
                 questionCategory: .children
             )
+            .onAppear {
+                childrenResponses = [:]
+            }
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
             .presentationCornerRadius(0)
@@ -490,11 +585,16 @@ struct MainZodiacView: View {
                     handleConversationResponse(input: input, step: step, topic: .employment)
                 },
                 onComplete: {
+                    saveQuestionnaireToFirebase(topic: .employment, questionnaireTitle: "Employment")
+                    employmentResponses = [:]
                     showEmploymentConversation = false
                 },
                 topInsetMode: .compact,
                 questionCategory: .employment
             )
+            .onAppear {
+                employmentResponses = [:]
+            }
             .ignoresSafeArea(.container, edges: .top)
             .presentationDetents([.large])
             .presentationCornerRadius(0)

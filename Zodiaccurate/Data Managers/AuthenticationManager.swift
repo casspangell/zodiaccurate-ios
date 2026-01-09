@@ -385,10 +385,11 @@ class AuthenticationManager: ObservableObject {
             // Add consent given flag
             responses["consentGiven"] = true // Assuming consent was given if onboarding completed
             
-            // Save all onboarding responses (including Q&A pairs) to Firebase /responses/{uid}
+            // Save all onboarding responses (including Q&A pairs) to Firebase /responses/{uid}/Onboarding
             do {
-                try await firebaseDatabaseService.saveOnboardingResponses(
+                try await firebaseDatabaseService.saveQuestionnaireResponses(
                     userId: result.user.uid,
+                    questionnaireTitle: "Onboarding",
                     responses: responses
                 )
             } catch {

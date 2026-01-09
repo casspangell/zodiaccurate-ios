@@ -84,6 +84,19 @@ class FirebaseDatabaseService: ObservableObject {
         return value
     }
     
+    /// Save questionnaire responses to /responses/{uuid}/{questionnaire title}
+    func saveQuestionnaireResponses(userId: String, questionnaireTitle: String, responses: [String: Any]) async throws {
+        do {
+            // Sanitize questionnaire title for Firebase (replace spaces with underscores or remove special chars)
+            let sanitizedTitle = questionnaireTitle.replacingOccurrences(of: " ", with: "_")
+            try await database.child("responses").child(userId).child(sanitizedTitle).setValue(responses)
+            print("✅ Questionnaire responses saved to Firebase: /responses/\(userId)/\(sanitizedTitle)")
+        } catch {
+            print("❌ Failed to save questionnaire responses to Firebase: \(error)")
+            throw error
+        }
+    }
+    
     /// Get user data
     func getUser(userId: String) async throws -> [String: Any]? {
         let snapshot = try await database.child("users").child(userId).getData()

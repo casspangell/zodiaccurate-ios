@@ -171,6 +171,23 @@ struct ConversationalOnboardingView: View {
             print("❌ Failed to save user and stardust to SwiftData: \(error)")
         }
         
+        // Save onboarding responses to Firebase if user is authenticated
+        if let userId = authManager.user?.uid, !onboardingResponses.isEmpty {
+            Task {
+                do {
+                    let firebaseService = FirebaseDatabaseService()
+                    try await firebaseService.saveQuestionnaireResponses(
+                        userId: userId,
+                        questionnaireTitle: "Onboarding",
+                        responses: onboardingResponses
+                    )
+                    print("✅ Saved onboarding questionnaire to Firebase: /responses/\(userId)/Onboarding")
+                } catch {
+                    print("⚠️ Failed to save onboarding questionnaire to Firebase: \(error)")
+                }
+            }
+        }
+        
         // Generate welcome horoscope
         Task {
             let horoscope = await GPTOnboarding.generateWelcomeHoroscope(for: user)

@@ -17,12 +17,17 @@ class FirebaseDatabaseService: ObservableObject {
     // MARK: - User Management
     
     /// Save or update user data to /users/{uid}
-    func saveUser(userId: String, email: String, name: String) async throws {
-        let userData: [String: Any] = [
+    func saveUser(userId: String, email: String, name: String, timezone: String? = nil) async throws {
+        var userData: [String: Any] = [
             "uuid": userId,
             "email": email,
             "name": name
         ]
+        
+        // Add timezone if provided
+        if let timezone = timezone, !timezone.isEmpty {
+            userData["timezone"] = timezone
+        }
         
         do {
             try await database.child("users").child(userId).setValue(userData)

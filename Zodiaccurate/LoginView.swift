@@ -26,6 +26,7 @@ struct LoginView: View {
     @State private var showHoroscopeSavedAlert: Bool = false
     @State private var generatedHoroscope: String = ""
     @State private var agreedToTerms = false
+    @State private var selectedTimezone: String = ""
     
     init(isRegistering: Bool = false) {
         _isRegistering = State(initialValue: isRegistering)
@@ -38,7 +39,7 @@ struct LoginView: View {
     }
     
     enum Field: Hashable {
-        case email, password, confirmPassword
+        case email, password, confirmPassword, timezone
     }
     
     private var headerView: some View {
@@ -133,7 +134,8 @@ struct LoginView: View {
                                         passwordsMatch: $passwordsMatch,
                                         focusedField: $focusedField,
                                         onSubmit: {
-                                            focusedField = nil
+                                            focusedField = .timezone
+                                            withAnimation { proxy.scrollTo(Field.timezone, anchor: .center) }
                                         },
                                         onTap: {
                                             focusedField = .confirmPassword
@@ -141,6 +143,16 @@ struct LoginView: View {
                                         },
                                         onPasswordChange: {
                                             passwordsMatch = (password == confirmPassword)
+                                        }
+                                    )
+                                    
+                                    // Timezone Field
+                                    LoginTimezoneField(
+                                        selectedTimezone: $selectedTimezone,
+                                        focusedField: $focusedField,
+                                        onTap: {
+                                            focusedField = .timezone
+                                            withAnimation { proxy.scrollTo(Field.timezone, anchor: .center) }
                                         }
                                     )
                                 }
@@ -241,6 +253,12 @@ struct LoginView: View {
                                         }
                                         do {
                                             if isRegistering {
+                                                // Save timezone to UserDefaults before signup
+                                                if !selectedTimezone.isEmpty {
+                                                    UserDefaults.standard.set(selectedTimezone, forKey: "userTimezone")
+                                                    print("🌍 Timezone saved: \(selectedTimezone)")
+                                                }
+                                                
                                                 print("🔘 LoginView: Calling signUp...")
                                                 try await authManager.signUp(email: email, password: password)
                                                 print("🔘 LoginView: signUp completed successfully")
@@ -288,6 +306,7 @@ struct LoginView: View {
                                         isRegistering.toggle()
                                         authManager.error = nil
                                         confirmPassword = ""
+                                        selectedTimezone = ""
                                         showAgreementError = false
                                         
                                         // Clear email when switching to register mode

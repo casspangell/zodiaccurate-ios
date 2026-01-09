@@ -536,4 +536,71 @@ struct LoginConfirmPasswordField: View {
     }
 }
 
+struct LoginTimezoneField: View {
+    @Binding var selectedTimezone: String
+    @FocusState.Binding var focusedField: LoginView.Field?
+    var onTap: () -> Void
+    
+    private let timezones: [(identifier: String, displayName: String)] = {
+        let identifiers = TimeZone.knownTimeZoneIdentifiers.sorted()
+        return identifiers.map { identifier in
+            let timezone = TimeZone(identifier: identifier)!
+            let abbreviation = timezone.abbreviation() ?? ""
+            let offset = timezone.secondsFromGMT()
+            let hours = offset / 3600
+            let minutes = abs(offset % 3600) / 60
+            let offsetString = String(format: "%+.2d:%.2d", hours, minutes)
+            
+            // Extract city name from identifier (e.g., "America/New_York" -> "New York")
+            let cityName = identifier.components(separatedBy: "/").last?.replacingOccurrences(of: "_", with: " ") ?? identifier
+            
+            let displayName = "\(cityName) (\(abbreviation)) GMT\(offsetString)"
+            return (identifier: identifier, displayName: displayName)
+        }
+    }()
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Timezone")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(.white)
+            
+            Menu {
+                Picker("Select Timezone", selection: $selectedTimezone) {
+                    ForEach(timezones, id: \.identifier) { timezone in
+                        Text(timezone.displayName)
+                            .tag(timezone.identifier)
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedTimezone.isEmpty ? "Select your timezone" : timezoneDisplayName(for: selectedTimezone))
+                        .foregroundColor(selectedTimezone.isEmpty ? Color.white.opacity(0.5) : .white)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.white.opacity(0.6))
+                        .font(.system(size: 14))
+                }
+                .padding()
+                .background(Color.white.opacity(0.08))
+                .cornerRadius(12)
+            }
+            .id(LoginView.Field.timezone)
+            .onTapGesture(perform: onTap)
+        }
+        .transition(.move(edge: .top).combined(with: .opacity))
+        .onAppear {
+            // Set default to device timezone if not already set
+            if selectedTimezone.isEmpty {
+                selectedTimezone = TimeZone.current.identifier
+            }
+        }
+    }
+    
+    private func timezoneDisplayName(for identifier: String) -> String {
+        return timezones.first(where: { $0.identifier == identifier })?.displayName ?? identifier
+    }
+}
+
 

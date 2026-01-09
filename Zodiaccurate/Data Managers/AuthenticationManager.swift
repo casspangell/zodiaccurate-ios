@@ -94,13 +94,15 @@ class AuthenticationManager: ObservableObject {
             let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
             let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
             let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+            let timezone = UserDefaults.standard.string(forKey: "userTimezone") ?? ""
             
             // Save user data to Firebase /users/{uid}
             do {
                 try await firebaseDatabaseService.saveUser(
                     userId: result.user.uid,
                     email: email,
-                    name: firstName
+                    name: firstName,
+                    timezone: timezone.isEmpty ? nil : timezone
                 )
             } catch {
                 print("⚠️ Failed to save user to Firebase: \(error)")
@@ -147,6 +149,11 @@ class AuthenticationManager: ObservableObject {
                         responses["question_\(key)"] = question
                     }
                 }
+            }
+            
+            // Add timezone if available
+            if !timezone.isEmpty {
+                responses["timezone"] = timezone
             }
             
             // Add consent given flag

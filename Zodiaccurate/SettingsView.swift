@@ -385,7 +385,7 @@ struct EditProfileView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("First Name")
                                         .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.white.opacity(0.5))
                                     
                                     SingleLineTextField(
                                         text: $editingFirstName,
@@ -405,7 +405,7 @@ struct EditProfileView: View {
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text("Birth Date")
                                             .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.white.opacity(0.5))
                                         
                                         DatePicker(
                                             "Birth Date",
@@ -428,7 +428,7 @@ struct EditProfileView: View {
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text("Birth Time")
                                             .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.white.opacity(0.5))
                                         
                                         DatePicker(
                                             "Birth Time",

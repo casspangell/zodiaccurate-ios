@@ -198,7 +198,7 @@ struct FlipBookCard: View {
             .fill(globalFlipBookExpanded ? Color.white : (isCardUnfinished ? Color.deepPink.opacity(0.1) : Color.bubbleMist.opacity(0.8)))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(isCardUnfinished ? Color.deepPink.opacity(borderOpacity) : Color.accentPurple.opacity(borderOpacity), lineWidth: isCardUnfinished ? 2 : 1)
+                    .stroke(isCardUnfinished ? Color.deepPink.opacity(borderOpacity) : Color.accentGold.opacity(borderOpacity), lineWidth: isCardUnfinished ? 2 : 1)
             )
     }
     
@@ -280,7 +280,7 @@ struct FlipBookCard: View {
                             .fill(Color.bubbleMist.opacity(0.8))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.accentPurple.opacity(0.3), lineWidth: 1)
+                                    .stroke(Color.accentGold.opacity(0.3), lineWidth: 1)
                             )
                     )
                     .shadow(color: Color.accentPurple.opacity(0.2), radius: 10, x: 0, y: 5)

@@ -267,32 +267,29 @@ struct MainZodiacView: View {
                                 },
                                 displayMode: .main,
                                  showMenu: hasAcceptedConsentPolicies,
-                                 onWellness: {
-                                     print("🔍 MainZodiacView: onWellness callback triggered")
-                                     wellnessDisplayName = "Wellness"
-                                     showWellnessConversation = true
-                                 },
-                                 onRelationship: {
-                                     print("🔍 MainZodiacView: onRelationship callback triggered")
-                                     relationshipDisplayName = "Relationship"
-                                     showRelationshipConversation = true
-                                 },
-                                 onImportantPeople: {
-                                     print("🔍 MainZodiacView: onImportantPeople callback triggered")
-                                     print("🔍 MainZodiacView: Setting importantPeopleDisplayName to 'Important People'")
-                                     importantPeopleDisplayName = "Important People"
-                                     print("🔍 MainZodiacView: importantPeopleDisplayName is now '\(importantPeopleDisplayName)'")
-                                     showImportantPeopleConversation = true
-                                     print("🔍 MainZodiacView: showImportantPeopleConversation set to true")
-                                 },
-                                 onChildren: {
-                                     childrenDisplayName = "Children"
-                                     showChildrenConversation = true
-                                 },
-                                 onEmployment: {
-                                     employmentDisplayName = "Employment"
-                                     showEmploymentConversation = true
-                                 },
+                                onWellness: {
+                                    print("🔍 MainZodiacView: onWellness callback triggered")
+                                    wellnessDisplayName = "Wellness"
+                                    showWellnessConversation = true
+                                },
+                                onRelationship: {
+                                    print("🔍 MainZodiacView: onRelationship callback triggered")
+                                    relationshipDisplayName = "Relationship"
+                                    showRelationshipConversation = true
+                                },
+                                onImportantPeople: {
+                                    print("🔍 MainZodiacView: onImportantPeople callback triggered")
+                                    importantPeopleDisplayName = "Important People"
+                                    showImportantPeopleConversation = true
+                                },
+                                onChildren: {
+                                    childrenDisplayName = "Children"
+                                    showChildrenConversation = true
+                                },
+                                onEmployment: {
+                                    employmentDisplayName = "Employment"
+                                    showEmploymentConversation = true
+                                },
                                  highlightedButton: getHighlightedQuestionMenuButton()
                             )
                             .frame(maxWidth: .infinity)

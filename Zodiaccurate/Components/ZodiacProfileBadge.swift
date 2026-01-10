@@ -683,7 +683,7 @@ struct CustomStardustIndicator: View {
             }
         }
         .onChange(of: stardustPoints) { oldValue, newValue in
-            if newValue > oldValue {
+            if newValue != oldValue {
                 triggerRippleAnimation()
             }
         }

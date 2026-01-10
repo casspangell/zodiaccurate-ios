@@ -74,6 +74,7 @@ struct ZodiacHeader: View {
     let badgeSize: CGFloat?
     let todaysDate: String
     let onSettingsTap: (() -> Void)?
+    let onProfileBadgeTap: (() -> Void)?
     let displayMode: ZodiacHeaderDisplayMode
     // Horizontal menu configuration
     let showMenu: Bool
@@ -149,6 +150,7 @@ struct ZodiacHeader: View {
         badgeSize: CGFloat? = nil,
         todaysDate: String = ZodiacHeader.formatCurrentDate(),
         onSettingsTap: (() -> Void)? = nil,
+        onProfileBadgeTap: (() -> Void)? = nil,
         displayMode: ZodiacHeaderDisplayMode = .initial,
         showMenu: Bool = false,
         onWellness: (() -> Void)? = nil,
@@ -171,6 +173,7 @@ struct ZodiacHeader: View {
         self.badgeSize = badgeSize
         self.todaysDate = todaysDate
         self.onSettingsTap = onSettingsTap
+        self.onProfileBadgeTap = onProfileBadgeTap
         self.displayMode = displayMode
         self.showMenu = showMenu
         self.onWellness = onWellness
@@ -212,6 +215,9 @@ struct ZodiacHeader: View {
                             height: displayMode == .main ? ZodiacHeader.profileBadgeHeight() - 50 : 150
                         )
                         .animation(.spring(response: 0.8, dampingFraction: 0.7), value: displayMode)
+                        .onTapGesture {
+                            onProfileBadgeTap?()
+                        }
                         
                         // Settings buttons that slide in
                         if displayMode == .main {

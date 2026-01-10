@@ -9,6 +9,7 @@ struct MainZodiacView: View {
     @StateObject private var userProfileManager = UserProfileManager()
     @Query private var users: [User]
     @State private var showingSettings = false
+    @State private var showingEditProfile = false
     @State private var splashViewDismissed = false
     @State private var cameFromHoroscopeSplash = false
     @State private var hasTriggeredStardustAnimation = false
@@ -248,7 +249,11 @@ struct MainZodiacView: View {
                                 profileImage: zodiacImageName(),
                                 onSettingsTap: {
                                     showingSettings = true
-                                 }, displayMode: .main,
+                                 },
+                                onProfileBadgeTap: {
+                                    showingEditProfile = true
+                                },
+                                displayMode: .main,
                                  showMenu: hasAcceptedConsentPolicies,
                                  onWellness: {
                                      print("🔍 MainZodiacView: onWellness callback triggered")
@@ -479,8 +484,20 @@ struct MainZodiacView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        .sheet(isPresented: $showingEditProfile) {
+            EditProfileView(onProfileSaved: {
+                syncUserDataToProfileManager()
+            })
+            .environmentObject(authManager)
+        }
         .onChange(of: showingSettings) { _, newValue in
             // When settings are dismissed, refresh the header by syncing SwiftData to UserProfileManager
+            if !newValue {
+                syncUserDataToProfileManager()
+            }
+        }
+        .onChange(of: showingEditProfile) { _, newValue in
+            // When edit profile is dismissed, refresh the header by syncing SwiftData to UserProfileManager
             if !newValue {
                 syncUserDataToProfileManager()
             }

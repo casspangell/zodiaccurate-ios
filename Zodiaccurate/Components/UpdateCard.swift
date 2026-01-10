@@ -17,6 +17,8 @@ struct UpdateCard: View {
     private let cardHeightExpandedWithTutorial: CGFloat = 0.55
     private let cardHeightExpandedWithKeyboard: CGFloat = 0.75
     
+    @EnvironmentObject var authManager: AuthenticationManager
+    
     @State private var cardHeight: CGFloat = 0.25
     @State private var isExpanded = false
     @State private var isMinimized = false
@@ -92,6 +94,29 @@ struct UpdateCard: View {
                                             // Handle send action
                                             let userUpdate = currentInput
                                             print("Update sent: \(userUpdate)")
+                                            
+                                            // Save to Firebase
+                                            if let userId = authManager.user?.uid, !userUpdate.isEmpty {
+                                                let timestamp = Date()
+                                                let formatter = DateFormatter()
+                                                formatter.dateFormat = "yyyyMMdd-HHmmss"
+                                                let updateId = "dailyUpdate-\(formatter.string(from: timestamp))"
+                                                
+                                                Task {
+                                                    do {
+                                                        let firebaseService = FirebaseDatabaseService()
+                                                        try await firebaseService.saveUpdate(
+                                                            userId: userId,
+                                                            updateId: updateId,
+                                                            content: userUpdate,
+                                                            timestamp: timestamp
+                                                        )
+                                                        print("✅ Update saved to Firebase: /responses/\(userId)/Updates/\(updateId)")
+                                                    } catch {
+                                                        print("❌ Failed to save update to Firebase: \(error)")
+                                                    }
+                                                }
+                                            }
                                             
                                             // Start loading state and collapse card
                                             withAnimation(.easeInOut(duration: 0.3)) {
@@ -376,5 +401,6 @@ struct UpdateCard: View {
         .ignoresSafeArea()
         
         UpdateCard()
+            .environmentObject(AuthenticationManager())
     }
 } 

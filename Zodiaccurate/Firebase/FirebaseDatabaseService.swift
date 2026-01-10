@@ -185,6 +185,25 @@ class FirebaseDatabaseService: ObservableObject {
         return value
     }
     
+    // MARK: - Update Management
+    
+    /// Save a daily update to /responses/{userId}/Updates/{updateId}
+    func saveUpdate(userId: String, updateId: String, content: String, timestamp: Date) async throws {
+        let updateData: [String: Any] = [
+            "content": content,
+            "timestamp": timestamp.timeIntervalSince1970,
+            "updateId": updateId
+        ]
+        
+        do {
+            try await database.child("responses").child(userId).child("Updates").child(updateId).setValue(updateData)
+            print("✅ Update saved to Firebase: /responses/\(userId)/Updates/\(updateId)")
+        } catch {
+            print("❌ Failed to save update to Firebase: \(error)")
+            throw error
+        }
+    }
+    
     // MARK: - Horoscope Management
     
     /// Save horoscope to /zodiac/{uuid}/{key}

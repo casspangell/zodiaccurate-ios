@@ -7,7 +7,9 @@ struct MainZodiacView: View {
     @State private var stardustManager: StardustManager?
     @State private var intakeDataManager: IntakeDataManager?
     @StateObject private var userProfileManager = UserProfileManager()
+    @State private var currentStardustBalance: Int = 0
     @Query private var users: [User]
+    @Query private var stardustRecords: [Stardust]
     @State private var showingSettings = false
     @State private var showingEditProfile = false
     @State private var splashViewDismissed = false
@@ -199,9 +201,18 @@ struct MainZodiacView: View {
                 )
                 .environmentObject(authManager)
                 .onAppear {
-                    // Initialize StardustManager
+                    // Initialize StardustManager with SwiftData integration and Firebase userId
                     if stardustManager == nil {
-                        stardustManager = StardustManager()
+                        let userId = authManager.user?.uid
+                        stardustManager = StardustManager(modelContext: modelContext, userId: userId)
+                    } else {
+                        // Update userId if it changed (e.g., user logged in)
+                        stardustManager?.userId = authManager.user?.uid
+                    }
+                    
+                    // Load or create Stardust instance from SwiftData
+                    Task { @MainActor in
+                        await loadOrCreateStardustFromSwiftData()
                     }
                     
                     // Initialize IntakeDataManager
@@ -247,6 +258,7 @@ struct MainZodiacView: View {
                         ZStack {
                             ZodiacHeader(
                                 profileImage: zodiacImageName(),
+                                stardustPoints: currentStardustBalance,
                                 onSettingsTap: {
                                     showingSettings = true
                                  },
@@ -413,7 +425,7 @@ struct MainZodiacView: View {
 //                    }
                     
                     // UpdateCard layer (topmost) - disable interaction until consent is accepted
-                    UpdateCard()
+                    UpdateCard(stardustManager: stardustManager)
                         .allowsHitTesting(hasAcceptedConsentPolicies)
                         .zIndex(activeComponent == .updateCard ? getZIndex(.active) : getZIndex(.three))
                         .onReceive(NotificationCenter.default.publisher(for: .updateCardShouldMinimize)) { _ in
@@ -648,6 +660,18 @@ struct MainZodiacView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .stardustEarned)) { _ in
+            // Update balance when stardust is earned
+            if let balance = stardustManager?.currentBalance {
+                currentStardustBalance = balance
+            }
+        }
+        .onChange(of: stardustManager?.currentBalance) { oldValue, newValue in
+            // Update balance when StardustManager's balance changes
+            if let newBalance = newValue {
+                currentStardustBalance = newBalance
+            }
+        }
     }
     
     private func triggerStardustAnimation() {
@@ -834,6 +858,35 @@ struct MainZodiacView: View {
         }
         print("🔍 MainZodiacView: getQuestionCategoryFromDisplayName returning \(result)")
         return result
+    }
+    
+    @MainActor
+    private func loadOrCreateStardustFromSwiftData() async {
+        guard let stardustManager = stardustManager else {
+            print("⚠️ MainZodiacView: StardustManager not initialized")
+            return
+        }
+        
+        do {
+            // Fetch existing Stardust records
+            let descriptor = FetchDescriptor<Stardust>()
+            let stardustRecords = try modelContext.fetch(descriptor)
+            
+            if let existingStardust = stardustRecords.first {
+                // Load existing Stardust instance
+                stardustManager.loadFromSwiftData(existingStardust)
+                currentStardustBalance = existingStardust.balance
+                print("✅ MainZodiacView: Loaded existing Stardust from SwiftData - Balance: \(existingStardust.balance)")
+            } else {
+                // Create new Stardust instance if none exists
+                let newStardust = stardustManager.createStardustInstance(in: modelContext)
+                stardustManager.loadFromSwiftData(newStardust)
+                currentStardustBalance = 0
+                print("✅ MainZodiacView: Created new Stardust instance in SwiftData")
+            }
+        } catch {
+            print("❌ MainZodiacView: Failed to load or create Stardust from SwiftData: \(error)")
+        }
     }
     
     @MainActor

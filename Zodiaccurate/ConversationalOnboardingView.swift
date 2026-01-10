@@ -224,7 +224,11 @@ struct ConversationalOnboardingView: View {
         
         // Initialize StardustManager for animation
         if stardustManager == nil {
-            stardustManager = StardustManager()
+            let userId = authManager.user?.uid
+            stardustManager = StardustManager(userId: userId)
+        } else {
+            // Update userId if it changed
+            stardustManager?.userId = authManager.user?.uid
         }
         
         // Load stardust data from SwiftData for animation

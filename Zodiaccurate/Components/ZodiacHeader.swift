@@ -204,7 +204,7 @@ struct ZodiacHeader: View {
                             // Profile badge that animates between states
                             ZodiacProfileBadgeWithStardust(
                                 zodiacImage: Image(badgeAnimationManager.currentProfileImage),
-                                stardustPoints: 1250,
+                                stardustPoints: stardustPoints,
                                 frameSize: displayMode == .main ? ZodiacHeader.profileBadgeHeight() : 150
                             )
                             .scaleEffect(displayMode == .main ? 1.0 : 0.9)

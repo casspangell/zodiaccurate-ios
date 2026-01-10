@@ -18,6 +18,7 @@ struct UpdateCard: View {
     private let cardHeightExpandedWithKeyboard: CGFloat = 0.75
     
     @EnvironmentObject var authManager: AuthenticationManager
+    var stardustManager: StardustManager?
     
     @State private var cardHeight: CGFloat = 0.25
     @State private var isExpanded = false
@@ -95,6 +96,16 @@ struct UpdateCard: View {
                                             // Handle send action
                                             let userUpdate = currentInput
                                             print("Update sent: \(userUpdate)")
+                                            
+                                            // Earn stardust for submitting an update
+                                            if !userUpdate.isEmpty, let stardustManager = stardustManager {
+                                                stardustManager.earnStardust(
+                                                    amount: 25,
+                                                    type: .dailyReward,
+                                                    description: "Daily update submitted"
+                                                )
+                                                print("🪙 UpdateCard: Earned 25 stardust for daily update")
+                                            }
                                             
                                             // Save to Firebase
                                             if let userId = authManager.user?.uid, !userUpdate.isEmpty {
@@ -424,7 +435,7 @@ struct UpdateCard: View {
         )
         .ignoresSafeArea()
         
-        UpdateCard()
+        UpdateCard(stardustManager: nil)
             .environmentObject(AuthenticationManager())
     }
 } 

@@ -228,4 +228,24 @@ class FirebaseDatabaseService: ObservableObject {
             throw error
         }
     }
+    
+    // MARK: - Stardust Management
+    
+    /// Save stardust data to /stardust/{uuid}
+    func saveStardust(userId: String, balance: Int, totalEarned: Int, totalSpent: Int, lastUpdated: Date) async throws {
+        let stardustData: [String: Any] = [
+            "balance": balance,
+            "totalEarned": totalEarned,
+            "totalSpent": totalSpent,
+            "lastUpdated": lastUpdated.timeIntervalSince1970
+        ]
+        
+        do {
+            try await database.child("stardust").child(userId).setValue(stardustData)
+            print("✅ Stardust saved to Firebase: /stardust/\(userId)")
+        } catch {
+            print("❌ Failed to save stardust to Firebase: \(error)")
+            throw error
+        }
+    }
 }

@@ -22,8 +22,12 @@ class StardustManager: ObservableObject {
     private var modelContext: ModelContext?
     private var stardustInstance: Stardust?
     
-    init(modelContext: ModelContext? = nil) {
+    // User ID for Firebase sync
+    var userId: String?
+    
+    init(modelContext: ModelContext? = nil, userId: String? = nil) {
         self.modelContext = modelContext
+        self.userId = userId
         loadBalance()
     }
     
@@ -138,6 +142,25 @@ class StardustManager: ObservableObject {
             syncToSwiftData()
         }
         
+        // Sync to Firebase if userId is available
+        if let userId = userId {
+            Task {
+                do {
+                    let firebaseService = FirebaseDatabaseService()
+                    try await firebaseService.saveStardust(
+                        userId: userId,
+                        balance: newBalance,
+                        totalEarned: totalEarned,
+                        totalSpent: totalSpent,
+                        lastUpdated: Date()
+                    )
+                    print("✅ StardustManager: Synced to Firebase - Balance: \(newBalance)")
+                } catch {
+                    print("⚠️ StardustManager: Failed to sync to Firebase: \(error)")
+                }
+            }
+        }
+        
         print("✅ StardustManager: Successfully updated stardust data")
         print("📊 StardustManager: Current balance: \(currentBalance), Total earned: \(totalEarned)")
         
@@ -214,6 +237,25 @@ class StardustManager: ObservableObject {
         // Sync to SwiftData if available
         if stardustInstance != nil {
             syncToSwiftData()
+        }
+        
+        // Sync to Firebase if userId is available
+        if let userId = userId {
+            Task {
+                do {
+                    let firebaseService = FirebaseDatabaseService()
+                    try await firebaseService.saveStardust(
+                        userId: userId,
+                        balance: newBalance,
+                        totalEarned: totalEarned,
+                        totalSpent: totalSpent,
+                        lastUpdated: Date()
+                    )
+                    print("✅ StardustManager: Synced to Firebase - Balance: \(newBalance)")
+                } catch {
+                    print("⚠️ StardustManager: Failed to sync to Firebase: \(error)")
+                }
+            }
         }
         
         print("✅ StardustManager: Successfully updated stardust data")

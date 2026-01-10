@@ -923,6 +923,18 @@ struct ZodiacProfileBadgeWithStardust: View {
                 triggerEarningAnimation(amount: amount, type: type)
             }
         }
+        .onChange(of: stardustPoints) { oldValue, newValue in
+            // Update indicator visibility when stardust balance changes
+            if newValue > 0 && !showStardustIndicator {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showStardustIndicator = true
+                }
+            } else if newValue == 0 && showStardustIndicator {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showStardustIndicator = false
+                }
+            }
+        }
         .onAppear {
             // Show stardust indicator immediately if no earning animation is expected and user has stardust
             if !hasTriggeredEarning && stardustPoints > 0 {
@@ -991,6 +1003,18 @@ struct ZodiacProfileBadgeWhiteWithStardust: View {
                let amount = userInfo["amount"] as? Int,
                let type = userInfo["type"] as? StardustTransactionType {
                 triggerEarningAnimation(amount: amount, type: type)
+            }
+        }
+        .onChange(of: stardustPoints) { oldValue, newValue in
+            // Update indicator visibility when stardust balance changes
+            if newValue > 0 && !showStardustIndicator {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showStardustIndicator = true
+                }
+            } else if newValue == 0 && showStardustIndicator {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showStardustIndicator = false
+                }
             }
         }
         .onAppear {

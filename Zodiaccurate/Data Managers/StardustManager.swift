@@ -122,6 +122,9 @@ class StardustManager: ObservableObject {
         
         print("💾 StardustManager: Updated balance - Balance: \(newBalance), Total Earned: \(totalEarned)")
         
+        // Trigger haptic feedback when stardust is earned
+        triggerHapticFeedback(style: .medium)
+        
         // Create transaction record
         let transaction = StardustTransaction(
             userId: nil,

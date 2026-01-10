@@ -45,6 +45,21 @@ func getSafeAreaTop() -> CGFloat {
     return window.safeAreaInsets.top
 }
 
+// MARK: - Haptic Feedback Utilities
+/// Triggers haptic feedback if enabled in user settings
+/// Respects the hapticFeedbackEnabled setting from UserDefaults
+func triggerHapticFeedback(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
+    let hapticFeedbackEnabled = UserDefaults.standard.bool(forKey: "hapticFeedbackEnabled")
+    
+    guard hapticFeedbackEnabled else {
+        return
+    }
+    
+    let generator = UIImpactFeedbackGenerator(style: style)
+    generator.prepare()
+    generator.impactOccurred()
+}
+
 // MARK: - Zodiac Sign Utilities
 /// Determines the zodiac sign from a date string
 /// - Parameter dateString: The date string in medium format (e.g., "Jan 15, 1990")

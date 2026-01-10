@@ -35,6 +35,7 @@ struct UpdateCard: View {
     @State private var gptResponse: (line1: String, line2: String)?
     @State private var resetTimer: Timer?
     @State private var triggerGlistening = false
+    @State private var dragOffset: CGSize = .zero
     
     // Sample conversation step for the update card
     private var updateConversationStep: ConversationStep {
@@ -206,6 +207,29 @@ struct UpdateCard: View {
                             .stroke(Color.accentGold, lineWidth: 3)
                     )
                     .contentShape(Rectangle())
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 10)
+                            .onChanged { value in
+                                dragOffset = value.translation
+                            }
+                            .onEnded { value in
+                                // Check if it's a downward swipe (positive height translation)
+                                if value.translation.height > 50 {
+                                    // Dismiss keyboard first if visible
+                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                    
+                                    // Minimize the card
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)) {
+                                        cardHeight = cardHeightMinimized
+                                        isExpanded = false
+                                        isMinimized = true
+                                    }
+                                    postStateChangeNotification(state: .minimized)
+                                    NotificationCenter.default.post(name: .componentDeactivated, object: nil)
+                                }
+                                dragOffset = .zero
+                            }
+                    )
                     .onTapGesture {
                         // Post notification to activate UpdateCard
                         NotificationCenter.default.post(name: .updateCardActivated, object: nil)

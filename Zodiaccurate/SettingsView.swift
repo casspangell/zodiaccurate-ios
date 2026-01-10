@@ -399,36 +399,53 @@ struct EditProfileView: View {
                                     .opacity(0.6)
                                 }
                                 
-                                // Birth Date Picker (Disabled)
-                                VStack(alignment: .leading, spacing: 8) {
-                                    DatePickerView(
-                                        selectedDate: $editingBirthDate,
-                                        onDateSelected: { date in
-                                            editingBirthDate = date
-                                        },
-                                        showSubmitButton: false,
-                                        isDisabled: true
-                                    )
-                                    .allowsHitTesting(false)
-                                    .opacity(0.6)
-                                }
-                                
-                                // Birth Time Picker (Disabled)
-                                VStack(alignment: .leading, spacing: 8) {
-                                    TimePickerView(
-                                        selectedTime: $editingBirthTime,
-                                        onTimeSelected: { time in
-                                            editingBirthTime = time
-                                        },
-                                        onUnknownTime: {
-                                            // Handle unknown time
-                                            editingBirthTime = Date()
-                                        },
-                                        showSubmitButton: false,
-                                        isDisabled: true
-                                    )
-                                    .allowsHitTesting(false)
-                                    .opacity(0.6)
+                                // Birth Date and Time Pickers (Side by Side)
+                                HStack(spacing: 12) {
+                                    // Birth Date Picker (Disabled)
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Birth Date")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.white)
+                                        
+                                        DatePicker(
+                                            "Birth Date",
+                                            selection: $editingBirthDate,
+                                            displayedComponents: .date
+                                        )
+                                        .datePickerStyle(.compact)
+                                        .colorScheme(.dark)
+                                        .disabled(true)
+                                        .labelsHidden()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding()
+                                        .background(Color.white.opacity(0.1))
+                                        .cornerRadius(12)
+                                        .opacity(0.6)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    
+                                    // Birth Time Picker (Disabled)
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Birth Time")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.white)
+                                        
+                                        DatePicker(
+                                            "Birth Time",
+                                            selection: $editingBirthTime,
+                                            displayedComponents: .hourAndMinute
+                                        )
+                                        .datePickerStyle(.compact)
+                                        .colorScheme(.dark)
+                                        .disabled(true)
+                                        .labelsHidden()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding()
+                                        .background(Color.white.opacity(0.1))
+                                        .cornerRadius(12)
+                                        .opacity(0.6)
+                                    }
+                                    .frame(maxWidth: .infinity)
                                 }
                                 
                                 // Timezone Picker

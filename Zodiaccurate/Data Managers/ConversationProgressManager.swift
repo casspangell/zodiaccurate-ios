@@ -20,6 +20,13 @@ class ConversationProgressManager {
         static let employmentProgress = "conversation_employment_progress"
         static let lastActiveTopic = "conversation_last_active_topic"
         static let lastActiveStep = "conversation_last_active_step"
+        
+        // Completion date keys
+        static let wellnessCompletedDate = "conversation_wellness_completed_date"
+        static let relationshipCompletedDate = "conversation_relationship_completed_date"
+        static let importantPeopleCompletedDate = "conversation_importantPeople_completed_date"
+        static let childrenCompletedDate = "conversation_children_completed_date"
+        static let employmentCompletedDate = "conversation_employment_completed_date"
     }
     
     // MARK: - Progress Management
@@ -30,7 +37,19 @@ class ConversationProgressManager {
     ///   - topic: The conversation topic
     static func saveProgress(step: Int, for topic: String) {
         let key = progressKey(for: topic)
+        let previousProgress = userDefaults.integer(forKey: key)
         userDefaults.set(step, forKey: key)
+        
+        // Check if topic just reached completion (progress reached total steps)
+        let totalSteps = getTotalStepsForTopic(topic)
+        let wasJustCompleted = previousProgress < totalSteps && step >= totalSteps
+        
+        if wasJustCompleted {
+            // Save completion date
+            let completionDateKey = completionDateKey(for: topic)
+            userDefaults.set(Date(), forKey: completionDateKey)
+            print("✅ Topic '\(topic)' completed - Saved completion date")
+        }
         
         // Also save the last active topic and step for resuming
         userDefaults.set(topic, forKey: Keys.lastActiveTopic)
@@ -66,8 +85,10 @@ class ConversationProgressManager {
     /// - Parameter topic: The conversation topic
     static func clearProgress(for topic: String) {
         let key = progressKey(for: topic)
+        let completionDateKey = completionDateKey(for: topic)
         userDefaults.removeObject(forKey: key)
-        print("🗑️ Cleared conversation progress for topic: \(topic)")
+        userDefaults.removeObject(forKey: completionDateKey)
+        print("🗑️ Cleared conversation progress and completion date for topic: \(topic)")
     }
     
     /// Clear all conversation progress
@@ -79,7 +100,7 @@ class ConversationProgressManager {
         
         userDefaults.removeObject(forKey: Keys.lastActiveTopic)
         userDefaults.removeObject(forKey: Keys.lastActiveStep)
-        print("🗑️ Cleared all conversation progress")
+        print("🗑️ Cleared all conversation progress and completion dates")
     }
     
     /// Check if a topic has any progress
@@ -146,6 +167,63 @@ class ConversationProgressManager {
         default:
             return "conversation_\(topic.lowercased())_progress"
         }
+    }
+    
+    /// Get the UserDefaults key for completion date for a specific topic
+    /// - Parameter topic: The conversation topic
+    /// - Returns: The UserDefaults key string for completion date
+    private static func completionDateKey(for topic: String) -> String {
+        switch topic.lowercased() {
+        case "wellness":
+            return Keys.wellnessCompletedDate
+        case "relationship":
+            return Keys.relationshipCompletedDate
+        case "importantpeople", "important people":
+            return Keys.importantPeopleCompletedDate
+        case "children":
+            return Keys.childrenCompletedDate
+        case "employment":
+            return Keys.employmentCompletedDate
+        default:
+            return "conversation_\(topic.lowercased())_completed_date"
+        }
+    }
+    
+    // MARK: - Completion Date Management
+    
+    /// Get the completion date for a specific topic
+    /// - Parameter topic: The conversation topic
+    /// - Returns: The completion date if available, nil otherwise
+    static func getCompletionDate(for topic: String) -> Date? {
+        let key = completionDateKey(for: topic)
+        return userDefaults.object(forKey: key) as? Date
+    }
+    
+    /// Check if a topic was completed today
+    /// - Parameter topic: The conversation topic
+    /// - Returns: True if completed today, false otherwise
+    static func wasCompletedToday(for topic: String) -> Bool {
+        guard let completionDate = getCompletionDate(for: topic) else {
+            return false
+        }
+        
+        let calendar = Calendar.current
+        return calendar.isDateInToday(completionDate)
+    }
+    
+    /// Check if a topic was completed before today (on a previous day)
+    /// - Parameter topic: The conversation topic
+    /// - Returns: True if completed on a previous day, false otherwise
+    static func wasCompletedBeforeToday(for topic: String) -> Bool {
+        guard let completionDate = getCompletionDate(for: topic) else {
+            return false
+        }
+        
+        let calendar = Calendar.current
+        let today = Date()
+        
+        // Check if completion date is before today (not today and in the past)
+        return !calendar.isDateInToday(completionDate) && completionDate < today
     }
     
     /// Convert QuestionMenuButton to topic string for consistency

@@ -53,15 +53,24 @@ struct MainZodiacView: View {
         return headerHeight + getQuestionMenuHeight() //getSafeAreaTop() + headerHeight + getQuestionMenuHeight()
     }
     
-    // Computed property that changes when completion status changes, forcing FlipBook to re-render
+    // Computed property that changes when completion status or horoscope data changes, forcing FlipBook to re-render
     private var flipBookId: String {
         let userId = authManager.user?.uid ?? "default"
+        let dayName = getDayOfWeek().lowercased()
         let wellnessCompleted = checkQuestionnaireCompletion(topic: "wellness", userId: userId) ? "1" : "0"
         let relationshipCompleted = checkQuestionnaireCompletion(topic: "relationship", userId: userId) ? "1" : "0"
         let importantPeopleCompleted = checkQuestionnaireCompletion(topic: "importantPeople", userId: userId) ? "1" : "0"
         let childrenCompleted = checkQuestionnaireCompletion(topic: "children", userId: userId) ? "1" : "0"
         let employmentCompleted = checkQuestionnaireCompletion(topic: "employment", userId: userId) ? "1" : "0"
-        return "\(wellnessCompleted)-\(relationshipCompleted)-\(importantPeopleCompleted)-\(childrenCompleted)-\(employmentCompleted)"
+        
+        // Include horoscope keys to trigger refresh when horoscopes are loaded
+        let wellnessHoroscopeKey = getCategoryHoroscope(category: "wellness", day: dayName)?.key ?? "none"
+        let relationshipHoroscopeKey = getCategoryHoroscope(category: "relationship", day: dayName)?.key ?? "none"
+        let importantPeopleHoroscopeKey = getCategoryHoroscope(category: "importantPeople", day: dayName)?.key ?? "none"
+        let childrenHoroscopeKey = getCategoryHoroscope(category: "children", day: dayName)?.key ?? "none"
+        let employmentHoroscopeKey = getCategoryHoroscope(category: "employment", day: dayName)?.key ?? "none"
+        
+        return "\(wellnessCompleted)-\(relationshipCompleted)-\(importantPeopleCompleted)-\(childrenCompleted)-\(employmentCompleted)-\(dayName)-\(wellnessHoroscopeKey)-\(relationshipHoroscopeKey)-\(importantPeopleHoroscopeKey)-\(childrenHoroscopeKey)-\(employmentHoroscopeKey)"
     }
     
     enum ActiveComponent {
@@ -757,52 +766,106 @@ struct MainZodiacView: View {
         let isChildrenCompleted = checkQuestionnaireCompletion(topic: "children", userId: userId)
         let isEmploymentCompleted = checkQuestionnaireCompletion(topic: "employment", userId: userId)
         
+        // Get current day name for fetching horoscopes
+        let dayName = getDayOfWeek().lowercased()
+        
+        // Fetch category horoscopes from SwiftData
+        let wellnessHoroscope = getCategoryHoroscope(category: "wellness", day: dayName)
+        let relationshipHoroscope = getCategoryHoroscope(category: "relationship", day: dayName)
+        let importantPeopleHoroscope = getCategoryHoroscope(category: "importantPeople", day: dayName)
+        let childrenHoroscope = getCategoryHoroscope(category: "children", day: dayName)
+        let employmentHoroscope = getCategoryHoroscope(category: "employment", day: dayName)
+        
+        // Create cards - use horoscope if completed on previous day, otherwise show completion message or start button
         cards.append(contentsOf: [
+            // Wellness card
+            shouldShowHoroscope(for: "wellness") && wellnessHoroscope != nil ?
+            FlipBookCard(
+                horoscope: wellnessHoroscope,
+                isLoading: false,
+                showStartButton: false,
+                isCompleted: true
+            ) :
             FlipBookCard(
                 title: "Wellness",
                 content: isWellnessCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
-//                onCardTap: { showWellnessConversation = true },
-                showStartButton: true,
+                showStartButton: !isWellnessCompleted,
                 onStartButtonTap: {
                     wellnessDisplayName = "Wellness"
                     showWellnessConversation = true
                 },
                 isCompleted: isWellnessCompleted
             ),
+            
+            // Relationship/Partner card
+            shouldShowHoroscope(for: "relationship") && relationshipHoroscope != nil ?
+            FlipBookCard(
+                horoscope: relationshipHoroscope,
+                isLoading: false,
+                showStartButton: false,
+                isCompleted: true
+            ) :
             FlipBookCard(
                 title: "Partner",
                 content: isRelationshipCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
-                showStartButton: true,
+                showStartButton: !isRelationshipCompleted,
                 onStartButtonTap: {
                     relationshipDisplayName = "Relationship"
                     showRelationshipConversation = true
                 },
                 isCompleted: isRelationshipCompleted
             ),
+            
+            // Important People card
+            shouldShowHoroscope(for: "importantPeople") && importantPeopleHoroscope != nil ?
+            FlipBookCard(
+                horoscope: importantPeopleHoroscope,
+                isLoading: false,
+                showStartButton: false,
+                isCompleted: true
+            ) :
             FlipBookCard(
                 title: "Important People",
                 content: isImportantPeopleCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
-                showStartButton: true,
+                showStartButton: !isImportantPeopleCompleted,
                 onStartButtonTap: {
                     importantPeopleDisplayName = "Important People"
                     showImportantPeopleConversation = true
                 },
                 isCompleted: isImportantPeopleCompleted
             ),
+            
+            // Children card
+            shouldShowHoroscope(for: "children") && childrenHoroscope != nil ?
+            FlipBookCard(
+                horoscope: childrenHoroscope,
+                isLoading: false,
+                showStartButton: false,
+                isCompleted: true
+            ) :
             FlipBookCard(
                 title: "Children",
                 content: isChildrenCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
-                showStartButton: true,
+                showStartButton: !isChildrenCompleted,
                 onStartButtonTap: {
                     childrenDisplayName = "Children"
                     showChildrenConversation = true
                 },
                 isCompleted: isChildrenCompleted
             ),
+            
+            // Employment card
+            shouldShowHoroscope(for: "employment") && employmentHoroscope != nil ?
+            FlipBookCard(
+                horoscope: employmentHoroscope,
+                isLoading: false,
+                showStartButton: false,
+                isCompleted: true
+            ) :
             FlipBookCard(
                 title: "Employment",
                 content: isEmploymentCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
-                showStartButton: true,
+                showStartButton: !isEmploymentCompleted,
                 onStartButtonTap: {
                     employmentDisplayName = "Employment"
                     showEmploymentConversation = true
@@ -812,6 +875,22 @@ struct MainZodiacView: View {
         ])
         
         return cards
+    }
+    
+    /// Get category horoscope from SwiftData for a specific day
+    private func getCategoryHoroscope(category: String, day: String) -> Horoscope? {
+        let categoryKey = "\(category)-\(day)"
+        let descriptor = FetchDescriptor<Horoscope>(
+            predicate: #Predicate<Horoscope> { $0.key == categoryKey }
+        )
+        
+        do {
+            let horoscopes = try modelContext.fetch(descriptor)
+            return horoscopes.first
+        } catch {
+            print("❌ MainZodiacView: Error fetching horoscope for \(category): \(error)")
+            return nil
+        }
     }
     
     // MARK: - FlipBook Spacing Control
@@ -852,6 +931,20 @@ struct MainZodiacView: View {
         }
         
         return false
+    }
+    
+    /// Check if horoscope should be shown for a completed questionnaire
+    /// - Parameter topic: The conversation topic
+    /// - Returns: True if horoscope should be shown (completed on a previous day), false otherwise
+    private func shouldShowHoroscope(for topic: String) -> Bool {
+        // First check if questionnaire is completed
+        let userId = authManager.user?.uid ?? "default"
+        guard checkQuestionnaireCompletion(topic: topic, userId: userId) else {
+            return false
+        }
+        
+        // Only show horoscope if completed on a previous day (not today)
+        return ConversationProgressManager.wasCompletedBeforeToday(for: topic)
     }
     
     private func zodiacImageName() -> String {
@@ -1052,32 +1145,79 @@ struct MainZodiacView: View {
             // Map app category to Firebase category
             let firebaseCategory = FirebaseDatabaseService.mapAppCategoryToFirebase(category)
             
-            // Check SwiftData first (using app's internal category format)
+            // Skip fetching if questionnaire was completed today (wait until next day)
+            if ConversationProgressManager.wasCompletedToday(for: category) {
+                print("\n⏸️ \(category.uppercased()) - Completed today, skipping horoscope fetch (will fetch tomorrow)")
+                continue
+            }
+            
+            // Expected key for today
             let categoryKey = "\(category)-\(dayName)"
+            
+            // Check SwiftData first to see if we have data for today
             let descriptor = FetchDescriptor<Horoscope>(
                 predicate: #Predicate<Horoscope> { $0.key == categoryKey }
             )
             
             do {
                 let swiftDataHoroscopes = try modelContext.fetch(descriptor)
+                let existingHoroscope = swiftDataHoroscopes.first
                 
-                if let horoscope = swiftDataHoroscopes.first {
-                    print("\n✅ \(category.uppercased()) - Found in SwiftData:")
-                    print("   Key: \(horoscope.key)")
-                    print("   Title: \(horoscope.title)")
-                    print("   Message: \(horoscope.message.prefix(100))\(horoscope.message.count > 100 ? "..." : "")")
-                    print("   Created At: \(horoscope.createdAt)")
-                    if let audioPath = horoscope.audioFilePath {
-                        print("   Audio: \(audioPath)")
-                    }
-                } else {
-                    // Try to fetch from Firebase using Firebase structure: /zodiac/{userId}/{day}/{category}
-                    print("\n🔄 \(category.uppercased()) - Not in SwiftData, checking Firebase...")
+                // Check if we have data for today's day
+                let hasDataForToday = existingHoroscope != nil
+                
+                if hasDataForToday {
+                    // We have data for today, try Firebase to see if it's updated
+                    print("\n🔄 \(category.uppercased()) - Found in SwiftData for \(dayName), checking Firebase for updates...")
                     print("   App category: \(category) -> Firebase category: \(firebaseCategory)")
                     print("   Checking Firebase path: /zodiac/\(userId)/\(dayName)/\(firebaseCategory)")
+                    
+                    do {
+                        if let firebaseHoroscope = try await firebaseService.getHoroscope(userId: userId, day: dayName, category: firebaseCategory) {
+                            // Compare with existing data to see if it changed
+                            let dataChanged = firebaseHoroscope.title != existingHoroscope!.title ||
+                                            firebaseHoroscope.message != existingHoroscope!.message
+                            
+                            if dataChanged {
+                                // Data has changed, update SwiftData
+                                print("   📝 Data has changed, updating SwiftData")
+                                // Delete old horoscope
+                                if let existing = existingHoroscope {
+                                    modelContext.delete(existing)
+                                }
+                                // Insert new horoscope
+                                modelContext.insert(firebaseHoroscope)
+                                try modelContext.save()
+                                print("   ✅ Updated SwiftData with new data from Firebase:")
+                                print("   Title: \(firebaseHoroscope.title)")
+                                print("   Message: \(firebaseHoroscope.message.prefix(100))\(firebaseHoroscope.message.count > 100 ? "..." : "")")
+                            } else {
+                                print("   ✅ Data unchanged, using SwiftData")
+                                print("   Title: \(existingHoroscope!.title)")
+                                print("   Message: \(existingHoroscope!.message.prefix(100))\(existingHoroscope!.message.count > 100 ? "..." : "")")
+                            }
+                        } else {
+                            // Firebase fetch returned nil, use SwiftData
+                            print("   ⚠️ Not found in Firebase, using SwiftData:")
+                            print("   Title: \(existingHoroscope!.title)")
+                            print("   Message: \(existingHoroscope!.message.prefix(100))\(existingHoroscope!.message.count > 100 ? "..." : "")")
+                        }
+                    } catch {
+                        // Firebase fetch failed, use SwiftData as fallback
+                        print("   ⚠️ Error fetching from Firebase: \(error)")
+                        print("   Using SwiftData as fallback:")
+                        print("   Title: \(existingHoroscope!.title)")
+                        print("   Message: \(existingHoroscope!.message.prefix(100))\(existingHoroscope!.message.count > 100 ? "..." : "")")
+                    }
+                } else {
+                    // No data for today, fetch from Firebase
+                    print("\n🔄 \(category.uppercased()) - No data in SwiftData for \(dayName), fetching from Firebase...")
+                    print("   App category: \(category) -> Firebase category: \(firebaseCategory)")
+                    print("   Checking Firebase path: /zodiac/\(userId)/\(dayName)/\(firebaseCategory)")
+                    
                     do {
                         if let horoscope = try await firebaseService.getHoroscope(userId: userId, day: dayName, category: firebaseCategory) {
-                            // Save to SwiftData (key is already formatted correctly by getHoroscope)
+                            // Save to SwiftData
                             modelContext.insert(horoscope)
                             try modelContext.save()
                             print("   ✅ Loaded from Firebase and saved to SwiftData:")

@@ -178,14 +178,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "heart.fill",
                 accessibilityLabel: "Wellness Questions",
-                isEnabled: isWellnessEnabled && !isWellnessCompleted,
+                isEnabled: isWellnessEnabled,
                 isFiery: isWellnessCompleted ? false : (isWellnessUnfinished ? false : isWellnessFieryState),
                 isHighlighted: highlightedButton == .wellness,
                 isUnfinished: isWellnessUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Wellness button tapped")
-                    if isWellnessEnabled && !isWellnessCompleted { isWellnessFieryState = false }
-                    if !isWellnessCompleted { onWellness() }
+                    if isWellnessEnabled { isWellnessFieryState = false }
+                    onWellness()
                 }
             )
             Spacer()
@@ -193,14 +193,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "person.2.fill",
                 accessibilityLabel: "Relationship Questions",
-                isEnabled: isRelationshipEnabled && !isRelationshipCompleted,
+                isEnabled: isRelationshipEnabled,
                 isFiery: isRelationshipCompleted ? false : (isRelationshipUnfinished ? false : isRelationshipFieryState),
                 isHighlighted: highlightedButton == .relationship,
                 isUnfinished: isRelationshipUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Relationship button tapped")
-                    if isRelationshipEnabled && !isRelationshipCompleted { isRelationshipFieryState = false }
-                    if !isRelationshipCompleted { onRelationship() }
+                    if isRelationshipEnabled { isRelationshipFieryState = false }
+                    onRelationship()
                 }
             )
             Spacer()
@@ -208,7 +208,7 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "star.fill",
                 accessibilityLabel: "Important People Questions",
-                isEnabled: isImportantPeopleEnabled && !isImportantPeopleCompleted,
+                isEnabled: isImportantPeopleEnabled,
                 isFiery: isImportantPeopleCompleted ? false : (isImportantPeopleUnfinished ? false : isImportantPeopleFieryState),
                 isHighlighted: highlightedButton == .importantPeople,
                 isUnfinished: isImportantPeopleUnfinished,
@@ -216,8 +216,8 @@ struct QuestionMenu: View {
                     print("🔘 QuestionMenu: Important People button tapped")
                     print("🔍 QuestionMenu: isImportantPeopleEnabled = \(isImportantPeopleEnabled)")
                     print("🔍 QuestionMenu: isImportantPeopleFieryState = \(isImportantPeopleFieryState)")
-                    if isImportantPeopleEnabled && !isImportantPeopleCompleted { isImportantPeopleFieryState = false }
-                    if !isImportantPeopleCompleted { onImportantPeople() }
+                    if isImportantPeopleEnabled { isImportantPeopleFieryState = false }
+                    onImportantPeople()
                 }
             )
             Spacer()
@@ -225,14 +225,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "gamecontroller.fill",
                 accessibilityLabel: "Children Questions",
-                isEnabled: isChildrenEnabled && !isChildrenCompleted,
+                isEnabled: isChildrenEnabled,
                 isFiery: isChildrenCompleted ? false : (isChildrenUnfinished ? false : isChildrenFieryState),
                 isHighlighted: highlightedButton == .children,
                 isUnfinished: isChildrenUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Children button tapped")
-                    if isChildrenEnabled && !isChildrenCompleted { isChildrenFieryState = false }
-                    if !isChildrenCompleted { onChildren() }
+                    if isChildrenEnabled { isChildrenFieryState = false }
+                    onChildren()
                 }
             )
             Spacer()
@@ -240,14 +240,14 @@ struct QuestionMenu: View {
             CircleIconButton(
                 systemName: "briefcase.fill",
                 accessibilityLabel: "Employment Questions",
-                isEnabled: isEmploymentEnabled && !isEmploymentCompleted,
+                isEnabled: isEmploymentEnabled,
                 isFiery: isEmploymentCompleted ? false : (isEmploymentUnfinished ? false : isEmploymentFieryState),
                 isHighlighted: highlightedButton == .employment,
                 isUnfinished: isEmploymentUnfinished,
                 action: {
                     print("🔘 QuestionMenu: Employment button tapped")
-                    if isEmploymentEnabled && !isEmploymentCompleted { isEmploymentFieryState = false }
-                    if !isEmploymentCompleted { onEmployment() }
+                    if isEmploymentEnabled { isEmploymentFieryState = false }
+                    onEmployment()
                 }
             )
         }

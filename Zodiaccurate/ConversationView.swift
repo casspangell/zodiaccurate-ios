@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 /// A reusable conversation view identical to onboarding, but driven by injected steps and save handlers
 struct ConversationView: View {
@@ -24,6 +25,8 @@ struct ConversationView: View {
     
     // MARK: - Internal user placeholder (required by ZodiacChatView for personalization/GPT hooks)
     @State private var placeholderUser = User()
+    @State private var otherQuestionnaireResponses: [String: [String: String]] = [:]
+    @Environment(\.modelContext) private var modelContext
     
     // MARK: - Progress Tracking
     @State private var currentStepIndex: Int = 0
@@ -118,7 +121,9 @@ struct ConversationView: View {
                 backgroundColor: backgroundColor,
                 bubbleColor: bubbleColor,
                 topInsetMode: topInsetMode,
-                currentStepIndex: $currentStepIndex
+                currentStepIndex: $currentStepIndex,
+                questionnaireTopic: topicString.isEmpty ? nil : topicString,
+                otherQuestionnaireResponses: otherQuestionnaireResponses
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
@@ -131,8 +136,11 @@ struct ConversationView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            // Fresh placeholder user to scope this conversation session (not persisted)
-            placeholderUser = User(createdAt: Date(), updatedAt: Date())
+            // Load actual user data from SwiftData
+            loadUserData()
+            
+            // Load other questionnaire responses
+            loadOtherQuestionnaireResponses()
             
             // Debug logging for questionCategory and topicString
             let categoryString = questionCategory.map { category in
@@ -151,7 +159,8 @@ struct ConversationView: View {
             // Check the current step on load
             if !topicString.isEmpty {
                 // Load existing progress for this topic
-                currentStepIndex = ConversationProgressManager.getProgress(for: topicString)
+                let loadedProgress = ConversationProgressManager.getProgress(for: topicString)
+                currentStepIndex = loadedProgress
                 
                 // Default to step 1 if no progress found
                 if currentStepIndex == 0 {
@@ -176,6 +185,59 @@ struct ConversationView: View {
                 print("💾 ConversationView: Saved progress for \(topicString) - Step \(currentStepIndex + 1)/\(conversationSteps.count)")
             }
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func loadUserData() {
+        // Load user from SwiftData
+        let descriptor = FetchDescriptor<User>()
+        if let user = try? modelContext.fetch(descriptor).first {
+            placeholderUser = user
+            print("✅ ConversationView: Loaded user data from SwiftData - Name: \(user.firstName), Zodiac: \(user.zodiacSign)")
+        } else {
+            // Fallback to UserDefaults
+            let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
+            let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
+            let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
+            let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+            placeholderUser = User(
+                firstName: firstName,
+                birthDate: birthDate,
+                birthTime: birthTime,
+                zodiacSign: zodiacSign
+            )
+            print("✅ ConversationView: Loaded user data from UserDefaults - Name: \(firstName), Zodiac: \(zodiacSign)")
+        }
+    }
+    
+    private func loadOtherQuestionnaireResponses() {
+        guard let userId = UserDefaults.standard.string(forKey: "currentUserId") ?? 
+                          UserDefaults.standard.string(forKey: "firebaseUserId") else {
+            print("⚠️ ConversationView: No user ID found for loading questionnaire responses")
+            return
+        }
+        
+        let intakeDataManager = IntakeDataManager(modelContext: modelContext)
+        let currentTopic = topicString
+        
+        // Load responses from all other topics
+        let allTopics = ["wellness", "relationship", "importantPeople", "children", "employment"]
+        var loadedResponses: [String: [String: String]] = [:]
+        
+        for topic in allTopics {
+            if topic != currentTopic {
+                let topicData = intakeDataManager.getTopicData(userId: userId, topic: topic)
+                if !topicData.isEmpty {
+                    // Convert [String: String] to [String: String] (already correct format)
+                    loadedResponses[topic] = topicData
+                    print("✅ ConversationView: Loaded \(topicData.count) responses from \(topic) questionnaire")
+                }
+            }
+        }
+        
+        otherQuestionnaireResponses = loadedResponses
+        print("✅ ConversationView: Loaded responses from \(loadedResponses.count) other questionnaires")
     }
 }
 

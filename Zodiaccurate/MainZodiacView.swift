@@ -625,6 +625,14 @@ struct MainZodiacView: View {
                 syncUserDataToProfileManager()
             }
         }
+        .onChange(of: showWellnessConversation) { oldValue, newValue in
+            if newValue {
+                // Clear progress BEFORE sheet is presented so ConversationView starts at step 1
+                ConversationProgressManager.clearProgress(for: "wellness")
+                wellnessResponses = [:]
+                print("🔄 MainZodiacView: Cleared Wellness progress via onChange - restarting from question 1")
+            }
+        }
         .sheet(isPresented: $showWellnessConversation) {
             ConversationView(
                 conversationSteps: wellnessConversationSteps,
@@ -645,8 +653,6 @@ struct MainZodiacView: View {
             )
             .onAppear {
                 wellnessResponses = [:]
-            }
-            .onAppear {
                 print("🔍 MainZodiacView: Starting Wellness conversation with questionCategory = .wellness")
                 print("🔍 MainZodiacView: wellnessDisplayName = '\(wellnessDisplayName)'")
             }
@@ -654,6 +660,13 @@ struct MainZodiacView: View {
             .presentationDetents([.large])
             .presentationCornerRadius(0)
             .presentationDragIndicator(.hidden)
+        }
+        .onChange(of: showRelationshipConversation) { oldValue, newValue in
+            if newValue {
+                ConversationProgressManager.clearProgress(for: "relationship")
+                relationshipResponses = [:]
+                print("🔄 MainZodiacView: Cleared Relationship progress via onChange - restarting from question 1")
+            }
         }
         .sheet(isPresented: $showRelationshipConversation) {
             ConversationView(
@@ -681,6 +694,13 @@ struct MainZodiacView: View {
             .presentationCornerRadius(0)
             .presentationDragIndicator(.hidden)
         }
+        .onChange(of: showImportantPeopleConversation) { oldValue, newValue in
+            if newValue {
+                ConversationProgressManager.clearProgress(for: "importantPeople")
+                importantPeopleResponses = [:]
+                print("🔄 MainZodiacView: Cleared Important People progress via onChange - restarting from question 1")
+            }
+        }
         .sheet(isPresented: $showImportantPeopleConversation) {
             ConversationView(
                 conversationSteps: importantPeopleConversationSteps,
@@ -701,8 +721,6 @@ struct MainZodiacView: View {
             )
             .onAppear {
                 importantPeopleResponses = [:]
-            }
-            .onAppear {
                 print("🔍 MainZodiacView: Starting Important People conversation with questionCategory = .importantPeople")
                 print("🔍 MainZodiacView: importantPeopleDisplayName = '\(importantPeopleDisplayName)'")
             }
@@ -710,6 +728,13 @@ struct MainZodiacView: View {
             .presentationDetents([.large])
             .presentationCornerRadius(0)
             .presentationDragIndicator(.hidden)
+        }
+        .onChange(of: showChildrenConversation) { oldValue, newValue in
+            if newValue {
+                ConversationProgressManager.clearProgress(for: "children")
+                childrenResponses = [:]
+                print("🔄 MainZodiacView: Cleared Children progress via onChange - restarting from question 1")
+            }
         }
         .sheet(isPresented: $showChildrenConversation) {
             ConversationView(
@@ -736,6 +761,13 @@ struct MainZodiacView: View {
             .presentationDetents([.large])
             .presentationCornerRadius(0)
             .presentationDragIndicator(.hidden)
+        }
+        .onChange(of: showEmploymentConversation) { oldValue, newValue in
+            if newValue {
+                ConversationProgressManager.clearProgress(for: "employment")
+                employmentResponses = [:]
+                print("🔄 MainZodiacView: Cleared Employment progress via onChange - restarting from question 1")
+            }
         }
         .sheet(isPresented: $showEmploymentConversation) {
             ConversationView(

@@ -47,7 +47,8 @@ let employmentConversationSteps: [ConversationStep] = [
         message: "What field or industry do you work in?",
         inputType: "multiLine",
         placeholder: "(e.g., technology, healthcare, education, finance, etc.)",
-        dataKey: "careerField"
+        dataKey: "careerField",
+        aiStep: true
     ),
     
     // 4. Work environment
@@ -55,7 +56,8 @@ let employmentConversationSteps: [ConversationStep] = [
         message: "How would you describe your work environment?",
         inputType: "multiLine",
         placeholder: "(e.g., collaborative, competitive, supportive, stressful, etc.)",
-        dataKey: "workEnvironment"
+        dataKey: "workEnvironment",
+        aiStep: true
     ),
     
     // 5. Career goals
@@ -63,7 +65,8 @@ let employmentConversationSteps: [ConversationStep] = [
         message: "What are your career goals?",
         inputType: "multiLine",
         placeholder: "(e.g., promotion, career change, skill development, etc.)",
-        dataKey: "careerGoals"
+        dataKey: "careerGoals",
+        aiStep: true
     ),
     
     // 6. Work-life balance
@@ -86,7 +89,8 @@ let employmentConversationSteps: [ConversationStep] = [
         message: "What are your biggest professional challenges?",
         inputType: "multiLine",
         placeholder: "(e.g., skill gaps, workplace politics, advancement, etc.)",
-        dataKey: "professionalChallenges"
+        dataKey: "professionalChallenges",
+        aiStep: true
     ),
     
     // 8. Skills and strengths
@@ -94,7 +98,8 @@ let employmentConversationSteps: [ConversationStep] = [
         message: "What are your professional strengths and skills?",
         inputType: "multiLine",
         placeholder: "(e.g., leadership, technical skills, communication, etc.)",
-        dataKey: "professionalStrengths"
+        dataKey: "professionalStrengths",
+        aiStep: true
     ),
     
     // 9. Professional development
@@ -102,7 +107,8 @@ let employmentConversationSteps: [ConversationStep] = [
         message: "How do you pursue professional development?",
         inputType: "multiLine",
         placeholder: "(e.g., training, certifications, networking, etc.)",
-        dataKey: "professionalDevelopment"
+        dataKey: "professionalDevelopment",
+        aiStep: true
     ),
     
     // 10. Future career vision
@@ -110,6 +116,7 @@ let employmentConversationSteps: [ConversationStep] = [
         message: "What's your vision for your professional future?",
         inputType: "multiLine",
         placeholder: "(e.g., dream job, business ownership, retirement plans, etc.)",
-        dataKey: "futureCareerVision"
+        dataKey: "futureCareerVision",
+        aiStep: true
     )
 ]

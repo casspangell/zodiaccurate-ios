@@ -30,7 +30,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "Describe your current physical health.",
         inputType: "multiLine",
         placeholder: "(e.g., arthritis, low energy, pain, digestive issues, etc.)",
-        dataKey: "physicalHealthDescription"
+        dataKey: "physicalHealthDescription",
+        aiStep: true
     ),
     
     // 3. Emotional imbalances
@@ -38,7 +39,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "Describe any emotional imbalances.",
         inputType: "multiLine",
         placeholder: "Describe your emotional landscape...",
-        dataKey: "emotionalImbalances"
+        dataKey: "emotionalImbalances",
+        aiStep: true
     ),
     
     // 4. Mental health challenges
@@ -46,7 +48,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "List any mental health challenges .",
         inputType: "multiLine",
         placeholder: "(e.g., negative thinking, trauma, serious conditions)",
-        dataKey: "mentalHealthChallenges"
+        dataKey: "mentalHealthChallenges",
+        aiStep: true
     ),
     
     // 5. Wellness goals
@@ -54,7 +57,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "What are your wellness goals?",
         inputType: "multiLine",
         placeholder: "(e.g., lose weight, gain strength, be more flexible)",
-        dataKey: "wellnessGoals"
+        dataKey: "wellnessGoals",
+        aiStep: true
     ),
     
     // 6. Short or long-term goals or dreams
@@ -62,7 +66,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "List 3–5 short or long-term goals or dreams.",
         inputType: "multiLine",
         placeholder: "(e.g., start a business, travel to Japan, write a book, buy a home)",
-        dataKey: "goalsAndDreams"
+        dataKey: "goalsAndDreams",
+        aiStep: true
     ),
     
     // 7. Areas to improve
@@ -70,7 +75,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "List 3–5 areas of your life you want to improve.",
         inputType: "multiLine",
         placeholder: "(e.g., communication, career, finances, relationships, self-discipline)",
-        dataKey: "areasToImprove"
+        dataKey: "areasToImprove",
+        aiStep: true
     ),
     
     // 8. Sources of stress
@@ -78,7 +84,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "What are your top 3–5 sources of stress?",
         inputType: "multiLine",
         placeholder: "(e.g., work deadlines, finances, family conflict, health worries)",
-        dataKey: "stressSources"
+        dataKey: "stressSources",
+        aiStep: true
     ),
     
     // 9. Joy and satisfaction
@@ -86,7 +93,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "What brings you joy and satisfaction?",
         inputType: "multiLine",
         placeholder: "(e.g., time in nature, music, creating art, helping others)",
-        dataKey: "joyAndSatisfaction"
+        dataKey: "joyAndSatisfaction",
+        aiStep: true
     ),
     
     // 10. Family values or principles
@@ -94,7 +102,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         message: "What family values or principles matter most to you?",
         inputType: "multiLine",
         placeholder: "(e.g., honesty, loyalty, compassion, faith, hard work)",
-        dataKey: "familyValues"
+        dataKey: "familyValues",
+        aiStep: true
     ),
     
     // 11. Sexual orientation (single selection)
@@ -141,7 +150,8 @@ let wellnessConversationSteps: [ConversationStep] = [
         inputType: "none",
         placeholder: "none",
         dataKey: "final",
-        isFinal: true
+        isFinal: true,
+        aiStep: true
     )
 ]
 

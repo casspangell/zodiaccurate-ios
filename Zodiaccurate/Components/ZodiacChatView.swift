@@ -57,6 +57,8 @@ struct ZodiacChatView: View {
     let bubbleColor: ChatBubbleColor?
     let topInsetMode: ChatTopInsetMode
     @Binding var currentStepIndex: Int
+    let questionnaireTopic: String?
+    let otherQuestionnaireResponses: [String: [String: String]]
     
     // MARK: - Initialization
     init(
@@ -73,7 +75,9 @@ struct ZodiacChatView: View {
         backgroundColor: Color? = nil,
         bubbleColor: ChatBubbleColor? = nil,
         topInsetMode: ChatTopInsetMode = .large,
-        currentStepIndex: Binding<Int>
+        currentStepIndex: Binding<Int>,
+        questionnaireTopic: String? = nil,
+        otherQuestionnaireResponses: [String: [String: String]] = [:]
     ) {
         self.conversationSteps = conversationSteps
         self.profileImage = profileImage
@@ -89,6 +93,8 @@ struct ZodiacChatView: View {
         self.bubbleColor = bubbleColor
         self.topInsetMode = topInsetMode
         self._currentStepIndex = currentStepIndex
+        self.questionnaireTopic = questionnaireTopic
+        self.otherQuestionnaireResponses = otherQuestionnaireResponses
     }
     
     // MARK: - Computed Properties
@@ -697,10 +703,29 @@ struct ZodiacChatView: View {
                 isTyping = true
                 
                 Task {
-                    let gptPersonalizedMessage = await GPTOnboarding.personalizeOnboardingMessage(nextMessage, with: userData, previousResponses: previousResponses)
+                    let personalizedMessage: String
+                    
+                    // Use enhanced personalization if questionnaire topic is provided
+                    if let topic = questionnaireTopic {
+                        personalizedMessage = await GPTOnboarding.personalizeQuestionnaireMessage(
+                            nextMessage,
+                            with: userData,
+                            questionnaireTopic: topic,
+                            previousResponses: previousResponses,
+                            otherQuestionnaireResponses: otherQuestionnaireResponses
+                        )
+                    } else {
+                        // Fallback to original onboarding personalization
+                        personalizedMessage = await GPTOnboarding.personalizeOnboardingMessage(
+                            nextMessage,
+                            with: userData,
+                            previousResponses: previousResponses
+                        )
+                    }
+                    
                     await MainActor.run {
                         isTyping = false
-                        displayQuestionMessage(gptPersonalizedMessage)
+                        displayQuestionMessage(personalizedMessage)
                     }
                 }
             } else {

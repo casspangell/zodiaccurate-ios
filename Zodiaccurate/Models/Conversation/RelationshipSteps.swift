@@ -30,7 +30,8 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "What are your relationship goals?",
         inputType: "multiLine",
         placeholder: "(e.g., find true love, improve communication, build trust, etc.)",
-        dataKey: "relationshipGoals"
+        dataKey: "relationshipGoals",
+        aiStep: true
     ),
     
     // 3. Communication style
@@ -38,7 +39,8 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "How would you describe your communication style in relationships?",
         inputType: "multiLine",
         placeholder: "(e.g., direct, emotional, reserved, expressive, etc.)",
-        dataKey: "communicationStyle"
+        dataKey: "communicationStyle",
+        aiStep: true
     ),
     
     // 4. Love language
@@ -61,7 +63,8 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "What are your biggest relationship challenges?",
         inputType: "multiLine",
         placeholder: "(e.g., trust issues, communication problems, time management, etc.)",
-        dataKey: "relationshipChallenges"
+        dataKey: "relationshipChallenges",
+        aiStep: true
     ),
     
     // 6. Past relationship experiences
@@ -69,7 +72,8 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "What have you learned from past relationships?",
         inputType: "multiLine",
         placeholder: "(e.g., red flags to watch for, what you need, etc.)",
-        dataKey: "pastRelationshipLessons"
+        dataKey: "pastRelationshipLessons",
+        aiStep: true
     ),
     
     // 7. Partner qualities
@@ -77,7 +81,8 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "What qualities are most important to you in a partner?",
         inputType: "multiLine",
         placeholder: "(e.g., honesty, kindness, ambition, sense of humor, etc.)",
-        dataKey: "importantPartnerQualities"
+        dataKey: "importantPartnerQualities",
+        aiStep: true
     ),
     
     // 8. Relationship values
@@ -85,7 +90,8 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "What values are most important in your relationships?",
         inputType: "multiLine",
         placeholder: "(e.g., honesty, loyalty, growth, independence, etc.)",
-        dataKey: "relationshipValues"
+        dataKey: "relationshipValues",
+        aiStep: true
     ),
     
     // 9. Intimacy preferences
@@ -93,7 +99,8 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "How do you prefer to build intimacy in relationships?",
         inputType: "multiLine",
         placeholder: "(e.g., deep conversations, shared activities, physical closeness, etc.)",
-        dataKey: "intimacyPreferences"
+        dataKey: "intimacyPreferences",
+        aiStep: true
     ),
     
     // 10. Future relationship vision
@@ -101,6 +108,7 @@ let relationshipConversationSteps: [ConversationStep] = [
         message: "What's your vision for your ideal relationship?",
         inputType: "multiLine",
         placeholder: "(e.g., partnership dynamics, shared goals, lifestyle, etc.)",
-        dataKey: "futureRelationshipVision"
+        dataKey: "futureRelationshipVision",
+        aiStep: true
     )
 ]

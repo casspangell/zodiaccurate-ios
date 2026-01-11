@@ -66,6 +66,109 @@ struct GPTOnboarding {
         }
     }
     
+    // MARK: - Enhanced Personalize Message for All Questionnaires
+    static func personalizeQuestionnaireMessage(
+        _ message: String,
+        with userData: User,
+        questionnaireTopic: String,
+        previousResponses: [String] = [],
+        otherQuestionnaireResponses: [String: [String: String]] = [:]
+    ) async -> String {
+        let topicDisplayName = getTopicDisplayName(topic: questionnaireTopic)
+        
+        let systemMessage = """
+        You are a warm, intuitive AI chatbot conducting a personalized questionnaire conversation about \(topicDisplayName).
+        You have access to the user's name, birth date, birth time, zodiac sign, and their previous responses from this questionnaire and other questionnaires.
+        You should reference their previous responses to create a natural, flowing conversation that feels deeply personal.
+        Keep the tone warm and personal but not overly flowery or mystical.
+        Be conversational and natural - like talking to a friend who knows you well.
+        Keep the response concise and genuine.
+        Don't restate date of birth or time.
+        Don't assume the user's gender.
+        IMPORTANT: Use insights from their other questionnaire responses to make connections and ask more relevant questions. Respond as if you're having a real conversation, acknowledging their previous answers and showing you understand their unique situation.
+        """
+        
+        // Format previous responses from current questionnaire
+        let currentResponsesText = previousResponses.isEmpty ? "" : """
+        
+        Previous Responses in This Questionnaire:
+        \(previousResponses.enumerated().map { "\($0 + 1). \($1)" }.joined(separator: "\n"))
+        """
+        
+        // Format responses from other questionnaires
+        var otherResponsesText = ""
+        if !otherQuestionnaireResponses.isEmpty {
+            otherResponsesText = "\n\nInsights from Other Questionnaires:\n"
+            for (topic, responses) in otherQuestionnaireResponses.sorted(by: { $0.key < $1.key }) {
+                let topicName = getTopicDisplayName(topic: topic)
+                if !responses.isEmpty {
+                    otherResponsesText += "\n\(topicName):\n"
+                    for (key, value) in responses.sorted(by: { $0.key < $1.key }) {
+                        // Only include meaningful responses (not empty or question keys)
+                        if !key.hasPrefix("question_") && !value.isEmpty && value.count > 3 {
+                            otherResponsesText += "  - \(key): \(value)\n"
+                        }
+                    }
+                }
+            }
+        }
+        
+        let userPrompt = """
+        Please personalize this message for the user, taking into account their previous responses and insights from other questionnaires:
+        
+        Original Message: "\(message)"
+        
+        User Information:
+        - Name: \(userData.firstName.isEmpty ? "Unknown" : userData.firstName)
+        - Birth Date: \(userData.birthDate.isEmpty ? "Unknown" : userData.birthDate)
+        - Birth Time: \(userData.birthTime.isEmpty ? "Unknown" : userData.birthTime)
+        - Zodiac Sign: \(userData.zodiacSign.isEmpty ? "Unknown" : userData.zodiacSign)
+        - Current Questionnaire Topic: \(topicDisplayName)\(currentResponsesText)\(otherResponsesText)
+        
+        Please return only the personalized message, nothing else.
+        """
+        
+        do {
+            let response = try await ChatGPT.callChatGPTAPI(
+                with: userPrompt,
+                systemMessage: systemMessage
+            )
+            
+            let cleanedMessage = response
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+            
+            print("🤖 GPTOnboarding [\(topicDisplayName)] - Original: '\(message)'")
+            print("🤖 GPTOnboarding [\(topicDisplayName)] - Personalized: '\(cleanedMessage)'")
+            
+            return cleanedMessage
+        } catch {
+            print("❌ GPTOnboarding [\(topicDisplayName)] - Failed to personalize message: \(error)")
+            return message
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private static func getTopicDisplayName(topic: String) -> String {
+        switch topic.lowercased() {
+        case "wellness":
+            return "Wellness"
+        case "relationship":
+            return "Relationships"
+        case "importantpeople", "important_people":
+            return "Important People"
+        case "children":
+            return "Children"
+        case "employment":
+            return "Employment"
+        case "onboarding":
+            return "Onboarding"
+        default:
+            return topic.capitalized
+        }
+    }
+    
     // MARK: - Welcome Horoscope Generation
     
     static func generateWelcomeHoroscope(for userData: User) async -> Horoscope {

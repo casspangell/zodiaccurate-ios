@@ -750,7 +750,7 @@ struct MainZodiacView: View {
         cards.append(contentsOf: [
             FlipBookCard(
                 title: "Wellness",
-                content: isWellnessCompleted ? "Intake completed" : "Start your intake",
+                content: isWellnessCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
 //                onCardTap: { showWellnessConversation = true },
                 showStartButton: true,
                 onStartButtonTap: {
@@ -761,7 +761,7 @@ struct MainZodiacView: View {
             ),
             FlipBookCard(
                 title: "Partner",
-                content: isRelationshipCompleted ? "Intake completed" : "Start your intake",
+                content: isRelationshipCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     relationshipDisplayName = "Relationship"
@@ -771,7 +771,7 @@ struct MainZodiacView: View {
             ),
             FlipBookCard(
                 title: "Important People",
-                content: isImportantPeopleCompleted ? "Intake completed" : "Start your intake",
+                content: isImportantPeopleCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     importantPeopleDisplayName = "Important People"
@@ -781,7 +781,7 @@ struct MainZodiacView: View {
             ),
             FlipBookCard(
                 title: "Children",
-                content: isChildrenCompleted ? "Intake completed" : "Start your intake",
+                content: isChildrenCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     childrenDisplayName = "Children"
@@ -791,7 +791,7 @@ struct MainZodiacView: View {
             ),
             FlipBookCard(
                 title: "Employment",
-                content: isEmploymentCompleted ? "Intake completed" : "Start your intake",
+                content: isEmploymentCompleted ? "Thank you for completing this survey. You should start seeing your daily Zodiaccurate." : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     employmentDisplayName = "Employment"

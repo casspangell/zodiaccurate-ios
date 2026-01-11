@@ -399,7 +399,7 @@ struct FlipBookCard: View {
         }
         // For convenience initializer, show appropriate text based on completion state
         if isCompleted {
-            return "Intake completed"
+            return "Thank you for completing this survey. You should start seeing your daily Zodiaccurate."
         }
         let contentText = isCardUnfinished ? "Continue your intake" : "Start your intake"
         print("🎯 FlipBookCard: Content text - isCompleted: \(isCompleted), isCardUnfinished: \(isCardUnfinished), showing: '\(contentText)'")

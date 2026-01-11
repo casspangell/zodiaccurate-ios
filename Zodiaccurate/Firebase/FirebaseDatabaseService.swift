@@ -345,6 +345,58 @@ class FirebaseDatabaseService: ObservableObject {
         )
     }
     
+    /// Get daily overview horoscope from /zodiac/{uuid}/{day}/daily_overview
+    /// - Parameters:
+    ///   - userId: The user's UUID
+    ///   - day: The day name in lowercase (e.g., "saturday", "monday")
+    /// - Returns: Horoscope object if found, nil otherwise
+    func getDailyOverviewHoroscope(userId: String, day: String) async throws -> Horoscope? {
+        let snapshot = try await database.child("zodiac").child(userId).child(day).child("daily_overview").getData()
+        
+        guard let value = snapshot.value as? [String: Any] else {
+            return nil
+        }
+        
+        // Try both possible Firebase structures: Category/Content or title/message
+        let title: String
+        let message: String
+        
+        if let categoryTitle = value["Category"] as? String,
+           let content = value["Content"] as? String {
+            // Structure with Category/Content fields
+            title = categoryTitle
+            message = content
+        } else if let firebaseTitle = value["title"] as? String,
+                  let firebaseMessage = value["message"] as? String {
+            // Structure with title/message fields
+            title = firebaseTitle
+            message = firebaseMessage
+        } else {
+            print("⚠️ FirebaseDatabaseService: Invalid daily overview data structure at /zodiac/\(userId)/\(day)/daily_overview")
+            print("   Expected either 'Category'/'Content' or 'title'/'message' fields")
+            return nil
+        }
+        
+        // Optional fields
+        let audioFilePath = value["audioFilePath"] as? String
+        let createdAt: Date
+        if let createdAtTimestamp = value["createdAt"] as? TimeInterval {
+            createdAt = Date(timeIntervalSince1970: createdAtTimestamp)
+        } else {
+            // Default to current date if not provided
+            createdAt = Date()
+        }
+        
+        // Use "daily_overview" as the key for SwiftData storage
+        return Horoscope(
+            title: title,
+            message: message,
+            key: "daily_overview",
+            audioFilePath: audioFilePath,
+            createdAt: createdAt
+        )
+    }
+    
     // MARK: - Stardust Management
     
     /// Save stardust data to /stardust/{uuid}

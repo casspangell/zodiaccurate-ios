@@ -738,9 +738,10 @@ struct MainZodiacView: View {
     private func createFlipBookCards() -> [FlipBookCard] {
         var cards: [FlipBookCard] = []
         
-        // Add welcome horoscope as first card
+        // Add daily overview horoscope as first card (fallback to welcome horoscope if not available)
         if let welcomeHoroscope = welcomeHoroscope {
-            print("🎯 MainZodiacView: Creating welcome horoscope card with content")
+            let horoscopeType = welcomeHoroscope.key == "daily_overview" ? "daily overview" : "welcome"
+            print("🎯 MainZodiacView: Creating \(horoscopeType) horoscope card with content")
             print("🎯 MainZodiacView: Horoscope title: '\(welcomeHoroscope.title)'")
             print("🎯 MainZodiacView: Horoscope message length: \(welcomeHoroscope.message.count) characters")
             cards.append(FlipBookCard(
@@ -748,9 +749,9 @@ struct MainZodiacView: View {
                 isLoading: false
             ))
         } else {
-            print("🎯 MainZodiacView: Creating welcome horoscope card with loading state")
-            print("🎯 MainZodiacView: welcomeHoroscope is nil")
-            // Show loading state for welcome horoscope if not available yet
+            print("🎯 MainZodiacView: Creating daily overview horoscope card with loading state")
+            print("🎯 MainZodiacView: daily overview horoscope is nil")
+            // Show loading state for daily overview horoscope if not available yet
             cards.append(FlipBookCard(
                 horoscope: nil,
                 isLoading: true
@@ -943,6 +944,13 @@ struct MainZodiacView: View {
             return false
         }
         
+        // Check if date restriction is bypassed (development mode)
+        let bypassDateRestriction = UserDefaults.standard.bool(forKey: "bypassHoroscopeDateRestriction")
+        if bypassDateRestriction {
+            // Bypass date restriction - show horoscope if completed
+            return true
+        }
+        
         // Only show horoscope if completed on a previous day (not today)
         return ConversationProgressManager.wasCompletedBeforeToday(for: topic)
     }
@@ -1049,11 +1057,25 @@ struct MainZodiacView: View {
     @MainActor
     private func loadWelcomeHoroscopeFromSwiftData() async {
         do {
-            let descriptor = FetchDescriptor<Horoscope>(
-                predicate: #Predicate<Horoscope> { $0.key == "welcome" }
+            // First try to load daily overview horoscope (key: "daily_overview") for the first flipcard
+            let dailyOverviewDescriptor = FetchDescriptor<Horoscope>(
+                predicate: #Predicate<Horoscope> { $0.key == "daily_overview" }
             )
-            let horoscopes = try modelContext.fetch(descriptor)
-            let horoscope = horoscopes.first
+            let dailyOverviewHoroscopes = try modelContext.fetch(dailyOverviewDescriptor)
+            var horoscope = dailyOverviewHoroscopes.first
+            
+            // If daily overview is not available, fall back to welcome horoscope
+            if horoscope == nil {
+                let welcomeDescriptor = FetchDescriptor<Horoscope>(
+                    predicate: #Predicate<Horoscope> { $0.key == "welcome" }
+                )
+                let welcomeHoroscopes = try modelContext.fetch(welcomeDescriptor)
+                horoscope = welcomeHoroscopes.first
+                
+                if horoscope != nil {
+                    print("ℹ️ MainZodiacView: Daily overview not found, using welcome horoscope as fallback")
+                }
+            }
             
             // Update state on main thread
             let wasLoaded = self.isWelcomeHoroscopeLoaded
@@ -1061,20 +1083,21 @@ struct MainZodiacView: View {
             self.isWelcomeHoroscopeLoaded = horoscope != nil
             
             if wasLoaded != self.isWelcomeHoroscopeLoaded {
-                print("🎯 MainZodiacView: Welcome horoscope loading state changed to \(self.isWelcomeHoroscopeLoaded)")
+                print("🎯 MainZodiacView: First card horoscope loading state changed to \(self.isWelcomeHoroscopeLoaded)")
                 if let horoscope = horoscope {
-                    print("✅ MainZodiacView: Loaded welcome horoscope from SwiftData - Title: '\(horoscope.title)'")
+                    let horoscopeType = horoscope.key == "daily_overview" ? "daily overview" : "welcome"
+                    print("✅ MainZodiacView: Loaded \(horoscopeType) horoscope from SwiftData - Title: '\(horoscope.title)'")
                 } else {
-                    print("⏳ MainZodiacView: Welcome horoscope not found in SwiftData yet, will continue polling")
+                    print("⏳ MainZodiacView: Neither daily overview nor welcome horoscope found in SwiftData yet, will continue polling")
                 }
             }
         } catch {
-            print("❌ Failed to fetch welcome horoscope from SwiftData: \(error)")
+            print("❌ Failed to fetch horoscope from SwiftData: \(error)")
         }
     }
     
-    /// Load daily horoscope from Firebase at /zodiac/{uuid}/{day} and save to SwiftData
-    /// Note: This function loads the general daily horoscope (if it exists at /zodiac/{userId}/{day})
+    /// Load daily horoscope from Firebase at /zodiac/{uuid}/{day}/daily_overview and save to SwiftData
+    /// Note: This function loads the daily overview horoscope (at /zodiac/{userId}/{day}/daily_overview)
     /// Category-specific horoscopes are loaded via loadAndLogHoroscopesForAllCategories()
     @MainActor
     private func loadDailyHoroscopeFromFirebase() async {
@@ -1086,32 +1109,32 @@ struct MainZodiacView: View {
         // Get current day name in lowercase (e.g., "saturday", "monday")
         let dayName = getDayOfWeek().lowercased()
         
-        print("🔄 MainZodiacView: Loading daily horoscope from Firebase - /zodiac/\(userId)/\(dayName)")
+        print("🔄 MainZodiacView: Loading daily overview horoscope from Firebase - /zodiac/\(userId)/\(dayName)/daily_overview")
         
         do {
-            // Check if horoscope already exists in SwiftData for today
+            // Check if horoscope already exists in SwiftData
             let descriptor = FetchDescriptor<Horoscope>(
-                predicate: #Predicate<Horoscope> { $0.key == dayName }
+                predicate: #Predicate<Horoscope> { $0.key == "daily_overview" }
             )
             let existingHoroscopes = try modelContext.fetch(descriptor)
             
             if let existingHoroscope = existingHoroscopes.first {
-                print("✅ MainZodiacView: Daily horoscope for \(dayName) already exists in SwiftData - Title: '\(existingHoroscope.title)'")
+                print("✅ MainZodiacView: Daily overview horoscope already exists in SwiftData - Title: '\(existingHoroscope.title)'")
                 return
             }
             
-            // Fetch from Firebase (legacy format: /zodiac/{userId}/{day})
+            // Fetch from Firebase at /zodiac/{userId}/{day}/daily_overview
             let firebaseService = FirebaseDatabaseService()
-            if let horoscope = try await firebaseService.getHoroscope(userId: userId, dateKey: dayName) {
+            if let horoscope = try await firebaseService.getDailyOverviewHoroscope(userId: userId, day: dayName) {
                 // Save to SwiftData
                 modelContext.insert(horoscope)
                 try modelContext.save()
-                print("✅ MainZodiacView: Daily horoscope loaded from Firebase and saved to SwiftData - Key: \(dayName), Title: '\(horoscope.title)'")
+                print("✅ MainZodiacView: Daily overview horoscope loaded from Firebase and saved to SwiftData - Key: daily_overview, Title: '\(horoscope.title)'")
             } else {
-                print("ℹ️ MainZodiacView: No daily horoscope found in Firebase for \(dayName)")
+                print("ℹ️ MainZodiacView: No daily overview horoscope found in Firebase at /zodiac/\(userId)/\(dayName)/daily_overview")
             }
         } catch {
-            print("❌ MainZodiacView: Failed to load daily horoscope from Firebase: \(error)")
+            print("❌ MainZodiacView: Failed to load daily overview horoscope from Firebase: \(error)")
         }
     }
     
@@ -1145,8 +1168,11 @@ struct MainZodiacView: View {
             // Map app category to Firebase category
             let firebaseCategory = FirebaseDatabaseService.mapAppCategoryToFirebase(category)
             
-            // Skip fetching if questionnaire was completed today (wait until next day)
-            if ConversationProgressManager.wasCompletedToday(for: category) {
+            // Check if date restriction is bypassed (development mode)
+            let bypassDateRestriction = UserDefaults.standard.bool(forKey: "bypassHoroscopeDateRestriction")
+            
+            // Skip fetching if questionnaire was completed today (wait until next day) - unless bypassed
+            if !bypassDateRestriction && ConversationProgressManager.wasCompletedToday(for: category) {
                 print("\n⏸️ \(category.uppercased()) - Completed today, skipping horoscope fetch (will fetch tomorrow)")
                 continue
             }

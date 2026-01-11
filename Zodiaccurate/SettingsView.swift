@@ -21,10 +21,14 @@ struct SettingsView: View {
     @AppStorage("hapticFeedbackEnabled") private var hapticFeedbackEnabled = true
     @AppStorage("autoSaveEnabled") private var autoSaveEnabled = true
     @AppStorage("dailyHoroscopeEnabled") private var dailyHoroscopeEnabled = false
+    @AppStorage("bypassHoroscopeDateRestriction") private var bypassHoroscopeDateRestriction = false
     
     // UI State
     @State private var showingEditProfile = false
     @State private var showingSecretsDebug = false
+    @State private var isFetchingHoroscopes = false
+    @State private var horoscopeFetchMessage: String?
+    @State private var showHoroscopeFetchAlert = false
     
     init() {
         // Initialize managers
@@ -176,6 +180,52 @@ struct SettingsView: View {
                                         showingSecretsDebug = true
                                     }
                                 )
+                                
+                                Button(action: {
+                                    Task {
+                                        await fetchHoroscopeData()
+                                    }
+                                }) {
+                                    HStack(spacing: 16) {
+                                        if isFetchingHoroscopes {
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                                .frame(width: 24, height: 24)
+                                        } else {
+                                            Image(systemName: "arrow.down.circle.fill")
+                                                .font(.system(size: 20, weight: .medium))
+                                                .foregroundColor(.white)
+                                                .frame(width: 24)
+                                        }
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Fetch Horoscope Data")
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(.white)
+                                            
+                                            Text(isFetchingHoroscopes ? "Fetching from Firebase..." : "Load horoscopes from Firebase")
+                                                .font(.system(size: 14, weight: .regular))
+                                                .foregroundColor(.white.opacity(0.7))
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        if !isFetchingHoroscopes {
+                                            Image(systemName: "chevron.right")
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(.white.opacity(0.5))
+                                        }
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+                                .disabled(isFetchingHoroscopes)
+                                
+                                SettingsToggleRow(
+                                    icon: "calendar.badge.exclamationmark",
+                                    title: "Bypass Date Restriction",
+                                    subtitle: bypassHoroscopeDateRestriction ? "Horoscopes show regardless of completion date" : "Show horoscopes only if completed before today",
+                                    isOn: $bypassHoroscopeDateRestriction
+                                )
                             }
                         }
                         #endif
@@ -276,6 +326,15 @@ struct SettingsView: View {
             .sheet(isPresented: $showingSecretsDebug) {
                 APIConfigDebugView()
             }
+            .alert("Horoscope Fetch", isPresented: $showHoroscopeFetchAlert) {
+                Button("OK", role: .cancel) {
+                    horoscopeFetchMessage = nil
+                }
+            } message: {
+                if let message = horoscopeFetchMessage {
+                    Text(message)
+                }
+            }
         }
     }
     
@@ -283,6 +342,115 @@ struct SettingsView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM yyyy"
         return formatter.string(from: Date())
+    }
+    
+    /// Fetch horoscope data from Firebase for all categories
+    @MainActor
+    private func fetchHoroscopeData() async {
+        guard let userId = authManager.user?.uid else {
+            horoscopeFetchMessage = "Error: User not authenticated"
+            showHoroscopeFetchAlert = true
+            return
+        }
+        
+        isFetchingHoroscopes = true
+        horoscopeFetchMessage = nil
+        
+        // Get current day name in lowercase (e.g., "saturday", "monday")
+        let dayName = getDayOfWeek().lowercased()
+        
+        // Categories to fetch
+        let categories = [
+            "wellness",
+            "relationship",
+            "importantPeople",
+            "children",
+            "employment"
+        ]
+        
+        let firebaseService = FirebaseDatabaseService()
+        var fetchedCount = 0
+        var errorCount = 0
+        var messages: [String] = []
+        
+        // Fetch daily horoscope
+        do {
+            // Delete existing daily horoscope from SwiftData if it exists
+            let dailyDescriptor = FetchDescriptor<Horoscope>(
+                predicate: #Predicate<Horoscope> { $0.key == "daily_overview" }
+            )
+            let existingDailyHoroscopes = try modelContext.fetch(dailyDescriptor)
+            for existingHoroscope in existingDailyHoroscopes {
+                modelContext.delete(existingHoroscope)
+            }
+            
+            // Fetch from Firebase at /zodiac/{userId}/{day}/daily_overview
+            if let horoscope = try await firebaseService.getDailyOverviewHoroscope(userId: userId, day: dayName) {
+                modelContext.insert(horoscope)
+                fetchedCount += 1
+                if existingDailyHoroscopes.isEmpty {
+                    messages.append("Daily horoscope fetched")
+                } else {
+                    messages.append("Daily horoscope replaced")
+                }
+            } else {
+                messages.append("Daily horoscope not found in Firebase at /zodiac/\(userId)/\(dayName)/daily_overview")
+            }
+        } catch {
+            errorCount += 1
+            messages.append("Error fetching daily horoscope: \(error.localizedDescription)")
+        }
+        
+        // Fetch category horoscopes
+        for category in categories {
+            let firebaseCategory = FirebaseDatabaseService.mapAppCategoryToFirebase(category)
+            let categoryKey = "\(category)-\(dayName)"
+            
+            do {
+                // Delete existing horoscope from SwiftData if it exists
+                let descriptor = FetchDescriptor<Horoscope>(
+                    predicate: #Predicate<Horoscope> { $0.key == categoryKey }
+                )
+                let existingHoroscopes = try modelContext.fetch(descriptor)
+                for existingHoroscope in existingHoroscopes {
+                    modelContext.delete(existingHoroscope)
+                }
+                
+                // Fetch from Firebase and replace
+                if let horoscope = try await firebaseService.getHoroscope(userId: userId, day: dayName, category: firebaseCategory) {
+                    modelContext.insert(horoscope)
+                    fetchedCount += 1
+                    if existingHoroscopes.isEmpty {
+                        messages.append("\(category) horoscope fetched")
+                    } else {
+                        messages.append("\(category) horoscope replaced")
+                    }
+                } else {
+                    messages.append("\(category) horoscope not found in Firebase")
+                }
+            } catch {
+                errorCount += 1
+                messages.append("Error fetching \(category): \(error.localizedDescription)")
+            }
+        }
+        
+        // Save all changes
+        do {
+            try modelContext.save()
+        } catch {
+            errorCount += 1
+            messages.append("Error saving to SwiftData: \(error.localizedDescription)")
+        }
+        
+        // Create summary message
+        var summary = "Fetch complete.\n"
+        summary += "Fetched: \(fetchedCount)\n"
+        summary += "Errors: \(errorCount)\n\n"
+        summary += messages.joined(separator: "\n")
+        
+        horoscopeFetchMessage = summary
+        showHoroscopeFetchAlert = true
+        isFetchingHoroscopes = false
     }
 }
 

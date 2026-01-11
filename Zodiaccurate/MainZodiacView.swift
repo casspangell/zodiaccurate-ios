@@ -35,6 +35,13 @@ struct MainZodiacView: View {
     @State private var employmentDisplayName: String = ""
     @State private var moveFlipbookToTop: Bool = false
     
+    // Confirmation overlay states
+    @State private var showWellnessConfirmation = false
+    @State private var showRelationshipConfirmation = false
+    @State private var showImportantPeopleConfirmation = false
+    @State private var showChildrenConfirmation = false
+    @State private var showEmploymentConfirmation = false
+    
     // Questionnaire response tracking
     @State private var wellnessResponses: [String: Any] = [:]
     @State private var relationshipResponses: [String: Any] = [:]
@@ -299,26 +306,21 @@ struct MainZodiacView: View {
                                  showMenu: hasAcceptedConsentPolicies,
                                 onWellness: {
                                     print("🔍 MainZodiacView: onWellness callback triggered")
-                                    wellnessDisplayName = "Wellness"
-                                    showWellnessConversation = true
+                                    showWellnessConfirmation = true
                                 },
                                 onRelationship: {
                                     print("🔍 MainZodiacView: onRelationship callback triggered")
-                                    relationshipDisplayName = "Relationship"
-                                    showRelationshipConversation = true
+                                    showRelationshipConfirmation = true
                                 },
                                 onImportantPeople: {
                                     print("🔍 MainZodiacView: onImportantPeople callback triggered")
-                                    importantPeopleDisplayName = "Important People"
-                                    showImportantPeopleConversation = true
+                                    showImportantPeopleConfirmation = true
                                 },
                                 onChildren: {
-                                    childrenDisplayName = "Children"
-                                    showChildrenConversation = true
+                                    showChildrenConfirmation = true
                                 },
                                 onEmployment: {
-                                    employmentDisplayName = "Employment"
-                                    showEmploymentConversation = true
+                                    showEmploymentConfirmation = true
                                 },
                                  highlightedButton: getHighlightedQuestionMenuButton(),
                                 userId: authManager.user?.uid
@@ -517,6 +519,82 @@ struct MainZodiacView: View {
                         .zIndex(getZIndex(.four))
                     }
                 }
+            }
+            
+            // Confirmation Overlays
+            if showWellnessConfirmation {
+                ConfirmationOverlay(
+                    message: "This questionnaire explores your overall health, physical wellness, emotional balance, mental health, goals, stress sources, and what brings you joy. Your responses help personalize your daily horoscope guidance.",
+                    continueButtonText: "Continue",
+                    onOK: {
+                        wellnessDisplayName = "Wellness"
+                        showWellnessConversation = true
+                        showWellnessConfirmation = false
+                    },
+                    onNevermind: {
+                        showWellnessConfirmation = false
+                    }
+                )
+            }
+            
+            if showRelationshipConfirmation {
+                ConfirmationOverlay(
+                    message: "This questionnaire covers your relationship status, communication style, love language, relationship goals, and what you're looking for in a partner. Share your experiences to receive personalized relationship insights.",
+                    continueButtonText: "Continue",
+                    onOK: {
+                        relationshipDisplayName = "Relationship"
+                        showRelationshipConversation = true
+                        showRelationshipConfirmation = false
+                    },
+                    onNevermind: {
+                        showRelationshipConfirmation = false
+                    }
+                )
+            }
+            
+            if showImportantPeopleConfirmation {
+                ConfirmationOverlay(
+                    message: "This questionnaire explores your relationships with family, friends, mentors, and your support system. Understanding these connections helps provide guidance on your social and personal dynamics.",
+                    continueButtonText: "Continue",
+                    onOK: {
+                        importantPeopleDisplayName = "Important People"
+                        showImportantPeopleConversation = true
+                        showImportantPeopleConfirmation = false
+                    },
+                    onNevermind: {
+                        showImportantPeopleConfirmation = false
+                    }
+                )
+            }
+            
+            if showChildrenConfirmation {
+                ConfirmationOverlay(
+                    message: "This questionnaire covers your parenting experience, style, challenges, goals, and family dynamics. Whether you have children or are planning to, your responses help tailor guidance for your family life.",
+                    continueButtonText: "Continue",
+                    onOK: {
+                        childrenDisplayName = "Children"
+                        showChildrenConversation = true
+                        showChildrenConfirmation = false
+                    },
+                    onNevermind: {
+                        showChildrenConfirmation = false
+                    }
+                )
+            }
+            
+            if showEmploymentConfirmation {
+                ConfirmationOverlay(
+                    message: "This questionnaire explores your career, job satisfaction, work-life balance, professional goals, and workplace relationships. Share your employment journey to receive career-focused horoscope insights.",
+                    continueButtonText: "Continue",
+                    onOK: {
+                        employmentDisplayName = "Employment"
+                        showEmploymentConversation = true
+                        showEmploymentConfirmation = false
+                    },
+                    onNevermind: {
+                        showEmploymentConfirmation = false
+                    }
+                )
             }
             
         }

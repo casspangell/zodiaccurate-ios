@@ -3,12 +3,14 @@ import SwiftUI
 struct ConfirmationOverlay: View {
     let message: String
     let cost: Int?
+    let continueButtonText: String
     let onOK: (() -> Void)?
     let onNevermind: (() -> Void)?
     
-    init(message: String, cost: Int? = nil, onOK: (() -> Void)? = nil, onNevermind: (() -> Void)? = nil) {
+    init(message: String, cost: Int? = nil, continueButtonText: String = "OK", onOK: (() -> Void)? = nil, onNevermind: (() -> Void)? = nil) {
         self.message = message
         self.cost = cost
+        self.continueButtonText = continueButtonText
         self.onOK = onOK
         self.onNevermind = onNevermind
     }
@@ -60,7 +62,7 @@ struct ConfirmationOverlay: View {
                         
                         if let onOK = onOK {
                             Button(action: onOK) {
-                                Text("OK")
+                                Text(continueButtonText)
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)

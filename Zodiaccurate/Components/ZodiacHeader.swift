@@ -86,6 +86,8 @@ struct ZodiacHeader: View {
     let highlightedButton: QuestionMenuButton
     // Optional centered label - if not provided, will automatically show based on highlightedButton state
     let centeredLabel: String?
+    // User ID for checking completion status in SwiftData
+    let userId: String?
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
     @State private var headerBackgroundOpacity: Double = 1.0
@@ -159,7 +161,8 @@ struct ZodiacHeader: View {
         onChildren: (() -> Void)? = nil,
         onEmployment: (() -> Void)? = nil,
         highlightedButton: QuestionMenuButton = .none,
-        centeredLabel: String? = nil
+        centeredLabel: String? = nil,
+        userId: String? = nil
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -183,6 +186,7 @@ struct ZodiacHeader: View {
         self.onEmployment = onEmployment
         self.highlightedButton = highlightedButton
         self.centeredLabel = centeredLabel
+        self.userId = userId
     }
     
     // MARK: - Body
@@ -239,7 +243,8 @@ struct ZodiacHeader: View {
                                 onImportantPeople: { onImportantPeople?() },
                                 onChildren: { onChildren?() },
                                 onEmployment: { onEmployment?() },
-                                highlightedButton: highlightedButton
+                                highlightedButton: highlightedButton,
+                                userId: userId
                             )
                         .padding(.horizontal, 16)
                         .padding(.bottom, 6)

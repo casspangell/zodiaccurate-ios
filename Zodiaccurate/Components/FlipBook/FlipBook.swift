@@ -186,6 +186,8 @@ struct FlipBookPage: View {
                 onCardTap: card.onCardTap,
                 showStartButton: card.showStartButton,
                 onStartButtonTap: card.onStartButtonTap,
+                isUnfinished: card.isUnfinished,
+                isCompleted: card.isCompleted,
                 canNavigateLeft: canNavigateLeft,
                 canNavigateRight: canNavigateRight,
                 onNavigateLeft: onNavigateLeft,

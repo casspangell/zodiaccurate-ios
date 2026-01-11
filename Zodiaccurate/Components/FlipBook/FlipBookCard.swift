@@ -7,6 +7,7 @@ struct FlipBookCard: View {
     let showStartButton: Bool
     let onStartButtonTap: (() -> Void)?
     let isUnfinished: Bool
+    let isCompleted: Bool
     
     // Navigation parameters
     let canNavigateLeft: Bool
@@ -92,7 +93,7 @@ struct FlipBookCard: View {
                             print("🎯 FlipBookCard: Content text changed - isCardUnfinished: \(newValue)")
                         }
                     
-                    if showStartButton {
+                    if showStartButton && !isCompleted {
                         startButtonView
                     }
                     
@@ -231,13 +232,14 @@ struct FlipBookCard: View {
         }
     }
     
-    init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
+    init(horoscope: Horoscope?, isLoading: Bool = false, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, isCompleted: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = horoscope
         self.isLoading = isLoading
         self.onCardTap = onCardTap
         self.showStartButton = showStartButton
         self.onStartButtonTap = onStartButtonTap
         self.isUnfinished = isUnfinished
+        self.isCompleted = isCompleted
         self.canNavigateLeft = canNavigateLeft
         self.canNavigateRight = canNavigateRight
         self.onNavigateLeft = onNavigateLeft
@@ -245,13 +247,14 @@ struct FlipBookCard: View {
     }
     
     // Convenience initializer for backward compatibility
-    init(title: String, content: String, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
+    init(title: String, content: String, onCardTap: (() -> Void)? = nil, showStartButton: Bool = false, onStartButtonTap: (() -> Void)? = nil, isUnfinished: Bool = false, isCompleted: Bool = false, canNavigateLeft: Bool = false, canNavigateRight: Bool = false, onNavigateLeft: (() -> Void)? = nil, onNavigateRight: (() -> Void)? = nil) {
         self.horoscope = Horoscope(title: title, message: content, key: "temp")
         self.isLoading = false
         self.onCardTap = onCardTap
         self.showStartButton = showStartButton
         self.onStartButtonTap = onStartButtonTap
         self.isUnfinished = isUnfinished
+        self.isCompleted = isCompleted
         self.canNavigateLeft = canNavigateLeft
         self.canNavigateRight = canNavigateRight
         self.onNavigateLeft = onNavigateLeft
@@ -394,9 +397,12 @@ struct FlipBookCard: View {
         if let horoscope = horoscope {
             return horoscope.message
         }
-        // For convenience initializer, show appropriate text based on unfinished state
+        // For convenience initializer, show appropriate text based on completion state
+        if isCompleted {
+            return "Intake completed"
+        }
         let contentText = isCardUnfinished ? "Continue your intake" : "Start your intake"
-        print("🎯 FlipBookCard: Content text - isCardUnfinished: \(isCardUnfinished), showing: '\(contentText)'")
+        print("🎯 FlipBookCard: Content text - isCompleted: \(isCompleted), isCardUnfinished: \(isCardUnfinished), showing: '\(contentText)'")
         return contentText
     }
     

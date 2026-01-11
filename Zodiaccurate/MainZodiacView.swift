@@ -53,6 +53,17 @@ struct MainZodiacView: View {
         return headerHeight + getQuestionMenuHeight() //getSafeAreaTop() + headerHeight + getQuestionMenuHeight()
     }
     
+    // Computed property that changes when completion status changes, forcing FlipBook to re-render
+    private var flipBookId: String {
+        let userId = authManager.user?.uid ?? "default"
+        let wellnessCompleted = checkQuestionnaireCompletion(topic: "wellness", userId: userId) ? "1" : "0"
+        let relationshipCompleted = checkQuestionnaireCompletion(topic: "relationship", userId: userId) ? "1" : "0"
+        let importantPeopleCompleted = checkQuestionnaireCompletion(topic: "importantPeople", userId: userId) ? "1" : "0"
+        let childrenCompleted = checkQuestionnaireCompletion(topic: "children", userId: userId) ? "1" : "0"
+        let employmentCompleted = checkQuestionnaireCompletion(topic: "employment", userId: userId) ? "1" : "0"
+        return "\(wellnessCompleted)-\(relationshipCompleted)-\(importantPeopleCompleted)-\(childrenCompleted)-\(employmentCompleted)"
+    }
+    
     enum ActiveComponent {
         case none
         case flipBook
@@ -290,7 +301,8 @@ struct MainZodiacView: View {
                                     employmentDisplayName = "Employment"
                                     showEmploymentConversation = true
                                 },
-                                 highlightedButton: getHighlightedQuestionMenuButton()
+                                 highlightedButton: getHighlightedQuestionMenuButton(),
+                                userId: authManager.user?.uid
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.top, 24)
@@ -342,6 +354,7 @@ struct MainZodiacView: View {
                             FlipBook(pages: createFlipBookCards())
                                 .padding(.bottom, 8)
                                 .zIndex(activeComponent == .flipBook ? getZIndex(.active) : getZIndex(.one))
+                                .id(flipBookId) // Force re-creation when completion status changes
                                 .onAppear {
                                     // Initial fetch already happened in parent onAppear, but check again here
                                     if !isWelcomeHoroscopeLoaded {
@@ -390,7 +403,8 @@ struct MainZodiacView: View {
                                     }
                                 }
                                 .onReceive(NotificationCenter.default.publisher(for: .conversationProgressUpdated)) { _ in
-                                    print("🔄 MainZodiacView: Received conversationProgressUpdated notification - individual cards will update automatically")
+                                    print("🔄 MainZodiacView: Received conversationProgressUpdated notification - refreshing FlipBook cards")
+                                    // The flipBookId will change, causing FlipBook to recreate with updated completion status
                                 }
                                 .onPreferenceChange(FlipBookCardBottomPreferenceKey.self) { bottomPosition in
                                     flipBookCardBottomPosition = bottomPosition
@@ -724,53 +738,66 @@ struct MainZodiacView: View {
             ))
         }
 
-        // Add remaining default cards
+        // Add remaining default cards with completion status
+        // Check both ConversationProgressManager (UserDefaults) and IntakeData (SwiftData)
+        let userId = authManager.user?.uid ?? "default"
+        let isWellnessCompleted = checkQuestionnaireCompletion(topic: "wellness", userId: userId)
+        let isRelationshipCompleted = checkQuestionnaireCompletion(topic: "relationship", userId: userId)
+        let isImportantPeopleCompleted = checkQuestionnaireCompletion(topic: "importantPeople", userId: userId)
+        let isChildrenCompleted = checkQuestionnaireCompletion(topic: "children", userId: userId)
+        let isEmploymentCompleted = checkQuestionnaireCompletion(topic: "employment", userId: userId)
+        
         cards.append(contentsOf: [
             FlipBookCard(
                 title: "Wellness",
-                content: "Start your intake",
+                content: isWellnessCompleted ? "Intake completed" : "Start your intake",
 //                onCardTap: { showWellnessConversation = true },
                 showStartButton: true,
                 onStartButtonTap: {
                     wellnessDisplayName = "Wellness"
                     showWellnessConversation = true
-                }
+                },
+                isCompleted: isWellnessCompleted
             ),
             FlipBookCard(
                 title: "Partner",
-                content: "Start your intake",
+                content: isRelationshipCompleted ? "Intake completed" : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     relationshipDisplayName = "Relationship"
                     showRelationshipConversation = true
-                }
+                },
+                isCompleted: isRelationshipCompleted
             ),
             FlipBookCard(
                 title: "Important People",
-                content: "Start your intake",
+                content: isImportantPeopleCompleted ? "Intake completed" : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     importantPeopleDisplayName = "Important People"
                     showImportantPeopleConversation = true
-                }
+                },
+                isCompleted: isImportantPeopleCompleted
             ),
             FlipBookCard(
                 title: "Children",
-                content: "Start your intake",
+                content: isChildrenCompleted ? "Intake completed" : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     childrenDisplayName = "Children"
                     showChildrenConversation = true
-                }
+                },
+                isCompleted: isChildrenCompleted
             ),
             FlipBookCard(
                 title: "Employment",
-                content: "Start your intake",
+                content: isEmploymentCompleted ? "Intake completed" : "Start your intake",
                 showStartButton: true,
                 onStartButtonTap: {
                     employmentDisplayName = "Employment"
                     showEmploymentConversation = true
-                }
+                },
+                isCompleted: isEmploymentCompleted
             )
         ])
         
@@ -786,6 +813,36 @@ struct MainZodiacView: View {
     }
     
     // MARK: - Helper Functions
+    
+    /// Check if a questionnaire is completed by checking both ConversationProgressManager and IntakeData
+    /// This checks SwiftData (IntakeData) on app load to determine completion status
+    private func checkQuestionnaireCompletion(topic: String, userId: String) -> Bool {
+        // First check ConversationProgressManager (UserDefaults - tracks step progress)
+        // This is the primary source of truth for completion
+        let progressCompleted = ConversationProgressManager.isTopicCompleted(for: topic)
+        
+        if progressCompleted {
+            return true
+        }
+        
+        // Fallback: Also check IntakeData (SwiftData - tracks actual data saved)
+        // This ensures we catch completions even if progress wasn't saved properly
+        if let intakeDataManager = intakeDataManager {
+            let hasData = intakeDataManager.hasTopicData(userId: userId, topic: topic)
+            if hasData {
+                let topicData = intakeDataManager.getTopicData(userId: userId, topic: topic)
+                let totalSteps = ConversationProgressManager.getTotalStepsForTopic(topic)
+                // If we have data for most steps (80% or more), consider it completed
+                // This handles edge cases where progress wasn't saved but data was
+                if topicData.count >= Int(Double(totalSteps) * 0.8) {
+                    print("✅ MainZodiacView: Topic '\(topic)' considered completed based on IntakeData (has \(topicData.count)/\(totalSteps) answers)")
+                    return true
+                }
+            }
+        }
+        
+        return false
+    }
     
     private func zodiacImageName() -> String {
         // First check SwiftData User, then fallback to UserProfileManager

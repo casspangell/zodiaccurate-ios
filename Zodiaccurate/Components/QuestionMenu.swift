@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 enum QuestionMenuButton {
     case none
@@ -10,6 +11,8 @@ enum QuestionMenuButton {
 }
 
 struct QuestionMenu: View {
+    @Environment(\.modelContext) private var modelContext
+    
     let onWellness: () -> Void
     let onRelationship: () -> Void
     let onImportantPeople: () -> Void
@@ -31,6 +34,9 @@ struct QuestionMenu: View {
     
     // Highlighted button state
     let highlightedButton: QuestionMenuButton
+    
+    // User ID for checking IntakeData (optional, defaults to "default")
+    let userId: String?
     
     // MARK: - State Properties for Unfinished State
     
@@ -66,12 +72,13 @@ struct QuestionMenu: View {
         isChildrenUnfinished = childrenProgress > 0 && childrenProgress < ConversationProgressManager.getTotalStepsForTopic("children")
         isEmploymentUnfinished = employmentProgress > 0 && employmentProgress < ConversationProgressManager.getTotalStepsForTopic("employment")
         
-        // Update completion states
-        isWellnessCompleted = ConversationProgressManager.isTopicCompleted(for: "wellness")
-        isRelationshipCompleted = ConversationProgressManager.isTopicCompleted(for: "relationship")
-        isImportantPeopleCompleted = ConversationProgressManager.isTopicCompleted(for: "importantPeople")
-        isChildrenCompleted = ConversationProgressManager.isTopicCompleted(for: "children")
-        isEmploymentCompleted = ConversationProgressManager.isTopicCompleted(for: "employment")
+        // Update completion states - check both ConversationProgressManager and SwiftData (IntakeData)
+        let effectiveUserId = userId ?? "default"
+        isWellnessCompleted = checkTopicCompletion(topic: "wellness", userId: effectiveUserId)
+        isRelationshipCompleted = checkTopicCompletion(topic: "relationship", userId: effectiveUserId)
+        isImportantPeopleCompleted = checkTopicCompletion(topic: "importantPeople", userId: effectiveUserId)
+        isChildrenCompleted = checkTopicCompletion(topic: "children", userId: effectiveUserId)
+        isEmploymentCompleted = checkTopicCompletion(topic: "employment", userId: effectiveUserId)
         
         print("🔄 QuestionMenu: Updated unfinished states - Wellness: \(isWellnessUnfinished), Relationship: \(isRelationshipUnfinished), Important People: \(isImportantPeopleUnfinished), Children: \(isChildrenUnfinished), Employment: \(isEmploymentUnfinished)")
         print("🔄 QuestionMenu: Updated completion states - Wellness: \(isWellnessCompleted), Relationship: \(isRelationshipCompleted), Important People: \(isImportantPeopleCompleted), Children: \(isChildrenCompleted), Employment: \(isEmploymentCompleted)")
@@ -82,6 +89,35 @@ struct QuestionMenu: View {
         if isImportantPeopleCompleted { isImportantPeopleFieryState = false }
         if isChildrenCompleted { isChildrenFieryState = false }
         if isEmploymentCompleted { isEmploymentFieryState = false }
+    }
+    
+    /// Check if a topic is completed by checking both ConversationProgressManager and IntakeData (SwiftData)
+    private func checkTopicCompletion(topic: String, userId: String) -> Bool {
+        // First check ConversationProgressManager (UserDefaults - tracks step progress)
+        let progressCompleted = ConversationProgressManager.isTopicCompleted(for: topic)
+        
+        if progressCompleted {
+            return true
+        }
+        
+        // Fallback: Also check IntakeData (SwiftData - tracks actual data saved)
+        do {
+            let intakeDataManager = IntakeDataManager(modelContext: modelContext)
+            let hasData = intakeDataManager.hasTopicData(userId: userId, topic: topic)
+            if hasData {
+                let topicData = intakeDataManager.getTopicData(userId: userId, topic: topic)
+                let totalSteps = ConversationProgressManager.getTotalStepsForTopic(topic)
+                // If we have data for most steps (80% or more), consider it completed
+                if topicData.count >= Int(Double(totalSteps) * 0.8) {
+                    print("✅ QuestionMenu: Topic '\(topic)' considered completed based on IntakeData (has \(topicData.count)/\(totalSteps) answers)")
+                    return true
+                }
+            }
+        } catch {
+            print("⚠️ QuestionMenu: Error checking IntakeData for topic '\(topic)': \(error)")
+        }
+        
+        return false
     }
 
     // Local interactive state that starts from the passed fiery flags, then turns off after tap
@@ -107,7 +143,8 @@ struct QuestionMenu: View {
         isImportantPeopleFiery: Bool = true,
         isChildrenFiery: Bool = true,
         isEmploymentFiery: Bool = true,
-        highlightedButton: QuestionMenuButton = .none
+        highlightedButton: QuestionMenuButton = .none,
+        userId: String? = nil
     ) {
         self.onWellness = onWellness
         self.onRelationship = onRelationship
@@ -125,6 +162,7 @@ struct QuestionMenu: View {
         self.isChildrenFiery = isChildrenFiery
         self.isEmploymentFiery = isEmploymentFiery
         self.highlightedButton = highlightedButton
+        self.userId = userId
 
         // Initialize local state from provided initial flags, but only if enabled
         self._isWellnessFieryState = State(initialValue: isWellnessEnabled && isWellnessFiery)

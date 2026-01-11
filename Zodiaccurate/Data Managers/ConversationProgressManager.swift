@@ -112,17 +112,17 @@ class ConversationProgressManager {
     static func getTotalStepsForTopic(_ topic: String) -> Int {
         switch topic.lowercased() {
         case "wellness":
-            return 5 // Adjust based on your actual wellness conversation steps
+            return 13 // Wellness has 13 steps (including final)
         case "relationship":
-            return 5 // Adjust based on your actual relationship conversation steps
+            return 10 // Relationship has 10 steps
         case "importantpeople", "important people":
-            return 5 // Adjust based on your actual important people conversation steps
+            return 10 // Important People has 10 steps
         case "children":
-            return 5 // Adjust based on your actual children conversation steps
+            return 10 // Children has 10 steps
         case "employment":
-            return 5 // Adjust based on your actual employment conversation steps
+            return 10 // Employment has 10 steps
         default:
-            return 5 // Default fallback
+            return 10 // Default fallback
         }
     }
     

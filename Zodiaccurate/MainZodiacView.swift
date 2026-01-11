@@ -292,7 +292,15 @@ struct MainZodiacView: View {
                 ZStack {
                     // Background layer (implicit z-index 0)
                     
-                    VStack(spacing: headerFlipBookSpacing) {
+                    VStack(spacing: 0) {
+                        // Progress bar above header
+                        if hasAcceptedConsentPolicies {
+                            ConversationProgressBar()
+                                .padding(.horizontal, 16)
+                                .padding(.top, 24)
+                                .padding(.bottom, 4)
+                        }
+                        
                         // Header layer - pinned to top
                         ZStack {
                             ZodiacHeader(
@@ -329,7 +337,7 @@ struct MainZodiacView: View {
                                 syncStatusManager: syncStatusManager
                             )
                             .frame(maxWidth: .infinity)
-                            .padding(.top, 24)
+                            .padding(.top, hasAcceptedConsentPolicies ? 0 : 24)
                             .onPreferenceChange(HeaderHeightPreferenceKey.self) { headerHeight in
                                 self.headerHeight = headerHeight
                             }
@@ -368,6 +376,7 @@ struct MainZodiacView: View {
                                 .zIndex(getZIndex(.five))
                             }
                         }
+                        .padding(.bottom, headerFlipBookSpacing)
                     
                         
                         // FlipBook layer directly under header (gated by consent)

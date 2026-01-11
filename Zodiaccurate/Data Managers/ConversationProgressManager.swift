@@ -245,6 +245,31 @@ class ConversationProgressManager {
             return ""
         }
     }
+    
+    /// Calculate overall progress across all conversation forms
+    /// - Returns: Overall progress as a value between 0.0 and 1.0
+    static func getOverallProgress() -> Double {
+        let topics = ["wellness", "relationship", "importantPeople", "children", "employment"]
+        var totalCompletedSteps = 0
+        var totalSteps = 0
+        
+        for topic in topics {
+            let progress = getProgress(for: topic)
+            let totalStepsForTopic = getTotalStepsForTopic(topic)
+            totalCompletedSteps += min(progress, totalStepsForTopic) // Cap at total steps
+            totalSteps += totalStepsForTopic
+        }
+        
+        guard totalSteps > 0 else { return 0.0 }
+        return Double(totalCompletedSteps) / Double(totalSteps)
+    }
+    
+    /// Get completion count (number of completed forms)
+    /// - Returns: Number of completed forms (0-5)
+    static func getCompletedFormCount() -> Int {
+        let topics = ["wellness", "relationship", "importantPeople", "children", "employment"]
+        return topics.filter { isTopicCompleted(for: $0) }.count
+    }
 }
 
 // MARK: - Notification Names

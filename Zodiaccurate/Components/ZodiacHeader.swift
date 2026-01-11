@@ -416,6 +416,11 @@ struct ZodiacHeader: View {
                 }
             }
         )
+        .overlay(
+            // Yellow border around the entire header
+            RoundedRectangle(cornerRadius: 0)
+                .stroke(Color.yellow, lineWidth: 2)
+        )
         .opacity(headerOpacity)
         .zIndex(2)
         .onAppear {

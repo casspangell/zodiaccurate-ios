@@ -236,6 +236,16 @@ struct MainZodiacView: View {
                         await loadWelcomeHoroscopeFromSwiftData()
                     }
                     
+                    // Load daily horoscope from Firebase and save to SwiftData
+                    Task { @MainActor in
+                        await loadDailyHoroscopeFromFirebase()
+                    }
+                    
+                    // Load and log horoscopes for each category
+                    Task { @MainActor in
+                        await loadAndLogHoroscopesForAllCategories()
+                    }
+                    
                     // Trigger header animation to main mode when view loads
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
@@ -968,6 +978,130 @@ struct MainZodiacView: View {
         } catch {
             print("❌ Failed to fetch welcome horoscope from SwiftData: \(error)")
         }
+    }
+    
+    /// Load daily horoscope from Firebase at /zodiac/{uuid}/{day} and save to SwiftData
+    /// Note: This function loads the general daily horoscope (if it exists at /zodiac/{userId}/{day})
+    /// Category-specific horoscopes are loaded via loadAndLogHoroscopesForAllCategories()
+    @MainActor
+    private func loadDailyHoroscopeFromFirebase() async {
+        guard let userId = authManager.user?.uid else {
+            print("⚠️ MainZodiacView: No user ID available to load daily horoscope from Firebase")
+            return
+        }
+        
+        // Get current day name in lowercase (e.g., "saturday", "monday")
+        let dayName = getDayOfWeek().lowercased()
+        
+        print("🔄 MainZodiacView: Loading daily horoscope from Firebase - /zodiac/\(userId)/\(dayName)")
+        
+        do {
+            // Check if horoscope already exists in SwiftData for today
+            let descriptor = FetchDescriptor<Horoscope>(
+                predicate: #Predicate<Horoscope> { $0.key == dayName }
+            )
+            let existingHoroscopes = try modelContext.fetch(descriptor)
+            
+            if let existingHoroscope = existingHoroscopes.first {
+                print("✅ MainZodiacView: Daily horoscope for \(dayName) already exists in SwiftData - Title: '\(existingHoroscope.title)'")
+                return
+            }
+            
+            // Fetch from Firebase (legacy format: /zodiac/{userId}/{day})
+            let firebaseService = FirebaseDatabaseService()
+            if let horoscope = try await firebaseService.getHoroscope(userId: userId, dateKey: dayName) {
+                // Save to SwiftData
+                modelContext.insert(horoscope)
+                try modelContext.save()
+                print("✅ MainZodiacView: Daily horoscope loaded from Firebase and saved to SwiftData - Key: \(dayName), Title: '\(horoscope.title)'")
+            } else {
+                print("ℹ️ MainZodiacView: No daily horoscope found in Firebase for \(dayName)")
+            }
+        } catch {
+            print("❌ MainZodiacView: Failed to load daily horoscope from Firebase: \(error)")
+        }
+    }
+    
+    /// Load and log horoscopes for all categories from Firebase and SwiftData
+    @MainActor
+    private func loadAndLogHoroscopesForAllCategories() async {
+        guard let userId = authManager.user?.uid else {
+            print("⚠️ MainZodiacView: No user ID available to load category horoscopes")
+            return
+        }
+        
+        // Get current day name in lowercase (e.g., "saturday", "monday")
+        let dayName = getDayOfWeek().lowercased()
+        
+        // Categories to check
+        let categories = [
+            "wellness",
+            "relationship",
+            "importantPeople",
+            "children",
+            "employment"
+        ]
+        
+        let firebaseService = FirebaseDatabaseService()
+        
+        print("\n📊 MainZodiacView: ===== HOROSCOPE DATA FOR EACH CATEGORY =====")
+        print("   Day: \(dayName)")
+        print("   Firebase path structure: /zodiac/\(userId)/\(dayName)/{category}")
+        
+        for category in categories {
+            // Map app category to Firebase category
+            let firebaseCategory = FirebaseDatabaseService.mapAppCategoryToFirebase(category)
+            
+            // Check SwiftData first (using app's internal category format)
+            let categoryKey = "\(category)-\(dayName)"
+            let descriptor = FetchDescriptor<Horoscope>(
+                predicate: #Predicate<Horoscope> { $0.key == categoryKey }
+            )
+            
+            do {
+                let swiftDataHoroscopes = try modelContext.fetch(descriptor)
+                
+                if let horoscope = swiftDataHoroscopes.first {
+                    print("\n✅ \(category.uppercased()) - Found in SwiftData:")
+                    print("   Key: \(horoscope.key)")
+                    print("   Title: \(horoscope.title)")
+                    print("   Message: \(horoscope.message.prefix(100))\(horoscope.message.count > 100 ? "..." : "")")
+                    print("   Created At: \(horoscope.createdAt)")
+                    if let audioPath = horoscope.audioFilePath {
+                        print("   Audio: \(audioPath)")
+                    }
+                } else {
+                    // Try to fetch from Firebase using Firebase structure: /zodiac/{userId}/{day}/{category}
+                    print("\n🔄 \(category.uppercased()) - Not in SwiftData, checking Firebase...")
+                    print("   App category: \(category) -> Firebase category: \(firebaseCategory)")
+                    print("   Checking Firebase path: /zodiac/\(userId)/\(dayName)/\(firebaseCategory)")
+                    do {
+                        if let horoscope = try await firebaseService.getHoroscope(userId: userId, day: dayName, category: firebaseCategory) {
+                            // Save to SwiftData (key is already formatted correctly by getHoroscope)
+                            modelContext.insert(horoscope)
+                            try modelContext.save()
+                            print("   ✅ Loaded from Firebase and saved to SwiftData:")
+                            print("   Firebase Path: /zodiac/\(userId)/\(dayName)/\(firebaseCategory)")
+                            print("   App Key: \(horoscope.key)")
+                            print("   Title: \(horoscope.title)")
+                            print("   Message: \(horoscope.message.prefix(100))\(horoscope.message.count > 100 ? "..." : "")")
+                            print("   Created At: \(horoscope.createdAt)")
+                            if let audioPath = horoscope.audioFilePath {
+                                print("   Audio: \(audioPath)")
+                            }
+                        } else {
+                            print("   ℹ️ Not found in Firebase at /zodiac/\(userId)/\(dayName)/\(firebaseCategory)")
+                        }
+                    } catch {
+                        print("   ❌ Error fetching from Firebase: \(error)")
+                    }
+                }
+            } catch {
+                print("❌ \(category.uppercased()) - Error checking SwiftData: \(error)")
+            }
+        }
+        
+        print("\n📊 MainZodiacView: ===== END HOROSCOPE DATA LOG =====")
     }
 }
 

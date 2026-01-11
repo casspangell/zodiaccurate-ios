@@ -87,10 +87,10 @@ struct FlipBookCard: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 20)
                         .onAppear {
-                            print("🎯 FlipBookCard: Content text displayed - '\(getContentText())'")
+//                            print("🎯 FlipBookCard: Content text displayed - '\(getContentText())'")
                         }
                         .onChange(of: isCardUnfinished) { _, newValue in
-                            print("🎯 FlipBookCard: Content text changed - isCardUnfinished: \(newValue)")
+//                            print("🎯 FlipBookCard: Content text changed - isCardUnfinished: \(newValue)")
                         }
                     
                     if showStartButton && !isCompleted {
@@ -129,7 +129,7 @@ struct FlipBookCard: View {
                 contentHeight = 0
             }
             .onChange(of: isExpanded) { _, newValue in
-                print("🎯 FlipBookCard: ScrollView expansion state changed to \(newValue)")
+//                print("🎯 FlipBookCard: ScrollView expansion state changed to \(newValue)")
                 if !newValue {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         scrollProxy.scrollTo("top", anchor: .top)
@@ -143,25 +143,25 @@ struct FlipBookCard: View {
         HStack {
             Spacer()
             PrimaryGradientButton(title: isCardUnfinished ? "Continue" : "Start!") {
-                print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tapped!")
+//                print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tapped!")
                 onStartButtonTap?()
             }
             .onAppear {
-                print("🎯 FlipBookCard: Button text - isCardUnfinished: \(isCardUnfinished), showing: '\(isCardUnfinished ? "Continue" : "Start!")'")
+//                print("🎯 FlipBookCard: Button text - isCardUnfinished: \(isCardUnfinished), showing: '\(isCardUnfinished ? "Continue" : "Start!")'")
             }
             Spacer()
         }
         .padding(.horizontal, 20)
         .onAppear {
-            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button appeared - showStartButton: \(showStartButton)")
+//            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button appeared - showStartButton: \(showStartButton)")
         }
         .onTapGesture {
-            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tap gesture detected")
+//            print("🎯 FlipBookCard: \(isCardUnfinished ? "Continue" : "Start") button tap gesture detected")
         }
         .allowsHitTesting(true)
         .zIndex(1000)
         .onChange(of: isExpanded) { _, newValue in
-            print("🎯 FlipBookCard: Card expansion changed to \(newValue)")
+//            print("🎯 FlipBookCard: Card expansion changed to \(newValue)")
         }
     }
     
@@ -316,7 +316,7 @@ struct FlipBookCard: View {
             .offset(y: isExpanded ? -geometry.safeAreaInsets.top : 0)
             .animation(.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0), value: cardHeight) // Animate only cardHeight changes
             .onAppear {
-                print("🎯 FlipBookCard: Card appeared - showStartButton: \(showStartButton)")
+//                print("🎯 FlipBookCard: Card appeared - showStartButton: \(showStartButton)")
             }
             .onDisappear {
 //                print("🎯 FlipBookCard: Card disappeared")
@@ -357,7 +357,7 @@ struct FlipBookCard: View {
     private var isCardUnfinished: Bool {
         // If isUnfinished is explicitly set, use that value
         if isUnfinished {
-            print("🎯 FlipBookCard: isUnfinished explicitly set to true")
+//            print("🎯 FlipBookCard: isUnfinished explicitly set to true")
             return true
         }
         
@@ -388,7 +388,7 @@ struct FlipBookCard: View {
         
         if isCardUnfinishedState != newUnfinishedState {
             isCardUnfinishedState = newUnfinishedState
-            print("🎯 FlipBookCard: Updated unfinished state for '\(title)' - Progress: \(progress)/\(totalSteps), Unfinished: \(newUnfinishedState)")
+//            print("🎯 FlipBookCard: Updated unfinished state for '\(title)' - Progress: \(progress)/\(totalSteps), Unfinished: \(newUnfinishedState)")
         }
     }
     
@@ -402,7 +402,7 @@ struct FlipBookCard: View {
             return "Thank you for completing this survey. You should start seeing your daily Zodiaccurate."
         }
         let contentText = isCardUnfinished ? "Continue your intake" : "Start your intake"
-        print("🎯 FlipBookCard: Content text - isCompleted: \(isCompleted), isCardUnfinished: \(isCardUnfinished), showing: '\(contentText)'")
+//        print("🎯 FlipBookCard: Content text - isCompleted: \(isCompleted), isCardUnfinished: \(isCardUnfinished), showing: '\(contentText)'")
         return contentText
     }
     

@@ -206,6 +206,46 @@ class FirebaseDatabaseService: ObservableObject {
     
     // MARK: - Horoscope Management
     
+    /// Map app category string to Firebase category string
+    /// - Parameter appCategory: The app's internal category string (e.g., "wellness", "relationship")
+    /// - Returns: The Firebase category string (e.g., "personal_wellness", "relationship_guidance")
+    static func mapAppCategoryToFirebase(_ appCategory: String) -> String {
+        switch appCategory.lowercased() {
+        case "employment":
+            return "career_and_finances"
+        case "children":
+            return "child_guidance"
+        case "importantpeople", "important people":
+            return "important_person_guidance"
+        case "wellness":
+            return "personal_wellness"
+        case "relationship":
+            return "relationship_guidance"
+        default:
+            return appCategory.lowercased()
+        }
+    }
+    
+    /// Map Firebase category string to app category string
+    /// - Parameter firebaseCategory: The Firebase category string (e.g., "personal_wellness", "relationship_guidance")
+    /// - Returns: The app's internal category string (e.g., "wellness", "relationship")
+    static func mapFirebaseCategoryToApp(_ firebaseCategory: String) -> String {
+        switch firebaseCategory.lowercased() {
+        case "career_and_finances":
+            return "employment"
+        case "child_guidance":
+            return "children"
+        case "important_person_guidance":
+            return "importantPeople"
+        case "personal_wellness":
+            return "wellness"
+        case "relationship_guidance":
+            return "relationship"
+        default:
+            return firebaseCategory.lowercased()
+        }
+    }
+    
     /// Save horoscope to /zodiac/{uuid}/{key}
     func saveHoroscope(userId: String, horoscope: Horoscope) async throws {
         var horoscopeData: [String: Any] = [
@@ -227,6 +267,82 @@ class FirebaseDatabaseService: ObservableObject {
             print("❌ Failed to save horoscope to Firebase: \(error)")
             throw error
         }
+    }
+    
+    /// Get horoscope from /zodiac/{uuid}/{dateKey}
+    /// - Parameters:
+    ///   - userId: The user's UUID
+    ///   - dateKey: The date key in format "yyyy-MM-dd" (e.g., "2025-01-15")
+    /// - Returns: Horoscope object if found, nil otherwise
+    func getHoroscope(userId: String, dateKey: String) async throws -> Horoscope? {
+        let snapshot = try await database.child("zodiac").child(userId).child(dateKey).getData()
+        
+        guard let value = snapshot.value as? [String: Any] else {
+            return nil
+        }
+        
+        guard let title = value["title"] as? String,
+              let message = value["message"] as? String,
+              let key = value["key"] as? String,
+              let createdAtTimestamp = value["createdAt"] as? TimeInterval else {
+            print("⚠️ FirebaseDatabaseService: Invalid horoscope data structure at /zodiac/\(userId)/\(dateKey)")
+            return nil
+        }
+        
+        let audioFilePath = value["audioFilePath"] as? String
+        let createdAt = Date(timeIntervalSince1970: createdAtTimestamp)
+        
+        return Horoscope(
+            title: title,
+            message: message,
+            key: key,
+            audioFilePath: audioFilePath,
+            createdAt: createdAt
+        )
+    }
+    
+    /// Get horoscope from /zodiac/{uuid}/{day}/{category}
+    /// - Parameters:
+    ///   - userId: The user's UUID
+    ///   - day: The day name in lowercase (e.g., "saturday", "monday")
+    ///   - category: The Firebase category string (e.g., "personal_wellness", "relationship_guidance")
+    /// - Returns: Horoscope object if found, nil otherwise
+    func getHoroscope(userId: String, day: String, category: String) async throws -> Horoscope? {
+        let snapshot = try await database.child("zodiac").child(userId).child(day).child(category).getData()
+        
+        guard let value = snapshot.value as? [String: Any] else {
+            return nil
+        }
+        
+        // Firebase structure uses "Category" for title and "Content" for message
+        guard let title = value["Category"] as? String,
+              let message = value["Content"] as? String else {
+            print("⚠️ FirebaseDatabaseService: Invalid horoscope data structure at /zodiac/\(userId)/\(day)/\(category)")
+            print("   Expected 'Category' and 'Content' fields")
+            return nil
+        }
+        
+        // Optional fields
+        let audioFilePath = value["audioFilePath"] as? String
+        let createdAt: Date
+        if let createdAtTimestamp = value["createdAt"] as? TimeInterval {
+            createdAt = Date(timeIntervalSince1970: createdAtTimestamp)
+        } else {
+            // Default to current date if not provided
+            createdAt = Date()
+        }
+        
+        // Construct the key using app's internal format for SwiftData storage
+        let appCategory = FirebaseDatabaseService.mapFirebaseCategoryToApp(category)
+        let key = "\(appCategory)-\(day)"
+        
+        return Horoscope(
+            title: title,
+            message: message,
+            key: key,
+            audioFilePath: audioFilePath,
+            createdAt: createdAt
+        )
     }
     
     // MARK: - Stardust Management

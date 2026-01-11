@@ -27,7 +27,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 2. Physical health description
     ConversationStep(
-        message: "Describe your current physical health.",
+        message: "Describe your physical health.",
         inputType: "multiLine",
         placeholder: "(e.g., arthritis, low energy, pain, digestive issues, etc.)",
         dataKey: "physicalHealthDescription",
@@ -36,16 +36,16 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 3. Emotional imbalances
     ConversationStep(
-        message: "Describe any emotional imbalances.",
+        message: "Describe your emotions.",
         inputType: "multiLine",
-        placeholder: "Describe your emotional landscape...",
+        placeholder: "How do you feel most of the time?",
         dataKey: "emotionalImbalances",
         aiStep: true
     ),
     
     // 4. Mental health challenges
     ConversationStep(
-        message: "List any mental health challenges .",
+        message: "List any mental health challenges.",
         inputType: "multiLine",
         placeholder: "(e.g., negative thinking, trauma, serious conditions)",
         dataKey: "mentalHealthChallenges",
@@ -54,7 +54,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 5. Wellness goals
     ConversationStep(
-        message: "What are your wellness goals?",
+        message: "What are your health goals?",
         inputType: "multiLine",
         placeholder: "(e.g., lose weight, gain strength, be more flexible)",
         dataKey: "wellnessGoals",
@@ -63,7 +63,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 6. Short or long-term goals or dreams
     ConversationStep(
-        message: "List 3–5 short or long-term goals or dreams.",
+        message: "List 3–5 goals or dreams.",
         inputType: "multiLine",
         placeholder: "(e.g., start a business, travel to Japan, write a book, buy a home)",
         dataKey: "goalsAndDreams",
@@ -72,7 +72,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 7. Areas to improve
     ConversationStep(
-        message: "List 3–5 areas of your life you want to improve.",
+        message: "What areas of your life do you want to improve?",
         inputType: "multiLine",
         placeholder: "(e.g., communication, career, finances, relationships, self-discipline)",
         dataKey: "areasToImprove",
@@ -81,7 +81,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 8. Sources of stress
     ConversationStep(
-        message: "What are your top 3–5 sources of stress?",
+        message: "What causes you stress?",
         inputType: "multiLine",
         placeholder: "(e.g., work deadlines, finances, family conflict, health worries)",
         dataKey: "stressSources",
@@ -90,7 +90,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 9. Joy and satisfaction
     ConversationStep(
-        message: "What brings you joy and satisfaction?",
+        message: "What makes you happy?",
         inputType: "multiLine",
         placeholder: "(e.g., time in nature, music, creating art, helping others)",
         dataKey: "joyAndSatisfaction",
@@ -99,7 +99,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 10. Family values or principles
     ConversationStep(
-        message: "What family values or principles matter most to you?",
+        message: "What values matter most to you?",
         inputType: "multiLine",
         placeholder: "(e.g., honesty, loyalty, compassion, faith, hard work)",
         dataKey: "familyValues",
@@ -125,7 +125,7 @@ let wellnessConversationSteps: [ConversationStep] = [
     
     // 12. Belief system (single selection)
     ConversationStep(
-        message: "What is your belief system? (If your beliefs influence your decisions, sharing them can help personalize your guidance.)",
+        message: "What is your belief system?",
         inputType: "singlechoice",
         placeholder: "Select one option",
         dataKey: "beliefSystem",

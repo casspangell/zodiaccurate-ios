@@ -173,6 +173,7 @@ struct QuestionChatBubble: View {
 // MARK: - Response Chat Bubble Component
 struct ResponseChatBubble: View {
     let currentStep: ConversationStep
+    let personalizedPlaceholder: String?
     @Binding var currentInput: String
     @Binding var selectedDate: Date
     @Binding var selectedTime: Date
@@ -189,8 +190,14 @@ struct ResponseChatBubble: View {
     @State private var singleChoiceSelection: String? = nil
     @State private var multiChoiceSelections: Set<String> = []
     
-    init(currentStep: ConversationStep, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
+    // Computed property to get the effective placeholder
+    private var effectivePlaceholder: String {
+        return ""
+    }
+
+    init(currentStep: ConversationStep, personalizedPlaceholder: String? = nil, currentInput: Binding<String>, selectedDate: Binding<Date>, selectedTime: Binding<Date>, onSend: @escaping () -> Void, onDateSelected: @escaping (Date) -> Void, onTimeSelected: @escaping (Date) -> Void, onUnknownTime: @escaping () -> Void, onFrameChange: @escaping (CGRect) -> Void, highlightInputField: Binding<Bool>, onHeightChange: ((CGFloat) -> Void)? = nil, backgroundColor: Color? = nil, bubbleColor: ChatBubbleColor? = nil) {
         self.currentStep = currentStep
+        self.personalizedPlaceholder = personalizedPlaceholder
         self._currentInput = currentInput
         self._selectedDate = selectedDate
         self._selectedTime = selectedTime
@@ -225,7 +232,7 @@ struct ResponseChatBubble: View {
                     if currentStep.inputType == "singleLine" {
                         SingleLineTextField(
                             text: $currentInput,
-                            placeholder: currentStep.placeholder,
+                            placeholder: effectivePlaceholder,
                             isFocused: $isTextFieldFocused,
                             onSubmit: onSend,
                             highlightInputField: $highlightInputField,
@@ -237,7 +244,7 @@ struct ResponseChatBubble: View {
                     } else { //if currentStep.inputType == "multiLine"
                         MultiLineTextField(
                             text: $currentInput,
-                            placeholder: currentStep.placeholder,
+                            placeholder: effectivePlaceholder,
                             isFocused: $isTextFieldFocused,
                             onSubmit: onSend,
                             highlightInputField: $highlightInputField,

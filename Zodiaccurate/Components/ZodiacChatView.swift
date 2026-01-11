@@ -22,7 +22,8 @@ struct ZodiacChatView: View {
     @StateObject private var stardustManager = StardustManager()
     @State private var headerHeight: CGFloat = 0
     @State private var previousResponses: [String] = []
-
+    @State private var personalizedPlaceholders: [Int: String] = [:] // Maps step index to personalized placeholder
+    
     @State private var inputFieldFrame: CGRect = .zero
     @State private var showZodiacAlert = false
     @State private var zodiacAlertMessage = ""
@@ -248,6 +249,7 @@ struct ZodiacChatView: View {
                     ChatInputView(
                         currentStep: currentStepIndex,
                         conversationSteps: conversationSteps,
+                        personalizedPlaceholders: personalizedPlaceholders,
                         showInputField: showInputField,
                         showResponseChatBubble: showResponseChatBubble,
                         responseBubbleOpacity: responseBubbleOpacity,
@@ -285,6 +287,27 @@ struct ZodiacChatView: View {
                         },
                         isTextFieldFocused: $isTextFieldFocused,
                         onFrameChange: { frame in
+                            // #region agent log
+                            let frameChanged = abs(frame.minX - inputFieldFrame.minX) > 0.1 || abs(frame.minY - inputFieldFrame.minY) > 0.1 || abs(frame.width - inputFieldFrame.width) > 0.1 || abs(frame.height - inputFieldFrame.height) > 0.1
+                            let logData: [String: Any] = [
+                                "oldFrame": ["x": inputFieldFrame.minX, "y": inputFieldFrame.minY, "width": inputFieldFrame.width, "height": inputFieldFrame.height],
+                                "newFrame": ["x": frame.minX, "y": frame.minY, "width": frame.width, "height": frame.height],
+                                "keyboardHeight": keyboardManager.keyboardHeight,
+                                "frameChanged": frameChanged
+                            ]
+                            if let logUrl = URL(string: "http://127.0.0.1:7242/ingest/c677de8d-2119-4520-a566-f1ce6300614d") {
+                                Task {
+                                    do {
+                                        let jsonData = try JSONSerialization.data(withJSONObject: ["location": "ZodiacChatView.swift:289", "message": "onFrameChange called", "data": logData, "timestamp": Int(Date().timeIntervalSince1970 * 1000), "sessionId": "debug-session", "runId": "run1", "hypothesisId": "E"])
+                                        var request = URLRequest(url: logUrl)
+                                        request.httpMethod = "POST"
+                                        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                                        request.httpBody = jsonData
+                                        _ = try? await URLSession.shared.data(for: request)
+                                    } catch {}
+                                }
+                            }
+                            // #endregion
                             inputFieldFrame = frame
                             // Recalculate keyboard offset when input field appears
                             if keyboardManager.keyboardHeight > 0 {
@@ -387,6 +410,25 @@ struct ZodiacChatView: View {
                 }
             }
             .onChange(of: isTextFieldFocused) { _, isFocused in
+                // #region agent log
+                let logData: [String: Any] = [
+                    "isFocused": isFocused,
+                    "keyboardHeight": keyboardManager.keyboardHeight,
+                    "willUpdateOffset": isFocused && keyboardManager.keyboardHeight > 0
+                ]
+                if let logUrl = URL(string: "http://127.0.0.1:7242/ingest/c677de8d-2119-4520-a566-f1ce6300614d") {
+                    Task {
+                        do {
+                            let jsonData = try JSONSerialization.data(withJSONObject: ["location": "ZodiacChatView.swift:391", "message": "isTextFieldFocused changed", "data": logData, "timestamp": Int(Date().timeIntervalSince1970 * 1000), "sessionId": "debug-session", "runId": "run1", "hypothesisId": "F"])
+                            var request = URLRequest(url: logUrl)
+                            request.httpMethod = "POST"
+                            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                            request.httpBody = jsonData
+                            _ = try? await URLSession.shared.data(for: request)
+                        } catch {}
+                    }
+                }
+                // #endregion
                 if isFocused && keyboardManager.keyboardHeight > 0 {
                     print("is focused")
                     // Text field gained focus while keyboard is visible
@@ -756,6 +798,27 @@ struct ZodiacChatView: View {
     }
     
     private func handleKeyboardHeightChange(_ keyboardHeight: CGFloat) {
+        // #region agent log
+        let logData: [String: Any] = [
+            "keyboardHeight": keyboardHeight,
+            "currentOffset": keyboardManager.animatedKeyboardOffset,
+            "showInputField": showInputField,
+            "showResponseChatBubble": showResponseChatBubble,
+            "inputFieldFrame": ["x": inputFieldFrame.minX, "y": inputFieldFrame.minY, "width": inputFieldFrame.width, "height": inputFieldFrame.height]
+        ]
+        if let logUrl = URL(string: "http://127.0.0.1:7242/ingest/c677de8d-2119-4520-a566-f1ce6300614d") {
+            Task {
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: ["location": "ZodiacChatView.swift:760", "message": "handleKeyboardHeightChange called", "data": logData, "timestamp": Int(Date().timeIntervalSince1970 * 1000), "sessionId": "debug-session", "runId": "run1", "hypothesisId": "D"])
+                    var request = URLRequest(url: logUrl)
+                    request.httpMethod = "POST"
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    request.httpBody = jsonData
+                    _ = try? await URLSession.shared.data(for: request)
+                } catch {}
+            }
+        }
+        // #endregion
 //        print("🔧 [handleKeyboardHeightChange] Keyboard height changed to: \(keyboardHeight)")
         
         // Dismiss tutorial bubble when keyboard appears
@@ -930,6 +993,7 @@ struct MessageBubbleView: View {
 struct ChatInputView: View {
     let currentStep: Int
     let conversationSteps: [ConversationStep]
+    let personalizedPlaceholders: [Int: String]
     let showInputField: Bool
     let showResponseChatBubble: Bool
     let responseBubbleOpacity: Double
@@ -961,6 +1025,7 @@ struct ChatInputView: View {
                 // Response chat bubble with frame tracking
                 ResponseChatBubble(
                     currentStep: conversationSteps[currentStep],
+                    personalizedPlaceholder: personalizedPlaceholders[currentStep],
                     currentInput: currentInput,
                     selectedDate: selectedDate,
                     selectedTime: selectedTime,

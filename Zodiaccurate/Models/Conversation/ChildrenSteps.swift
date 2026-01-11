@@ -27,7 +27,7 @@ let childrenConversationSteps: [ConversationStep] = [
     
     // 2. Parenting experience
     ConversationStep(
-        message: "How would you describe your parenting experience?",
+        message: "How do you describe parenting?",
         inputType: "multiLine",
         placeholder: "(e.g., rewarding, challenging, learning, etc.)",
         dataKey: "parentingExperience",
@@ -54,7 +54,7 @@ let childrenConversationSteps: [ConversationStep] = [
     
     // 5. Parenting goals
     ConversationStep(
-        message: "What are your goals as a parent?",
+        message: "What are your parenting goals?",
         inputType: "multiLine",
         placeholder: "(e.g., raise confident kids, teach values, etc.)",
         dataKey: "parentingGoals",
@@ -63,7 +63,7 @@ let childrenConversationSteps: [ConversationStep] = [
     
     // 6. Family dynamics
     ConversationStep(
-        message: "How would you describe your family dynamics?",
+        message: "How does your family work together?",
         inputType: "multiLine",
         placeholder: "(e.g., close, busy, structured, etc.)",
         dataKey: "familyDynamics",
@@ -72,7 +72,7 @@ let childrenConversationSteps: [ConversationStep] = [
     
     // 7. Work-life balance
     ConversationStep(
-        message: "How do you balance work and family life?",
+        message: "How do you balance work and family?",
         inputType: "multiLine",
         placeholder: "(e.g., flexible schedule, childcare, support system, etc.)",
         dataKey: "workLifeBalance",
@@ -81,7 +81,7 @@ let childrenConversationSteps: [ConversationStep] = [
     
     // 8. Values you want to pass on
     ConversationStep(
-        message: "What values do you want to pass on to your children?",
+        message: "What values do you want to teach your children?",
         inputType: "multiLine",
         placeholder: "(e.g., kindness, hard work, curiosity, etc.)",
         dataKey: "valuesToPassOn",
@@ -90,7 +90,7 @@ let childrenConversationSteps: [ConversationStep] = [
     
     // 9. Support system
     ConversationStep(
-        message: "Who supports you in your parenting journey?",
+        message: "Who helps you with parenting?",
         inputType: "multiLine",
         placeholder: "(e.g., partner, family, friends, community, etc.)",
         dataKey: "parentingSupport",
@@ -99,7 +99,7 @@ let childrenConversationSteps: [ConversationStep] = [
     
     // 10. Future family vision
     ConversationStep(
-        message: "What's your vision for your family's future?",
+        message: "What do you want for your family's future?",
         inputType: "multiLine",
         placeholder: "(e.g., family traditions, goals, relationships, etc.)",
         dataKey: "futureFamilyVision",

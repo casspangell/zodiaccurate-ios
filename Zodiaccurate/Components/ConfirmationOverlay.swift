@@ -5,14 +5,12 @@ struct ConfirmationOverlay: View {
     let cost: Int?
     let continueButtonText: String
     let onOK: (() -> Void)?
-    let onNevermind: (() -> Void)?
     
-    init(message: String, cost: Int? = nil, continueButtonText: String = "OK", onOK: (() -> Void)? = nil, onNevermind: (() -> Void)? = nil) {
+    init(message: String, cost: Int? = nil, continueButtonText: String = "OK", onOK: (() -> Void)? = nil) {
         self.message = message
         self.cost = cost
         self.continueButtonText = continueButtonText
         self.onOK = onOK
-        self.onNevermind = onNevermind
     }
     
     var body: some View {
@@ -46,41 +44,25 @@ struct ConfirmationOverlay: View {
                     }
                 }
                 
-                if onOK != nil || onNevermind != nil {
-                    HStack(spacing: 16) {
-                        if let onNevermind = onNevermind {
-                            Button(action: onNevermind) {
-                                Text("Nevermind")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.7))
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.white.opacity(0.1))
-                                    .cornerRadius(12)
-                            }
-                        }
-                        
-                        if let onOK = onOK {
-                            Button(action: onOK) {
-                                Text(continueButtonText)
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [
-                                                Color.orange.opacity(0.8),
-                                                Color.pink.opacity(0.8),
-                                                Color.purple.opacity(0.8)
-                                            ]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .cornerRadius(12)
-                            }
-                        }
+                if let onOK = onOK {
+                    Button(action: onOK) {
+                        Text(continueButtonText)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.orange.opacity(0.8),
+                                        Color.pink.opacity(0.8),
+                                        Color.purple.opacity(0.8)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .cornerRadius(12)
                     }
                     .padding(.top, 8)
                 }

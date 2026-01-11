@@ -527,14 +527,11 @@ struct MainZodiacView: View {
             // Confirmation Overlays
             if showWellnessConfirmation {
                 ConfirmationOverlay(
-                    message: "This questionnaire explores your overall health, physical wellness, emotional balance, mental health, goals, stress sources, and what brings you joy. Your responses help personalize your daily horoscope guidance.",
+                    message: "Answer questions about your health and happiness. This helps us give you better daily advice.",
                     continueButtonText: "Continue",
                     onOK: {
                         wellnessDisplayName = "Wellness"
                         showWellnessConversation = true
-                        showWellnessConfirmation = false
-                    },
-                    onNevermind: {
                         showWellnessConfirmation = false
                     }
                 )
@@ -542,14 +539,11 @@ struct MainZodiacView: View {
             
             if showRelationshipConfirmation {
                 ConfirmationOverlay(
-                    message: "This questionnaire covers your relationship status, communication style, love language, relationship goals, and what you're looking for in a partner. Share your experiences to receive personalized relationship insights.",
+                    message: "Tell us about your relationships. This helps us give you better love advice.",
                     continueButtonText: "Continue",
                     onOK: {
                         relationshipDisplayName = "Relationship"
                         showRelationshipConversation = true
-                        showRelationshipConfirmation = false
-                    },
-                    onNevermind: {
                         showRelationshipConfirmation = false
                     }
                 )
@@ -557,14 +551,11 @@ struct MainZodiacView: View {
             
             if showImportantPeopleConfirmation {
                 ConfirmationOverlay(
-                    message: "This questionnaire explores your relationships with family, friends, mentors, and your support system. Understanding these connections helps provide guidance on your social and personal dynamics.",
+                    message: "Tell us about your family and friends. This helps us give you better advice.",
                     continueButtonText: "Continue",
                     onOK: {
                         importantPeopleDisplayName = "Important People"
                         showImportantPeopleConversation = true
-                        showImportantPeopleConfirmation = false
-                    },
-                    onNevermind: {
                         showImportantPeopleConfirmation = false
                     }
                 )
@@ -572,14 +563,11 @@ struct MainZodiacView: View {
             
             if showChildrenConfirmation {
                 ConfirmationOverlay(
-                    message: "This questionnaire covers your parenting experience, style, challenges, goals, and family dynamics. Whether you have children or are planning to, your responses help tailor guidance for your family life.",
+                    message: "Tell us about your family. This helps us give you better advice.",
                     continueButtonText: "Continue",
                     onOK: {
                         childrenDisplayName = "Children"
                         showChildrenConversation = true
-                        showChildrenConfirmation = false
-                    },
-                    onNevermind: {
                         showChildrenConfirmation = false
                     }
                 )
@@ -587,14 +575,11 @@ struct MainZodiacView: View {
             
             if showEmploymentConfirmation {
                 ConfirmationOverlay(
-                    message: "This questionnaire explores your career, job satisfaction, work-life balance, professional goals, and workplace relationships. Share your employment journey to receive career-focused horoscope insights.",
+                    message: "Tell us about your job. This helps us give you better work advice.",
                     continueButtonText: "Continue",
                     onOK: {
                         employmentDisplayName = "Employment"
                         showEmploymentConversation = true
-                        showEmploymentConfirmation = false
-                    },
-                    onNevermind: {
                         showEmploymentConfirmation = false
                     }
                 )

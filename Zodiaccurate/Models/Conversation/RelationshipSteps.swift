@@ -36,7 +36,7 @@ let relationshipConversationSteps: [ConversationStep] = [
     
     // 3. Communication style
     ConversationStep(
-        message: "How would you describe your communication style in relationships?",
+        message: "How do you communicate in relationships?",
         inputType: "multiLine",
         placeholder: "(e.g., direct, emotional, reserved, expressive, etc.)",
         dataKey: "communicationStyle",
@@ -45,7 +45,7 @@ let relationshipConversationSteps: [ConversationStep] = [
     
     // 4. Love language
     ConversationStep(
-        message: "What's your primary love language?",
+        message: "What's your love language?",
         inputType: "singlechoice",
         placeholder: "Select one option",
         dataKey: "loveLanguage",
@@ -78,7 +78,7 @@ let relationshipConversationSteps: [ConversationStep] = [
     
     // 7. Partner qualities
     ConversationStep(
-        message: "What qualities are most important to you in a partner?",
+        message: "What do you look for in a partner?",
         inputType: "multiLine",
         placeholder: "(e.g., honesty, kindness, ambition, sense of humor, etc.)",
         dataKey: "importantPartnerQualities",
@@ -87,7 +87,7 @@ let relationshipConversationSteps: [ConversationStep] = [
     
     // 8. Relationship values
     ConversationStep(
-        message: "What values are most important in your relationships?",
+        message: "What values matter most in your relationships?",
         inputType: "multiLine",
         placeholder: "(e.g., honesty, loyalty, growth, independence, etc.)",
         dataKey: "relationshipValues",
@@ -96,7 +96,7 @@ let relationshipConversationSteps: [ConversationStep] = [
     
     // 9. Intimacy preferences
     ConversationStep(
-        message: "How do you prefer to build intimacy in relationships?",
+        message: "How do you build closeness in relationships?",
         inputType: "multiLine",
         placeholder: "(e.g., deep conversations, shared activities, physical closeness, etc.)",
         dataKey: "intimacyPreferences",
@@ -105,7 +105,7 @@ let relationshipConversationSteps: [ConversationStep] = [
     
     // 10. Future relationship vision
     ConversationStep(
-        message: "What's your vision for your ideal relationship?",
+        message: "What do you want in a relationship?",
         inputType: "multiLine",
         placeholder: "(e.g., partnership dynamics, shared goals, lifestyle, etc.)",
         dataKey: "futureRelationshipVision",

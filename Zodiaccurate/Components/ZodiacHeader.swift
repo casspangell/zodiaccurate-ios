@@ -88,6 +88,8 @@ struct ZodiacHeader: View {
     let centeredLabel: String?
     // User ID for checking completion status in SwiftData
     let userId: String?
+    // Data sync status manager
+    let syncStatusManager: DataSyncStatusManager?
     @StateObject private var badgeAnimationManager = BadgeAnimationManager()
     @State private var headerOpacity: Double = 1.0
     @State private var headerBackgroundOpacity: Double = 1.0
@@ -162,7 +164,8 @@ struct ZodiacHeader: View {
         onEmployment: (() -> Void)? = nil,
         highlightedButton: QuestionMenuButton = .none,
         centeredLabel: String? = nil,
-        userId: String? = nil
+        userId: String? = nil,
+        syncStatusManager: DataSyncStatusManager? = nil
     ) {
         self.profileImage = profileImage
         self.badgeScale = badgeScale
@@ -187,6 +190,7 @@ struct ZodiacHeader: View {
         self.highlightedButton = highlightedButton
         self.centeredLabel = centeredLabel
         self.userId = userId
+        self.syncStatusManager = syncStatusManager
     }
     
     // MARK: - Body
@@ -453,11 +457,27 @@ struct ZodiacHeader: View {
     // MARK: - Layout Components
     private var settingsButtons: some View {
         VStack(alignment: .trailing, spacing: 16) {
-            CircleIconButton(
-                systemName: "bell",
-                accessibilityLabel: "Notifications"
-            ) {
-                // Bell button action
+            // Data sync indicator above bell button
+            if let syncStatusManager = syncStatusManager {
+                ZStack(alignment: .topTrailing) {
+                    CircleIconButton(
+                        systemName: "bell",
+                        accessibilityLabel: "Notifications"
+                    ) {
+                        // Bell button action
+                    }
+                    
+                    // Indicator positioned above the bell button
+                    DataSyncIndicator(syncStatusManager: syncStatusManager)
+                        .offset(x: 16, y: -4)
+                }
+            } else {
+                CircleIconButton(
+                    systemName: "bell",
+                    accessibilityLabel: "Notifications"
+                ) {
+                    // Bell button action
+                }
             }
             
             CircleIconButton(

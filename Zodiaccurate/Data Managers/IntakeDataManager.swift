@@ -19,43 +19,45 @@ class IntakeDataManager: ObservableObject {
     // MARK: - CRUD Operations
     
     /// Get or create IntakeData for a user
-    func getOrCreateIntakeData(for userId: String) -> IntakeData {
+    func getOrCreateIntakeData(for userId: String) async -> IntakeData {
         let descriptor = FetchDescriptor<IntakeData>(
             predicate: #Predicate<IntakeData> { intakeData in
                 intakeData.userId == userId
             }
         )
         
-        do {
-            let existingData = try modelContext.fetch(descriptor)
-            if let first = existingData.first {
-                return first
-            } else {
-                // Create new IntakeData
+        return await Task { @MainActor in
+            do {
+                let existingData = try modelContext.fetch(descriptor)
+                if let first = existingData.first {
+                    return first
+                } else {
+                    // Create new IntakeData
+                    let newIntakeData = IntakeData(userId: userId)
+                    modelContext.insert(newIntakeData)
+                    try modelContext.save()
+                    print("📝 Created new IntakeData for user: \(userId)")
+                    return newIntakeData
+                }
+            } catch {
+                print("❌ Error fetching IntakeData: \(error)")
+                // Create new IntakeData as fallback
                 let newIntakeData = IntakeData(userId: userId)
                 modelContext.insert(newIntakeData)
-                try modelContext.save()
-                print("📝 Created new IntakeData for user: \(userId)")
+                do {
+                    try modelContext.save()
+                    print("📝 Created new IntakeData (fallback) for user: \(userId)")
+                } catch {
+                    print("❌ Error saving new IntakeData: \(error)")
+                }
                 return newIntakeData
             }
-        } catch {
-            print("❌ Error fetching IntakeData: \(error)")
-            // Create new IntakeData as fallback
-            let newIntakeData = IntakeData(userId: userId)
-            modelContext.insert(newIntakeData)
-            do {
-                try modelContext.save()
-                print("📝 Created new IntakeData (fallback) for user: \(userId)")
-            } catch {
-                print("❌ Error saving new IntakeData: \(error)")
-            }
-            return newIntakeData
-        }
+        }.value
     }
     
     /// Update IntakeData with a new answer
-    func updateIntakeData(userId: String, topic: String, dataKey: String, answer: String) {
-        let intakeData = getOrCreateIntakeData(for: userId)
+    func updateIntakeData(userId: String, topic: String, dataKey: String, answer: String) async {
+        let intakeData = await getOrCreateIntakeData(for: userId)
         
         // Convert topic to the format expected by IntakeData
         let normalizedTopic = normalizeTopic(topic)
@@ -64,12 +66,14 @@ class IntakeDataManager: ObservableObject {
         intakeData.setAnswer(answer, for: dataKey, in: normalizedTopic)
         
         // Save to SwiftData
-        do {
-            try modelContext.save()
-            print("📝 Updated IntakeData - User: \(userId), Topic: \(normalizedTopic), Key: \(dataKey), Answer: \(answer)")
-        } catch {
-            print("❌ Error saving IntakeData update: \(error)")
-        }
+        await Task { @MainActor in
+            do {
+                try modelContext.save()
+                print("📝 Updated IntakeData - User: \(userId), Topic: \(normalizedTopic), Key: \(dataKey), Answer: \(answer)")
+            } catch {
+                print("❌ Error saving IntakeData update: \(error)")
+            }
+        }.value
     }
     
     /// Get all IntakeData for a user

@@ -178,6 +178,283 @@ class AuthenticationManager: ObservableObject {
         }
     }
     
+    /// Save User to SwiftData from UserDefaults data (called during registration)
+    func saveUserToSwiftData(modelContext: ModelContext) async {
+        // Get user data from UserDefaults
+        let firstName = UserDefaults.standard.string(forKey: "userFirstName") ?? ""
+        let birthDate = UserDefaults.standard.string(forKey: "userBirthDate") ?? ""
+        let birthTime = UserDefaults.standard.string(forKey: "userBirthTime") ?? ""
+        let zodiacSign = UserDefaults.standard.string(forKey: "userZodiacSign") ?? ""
+        let timezone = UserDefaults.standard.string(forKey: "userTimezone") ?? TimeZone.current.identifier
+        
+        // Skip save if no user data available
+        guard !firstName.isEmpty && !birthDate.isEmpty && !birthTime.isEmpty else {
+            print("⚠️ AuthenticationManager: Insufficient user data for SwiftData save (firstName: \(firstName.isEmpty ? "empty" : "present"), birthDate: \(birthDate.isEmpty ? "empty" : "present"), birthTime: \(birthTime.isEmpty ? "empty" : "present"))")
+            return
+        }
+        
+        await Task { @MainActor in
+            do {
+                // Fetch existing user from SwiftData
+                let descriptor = FetchDescriptor<User>()
+                let existingUsers = try modelContext.fetch(descriptor)
+                
+                if let existingUser = existingUsers.first {
+                    // Update existing user
+                    existingUser.firstName = firstName
+                    existingUser.birthDate = birthDate
+                    existingUser.birthTime = birthTime
+                    existingUser.zodiacSign = zodiacSign
+                    existingUser.timezone = timezone
+                    try modelContext.save()
+                    print("✅ AuthenticationManager: Updated existing User in SwiftData from UserDefaults")
+                } else {
+                    // Create new user
+                    let newUser = User(
+                        firstName: firstName,
+                        birthDate: birthDate,
+                        birthTime: birthTime,
+                        zodiacSign: zodiacSign,
+                        timezone: timezone
+                    )
+                    modelContext.insert(newUser)
+                    try modelContext.save()
+                    print("✅ AuthenticationManager: Created new User in SwiftData from UserDefaults")
+                }
+            } catch {
+                print("❌ AuthenticationManager: Failed to save User to SwiftData: \(error)")
+            }
+        }.value
+    }
+    
+    /// Save IntakeData to SwiftData from UserDefaults data (called during registration)
+    func saveIntakeDataToSwiftData(modelContext: ModelContext) async {
+        guard let userId = user?.uid else {
+            print("⚠️ AuthenticationManager: No user ID available for IntakeData save")
+            return
+        }
+        
+        // Get onboarding responses from UserDefaults
+        var responses: [String: Any] = [:]
+        if let storedResponses = UserDefaults.standard.dictionary(forKey: "onboardingResponses") as? [String: String] {
+            responses = storedResponses
+        } else {
+            // Fallback: try to get individual keys
+            let possibleKeys = ["intuition", "energy", "final", "overallHealth", "physicalHealthDescription", "emotionalImbalances", "mentalHealthChallenges", "wellnessGoals", "goalsAndDreams", "areasToImprove", "stressSources", "joyAndSatisfaction", "familyValues", "sexualOrientation", "beliefSystem", "relationshipStatus", "relationshipGoals", "communicationStyle", "loveLanguage", "relationshipChallenges", "pastRelationshipLessons", "importantPartnerQualities", "relationshipValues", "intimacyPreferences", "futureRelationshipVision", "familyRelationships", "closestFriends", "supportSystem", "mentorsAndRoleModels", "socialCircle", "peopleWhoInspire", "relationshipDynamics", "peopleToConnectWith", "impactOnOthers", "futureRelationships", "childrenStatus", "parentingExperience", "parentingStyle", "parentingChallenges", "parentingGoals", "familyDynamics", "valuesToPassOn", "parentingSupport", "futureFamilyVision", "employmentStatus", "jobSatisfaction", "careerField", "workEnvironment", "careerGoals", "workLifeBalance", "professionalChallenges", "professionalStrengths", "professionalDevelopment", "futureCareerVision"]
+            
+            for key in possibleKeys {
+                if let answer = UserDefaults.standard.string(forKey: key), !answer.isEmpty {
+                    responses[key] = answer
+                }
+            }
+        }
+        
+        // If no responses found, skip
+        guard !responses.isEmpty else {
+            print("⚠️ AuthenticationManager: No onboarding responses found in UserDefaults for IntakeData save")
+            return
+        }
+        
+        // Map dataKeys to topics (same as syncIntakeData)
+        let topicMapping: [String: String] = [
+            // Wellness topic
+            "overallHealth": "wellness",
+            "physicalHealthDescription": "wellness",
+            "emotionalImbalances": "wellness",
+            "mentalHealthChallenges": "wellness",
+            "wellnessGoals": "wellness",
+            "goalsAndDreams": "wellness",
+            "areasToImprove": "wellness",
+            "stressSources": "wellness",
+            "joyAndSatisfaction": "wellness",
+            "familyValues": "wellness",
+            "sexualOrientation": "wellness",
+            "beliefSystem": "wellness",
+            
+            // Relationship topic
+            "relationshipStatus": "relationship",
+            "relationshipGoals": "relationship",
+            "communicationStyle": "relationship",
+            "loveLanguage": "relationship",
+            "relationshipChallenges": "relationship",
+            "pastRelationshipLessons": "relationship",
+            "importantPartnerQualities": "relationship",
+            "relationshipValues": "relationship",
+            "intimacyPreferences": "relationship",
+            "futureRelationshipVision": "relationship",
+            
+            // ImportantPeople topic
+            "familyRelationships": "importantPeople",
+            "closestFriends": "importantPeople",
+            "supportSystem": "importantPeople",
+            "mentorsAndRoleModels": "importantPeople",
+            "socialCircle": "importantPeople",
+            "peopleWhoInspire": "importantPeople",
+            "relationshipDynamics": "importantPeople",
+            "peopleToConnectWith": "importantPeople",
+            "impactOnOthers": "importantPeople",
+            "futureRelationships": "importantPeople",
+            
+            // Children topic
+            "childrenStatus": "children",
+            "parentingExperience": "children",
+            "parentingStyle": "children",
+            "parentingChallenges": "children",
+            "parentingGoals": "children",
+            "familyDynamics": "children",
+            "valuesToPassOn": "children",
+            "parentingSupport": "children",
+            "futureFamilyVision": "children",
+            
+            // Employment topic
+            "employmentStatus": "employment",
+            "jobSatisfaction": "employment",
+            "careerField": "employment",
+            "workEnvironment": "employment",
+            "careerGoals": "employment",
+            "workLifeBalance": "employment",
+            "professionalChallenges": "employment",
+            "professionalStrengths": "employment",
+            "professionalDevelopment": "employment",
+            "futureCareerVision": "employment"
+        ]
+        
+        do {
+            // Get or create IntakeData for the user
+            let intakeDataManager = IntakeDataManager(modelContext: modelContext)
+            let intakeData = await intakeDataManager.getOrCreateIntakeData(for: userId)
+            
+            // Organize responses by topic
+            var wellnessData: [String: String] = [:]
+            var relationshipData: [String: String] = [:]
+            var importantPeopleData: [String: String] = [:]
+            var childrenData: [String: String] = [:]
+            var employmentData: [String: String] = [:]
+            
+            // Process each response and assign to appropriate topic
+            for (key, value) in responses {
+                // Skip question keys and basic user info keys
+                if key.hasPrefix("question_") {
+                    continue
+                }
+                
+                // Skip basic user info that's handled in User model
+                if ["firstName", "birthDate", "birthTime", "zodiacSign", "timezone", "consentGiven", "intuition", "energy", "final"].contains(key) {
+                    continue
+                }
+                
+                // Get topic for this dataKey
+                if let topic = topicMapping[key], let answer = value as? String, !answer.isEmpty {
+                    switch topic {
+                    case "wellness":
+                        wellnessData[key] = answer
+                    case "relationship":
+                        relationshipData[key] = answer
+                    case "importantPeople":
+                        importantPeopleData[key] = answer
+                    case "children":
+                        childrenData[key] = answer
+                    case "employment":
+                        employmentData[key] = answer
+                    default:
+                        break
+                    }
+                }
+            }
+            
+            // Update IntakeData with topic data
+            if !wellnessData.isEmpty {
+                intakeData.setData(wellnessData, for: "wellness")
+            }
+            if !relationshipData.isEmpty {
+                intakeData.setData(relationshipData, for: "relationship")
+            }
+            if !importantPeopleData.isEmpty {
+                intakeData.setData(importantPeopleData, for: "importantPeople")
+            }
+            if !childrenData.isEmpty {
+                intakeData.setData(childrenData, for: "children")
+            }
+            if !employmentData.isEmpty {
+                intakeData.setData(employmentData, for: "employment")
+            }
+            
+            // Save to SwiftData
+            try await Task { @MainActor in
+                try modelContext.save()
+            }.value
+            
+            let totalAnswers = wellnessData.count + relationshipData.count + importantPeopleData.count + childrenData.count + employmentData.count
+            print("✅ AuthenticationManager: Saved IntakeData to SwiftData from UserDefaults - Total answers: \(totalAnswers) (Wellness: \(wellnessData.count), Relationship: \(relationshipData.count), ImportantPeople: \(importantPeopleData.count), Children: \(childrenData.count), Employment: \(employmentData.count))")
+            
+        } catch {
+            print("❌ AuthenticationManager: Failed to save IntakeData to SwiftData: \(error)")
+        }
+    }
+    
+    /// Sync horoscopes from Firebase to SwiftData (called during registration)
+    func syncHoroscopesToSwiftData(modelContext: ModelContext) async {
+        guard let userId = user?.uid else {
+            print("⚠️ AuthenticationManager: No user ID available for horoscope sync")
+            return
+        }
+        
+        print("🔄 AuthenticationManager: Starting horoscope sync from Firebase for user: \(userId)")
+        
+        let firebaseService = FirebaseDatabaseService()
+        let dayName = getDayOfWeek().lowercased()
+        
+        // Sync welcome horoscope
+        do {
+            // Check if welcome horoscope already exists in SwiftData
+            let welcomeDescriptor = FetchDescriptor<Horoscope>(
+                predicate: #Predicate<Horoscope> { $0.key == "welcome" }
+            )
+            let existingWelcomeHoroscopes = try modelContext.fetch(welcomeDescriptor)
+            
+            if existingWelcomeHoroscopes.isEmpty {
+                // Try to fetch welcome horoscope from Firebase
+                if let welcomeHoroscope = try await firebaseService.getHoroscope(userId: userId, dateKey: "welcome") {
+                    modelContext.insert(welcomeHoroscope)
+                    try modelContext.save()
+                    print("✅ AuthenticationManager: Welcome horoscope synced from Firebase to SwiftData")
+                } else {
+                    print("ℹ️ AuthenticationManager: Welcome horoscope not found in Firebase")
+                }
+            } else {
+                print("ℹ️ AuthenticationManager: Welcome horoscope already exists in SwiftData")
+            }
+        } catch {
+            print("⚠️ AuthenticationManager: Failed to sync welcome horoscope: \(error)")
+        }
+        
+        // Sync daily overview horoscope
+        do {
+            // Check if daily overview horoscope already exists in SwiftData
+            let dailyDescriptor = FetchDescriptor<Horoscope>(
+                predicate: #Predicate<Horoscope> { $0.key == "daily_overview" }
+            )
+            let existingDailyHoroscopes = try modelContext.fetch(dailyDescriptor)
+            
+            if existingDailyHoroscopes.isEmpty {
+                // Try to fetch daily overview horoscope from Firebase
+                if let dailyHoroscope = try await firebaseService.getDailyOverviewHoroscope(userId: userId, day: dayName) {
+                    modelContext.insert(dailyHoroscope)
+                    try modelContext.save()
+                    print("✅ AuthenticationManager: Daily overview horoscope synced from Firebase to SwiftData")
+                } else {
+                    print("ℹ️ AuthenticationManager: Daily overview horoscope not found in Firebase for \(dayName)")
+                }
+            } else {
+                print("ℹ️ AuthenticationManager: Daily overview horoscope already exists in SwiftData")
+            }
+        } catch {
+            print("⚠️ AuthenticationManager: Failed to sync daily overview horoscope: \(error)")
+        }
+        
+        print("✅ AuthenticationManager: Horoscope sync completed")
+    }
+    
     /// Public method to sync user profile data from Firebase (can be called from views)
     func syncUserProfileFromFirebase(modelContext: ModelContext) async {
         guard let userId = user?.uid else {
@@ -294,7 +571,7 @@ class AuthenticationManager: ObservableObject {
         do {
             // Get or create IntakeData for the user
             let intakeDataManager = IntakeDataManager(modelContext: modelContext)
-            let intakeData = intakeDataManager.getOrCreateIntakeData(for: userId)
+            let intakeData = await intakeDataManager.getOrCreateIntakeData(for: userId)
             
             // Organize responses by topic
             var wellnessData: [String: String] = [:]
@@ -352,7 +629,9 @@ class AuthenticationManager: ObservableObject {
             }
             
             // Save to SwiftData
-            try modelContext.save()
+            try await Task { @MainActor in
+                try modelContext.save()
+            }.value
             
             let totalAnswers = wellnessData.count + relationshipData.count + importantPeopleData.count + childrenData.count + employmentData.count
             print("✅ AuthenticationManager: Synced IntakeData - Total answers: \(totalAnswers) (Wellness: \(wellnessData.count), Relationship: \(relationshipData.count), ImportantPeople: \(importantPeopleData.count), Children: \(childrenData.count), Employment: \(employmentData.count))")

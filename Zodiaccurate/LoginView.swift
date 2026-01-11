@@ -264,6 +264,15 @@ struct LoginView: View {
                                                 try await authManager.signUp(email: email, password: password)
                                                 print("🔘 LoginView: signUp completed successfully")
                                                 
+                                                // Save user data to SwiftData from UserDefaults
+                                                await authManager.saveUserToSwiftData(modelContext: modelContext)
+                                                
+                                                // Save questionnaire responses to SwiftData from UserDefaults
+                                                await authManager.saveIntakeDataToSwiftData(modelContext: modelContext)
+                                                
+                                                // Sync horoscopes from Firebase to SwiftData
+                                                await authManager.syncHoroscopesToSwiftData(modelContext: modelContext)
+                                                
                                                 // Fallback: Try to save welcome horoscope to Firebase if it exists
                                                 // Note: Horoscope is typically generated during onboarding and saved to Firebase there,
                                                 // but this serves as a fallback in case it already exists or if onboarding was skipped

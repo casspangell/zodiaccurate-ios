@@ -7,6 +7,7 @@ struct MainZodiacView: View {
     @State private var stardustManager: StardustManager?
     @State private var intakeDataManager: IntakeDataManager?
     @StateObject private var userProfileManager = UserProfileManager()
+    @StateObject private var syncStatusManager = DataSyncStatusManager()
     @State private var currentStardustBalance: Int = 0
     @Query private var users: [User]
     @Query private var stardustRecords: [Stardust]
@@ -89,7 +90,7 @@ struct MainZodiacView: View {
     // MARK: - IntakeData Management
     
     /// Handle conversation response and update IntakeData
-    private func handleConversationResponse(input: String, step: ConversationStep, topic: QuestionMenuButton) {
+    private func handleConversationResponse(input: String, step: ConversationStep, topic: QuestionMenuButton) async {
         guard let intakeDataManager = intakeDataManager else {
             print("❌ IntakeDataManager not available")
             return
@@ -99,7 +100,7 @@ struct MainZodiacView: View {
         let topicString = intakeDataManager.topicFromQuestionMenuButton(topic)
         
         if !topicString.isEmpty {
-            intakeDataManager.updateIntakeData(
+            await intakeDataManager.updateIntakeData(
                 userId: userId,
                 topic: topicString,
                 dataKey: step.dataKey,
@@ -228,6 +229,9 @@ struct MainZodiacView: View {
                 )
                 .environmentObject(authManager)
                 .onAppear {
+                    // Start data sync tracking
+                    syncStatusManager.startSync()
+                    
                     // Initialize StardustManager with SwiftData integration and Firebase userId
                     if stardustManager == nil {
                         let userId = authManager.user?.uid
@@ -237,29 +241,27 @@ struct MainZodiacView: View {
                         stardustManager?.userId = authManager.user?.uid
                     }
                     
-                    // Load or create Stardust instance from SwiftData
+                    // Load data with progress tracking
                     Task { @MainActor in
+                        syncStatusManager.updateProgress(0.1, operation: "Loading Stardust...")
                         await loadOrCreateStardustFromSwiftData()
-                    }
-                    
-                    // Initialize IntakeDataManager
-                    if intakeDataManager == nil {
-                        intakeDataManager = IntakeDataManager(modelContext: modelContext)
-                    }
-                    
-                    // Load welcome horoscope from SwiftData immediately when view appears
-                    Task { @MainActor in
+                        
+                        // Initialize IntakeDataManager
+                        if intakeDataManager == nil {
+                            intakeDataManager = IntakeDataManager(modelContext: modelContext)
+                        }
+                        
+                        syncStatusManager.updateProgress(0.3, operation: "Loading horoscopes...")
                         await loadWelcomeHoroscopeFromSwiftData()
-                    }
-                    
-                    // Load daily horoscope from Firebase and save to SwiftData
-                    Task { @MainActor in
+                        
+                        syncStatusManager.updateProgress(0.5, operation: "Fetching daily horoscope...")
                         await loadDailyHoroscopeFromFirebase()
-                    }
-                    
-                    // Load and log horoscopes for each category
-                    Task { @MainActor in
+                        
+                        syncStatusManager.updateProgress(0.8, operation: "Loading category horoscopes...")
                         await loadAndLogHoroscopesForAllCategories()
+                        
+                        syncStatusManager.updateProgress(1.0, operation: "Complete")
+                        syncStatusManager.completeSync()
                     }
                     
                     // Trigger header animation to main mode when view loads
@@ -323,7 +325,8 @@ struct MainZodiacView: View {
                                     showEmploymentConfirmation = true
                                 },
                                  highlightedButton: getHighlightedQuestionMenuButton(),
-                                userId: authManager.user?.uid
+                                userId: authManager.user?.uid,
+                                syncStatusManager: syncStatusManager
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.top, 24)
@@ -628,7 +631,9 @@ struct MainZodiacView: View {
                 displayName: $wellnessDisplayName,
                 onResponse: { input, step in
                     print("[Wellness Response] \(step.dataKey): \(input)")
-                    handleConversationResponse(input: input, step: step, topic: .wellness)
+                    Task {
+                        await handleConversationResponse(input: input, step: step, topic: .wellness)
+                    }
                 },
                 onComplete: {
                     saveQuestionnaireToFirebase(topic: .wellness, questionnaireTitle: "Wellness")
@@ -656,7 +661,9 @@ struct MainZodiacView: View {
                 displayName: $relationshipDisplayName,
                 onResponse: { input, step in
                     print("[Relationship Response] \(step.dataKey): \(input)")
-                    handleConversationResponse(input: input, step: step, topic: .relationship)
+                    Task {
+                        await handleConversationResponse(input: input, step: step, topic: .relationship)
+                    }
                 },
                 onComplete: {
                     saveQuestionnaireToFirebase(topic: .relationship, questionnaireTitle: "Relationship")
@@ -680,7 +687,9 @@ struct MainZodiacView: View {
                 displayName: $importantPeopleDisplayName,
                 onResponse: { input, step in
                     print("[Important People Response] \(step.dataKey): \(input)")
-                    handleConversationResponse(input: input, step: step, topic: .importantPeople)
+                    Task {
+                        await handleConversationResponse(input: input, step: step, topic: .importantPeople)
+                    }
                 },
                 onComplete: {
                     saveQuestionnaireToFirebase(topic: .importantPeople, questionnaireTitle: "Important People")
@@ -708,7 +717,9 @@ struct MainZodiacView: View {
                 displayName: $childrenDisplayName,
                 onResponse: { input, step in
                     print("[Children Response] \(step.dataKey): \(input)")
-                    handleConversationResponse(input: input, step: step, topic: .children)
+                    Task {
+                        await handleConversationResponse(input: input, step: step, topic: .children)
+                    }
                 },
                 onComplete: {
                     saveQuestionnaireToFirebase(topic: .children, questionnaireTitle: "Children")
@@ -732,7 +743,9 @@ struct MainZodiacView: View {
                 displayName: $employmentDisplayName,
                 onResponse: { input, step in
                     print("[Employment Response] \(step.dataKey): \(input)")
-                    handleConversationResponse(input: input, step: step, topic: .employment)
+                    Task {
+                        await handleConversationResponse(input: input, step: step, topic: .employment)
+                    }
                 },
                 onComplete: {
                     saveQuestionnaireToFirebase(topic: .employment, questionnaireTitle: "Employment")

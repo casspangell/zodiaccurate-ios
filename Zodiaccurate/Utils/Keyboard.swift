@@ -24,24 +24,6 @@ class KeyboardManager: ObservableObject {
         Publishers.keyboardHeight
             .receive(on: DispatchQueue.main)
             .sink { [weak self] keyboardHeight in
-                // #region agent log
-                let logData: [String: Any] = [
-                    "keyboardHeight": keyboardHeight,
-                    "previousHeight": self?.keyboardHeight ?? 0
-                ]
-                if let logUrl = URL(string: "http://127.0.0.1:7242/ingest/c677de8d-2119-4520-a566-f1ce6300614d") {
-                    Task {
-                        do {
-                            let jsonData = try JSONSerialization.data(withJSONObject: ["location": "Keyboard.swift:27", "message": "keyboardHeight changed", "data": logData, "timestamp": Int(Date().timeIntervalSince1970 * 1000), "sessionId": "debug-session", "runId": "run1", "hypothesisId": "C"])
-                            var request = URLRequest(url: logUrl)
-                            request.httpMethod = "POST"
-                            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                            request.httpBody = jsonData
-                            _ = try? await URLSession.shared.data(for: request)
-                        } catch {}
-                    }
-                }
-                // #endregion
                 self?.keyboardHeight = keyboardHeight
             }
             .store(in: &cancellables)
@@ -52,52 +34,11 @@ class KeyboardManager: ObservableObject {
         inputFieldFrame: CGRect,
         lastResponseBubbleHeight: CGFloat
     ) {
-        // #region agent log
-        let logData: [String: Any] = [
-            "keyboardHeight": keyboardHeight,
-            "currentOffset": animatedKeyboardOffset,
-            "inputFieldFrame": ["x": inputFieldFrame.minX, "y": inputFieldFrame.minY, "width": inputFieldFrame.width, "height": inputFieldFrame.height],
-            "lastResponseBubbleHeight": lastResponseBubbleHeight
-        ]
-        if let logUrl = URL(string: "http://127.0.0.1:7242/ingest/c677de8d-2119-4520-a566-f1ce6300614d") {
-            Task {
-                do {
-                    let jsonData = try JSONSerialization.data(withJSONObject: ["location": "Keyboard.swift:32", "message": "updateKeyboardOffset called", "data": logData, "timestamp": Int(Date().timeIntervalSince1970 * 1000), "sessionId": "debug-session", "runId": "run1", "hypothesisId": "A"])
-                    var request = URLRequest(url: logUrl)
-                    request.httpMethod = "POST"
-                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                    request.httpBody = jsonData
-                    _ = try? await URLSession.shared.data(for: request)
-                } catch {}
-            }
-        }
-        // #endregion
-        
         let targetOffset = calculateKeyboardOffset(
             keyboardHeight: keyboardHeight,
             inputFieldFrame: inputFieldFrame,
             lastResponseBubbleHeight: lastResponseBubbleHeight
         )
-        
-        // #region agent log
-        let logData2: [String: Any] = [
-            "targetOffset": targetOffset,
-            "currentOffset": animatedKeyboardOffset,
-            "willAnimate": targetOffset > 0 && keyboardHeight > 0 || keyboardHeight == 0
-        ]
-        if let logUrl = URL(string: "http://127.0.0.1:7242/ingest/c677de8d-2119-4520-a566-f1ce6300614d") {
-            Task {
-                do {
-                    let jsonData = try JSONSerialization.data(withJSONObject: ["location": "Keyboard.swift:42", "message": "updateKeyboardOffset calculated target", "data": logData2, "timestamp": Int(Date().timeIntervalSince1970 * 1000), "sessionId": "debug-session", "runId": "run1", "hypothesisId": "B"])
-                    var request = URLRequest(url: logUrl)
-                    request.httpMethod = "POST"
-                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                    request.httpBody = jsonData
-                    _ = try? await URLSession.shared.data(for: request)
-                } catch {}
-            }
-        }
-        // #endregion
         
         if targetOffset > 0 && keyboardHeight > 0 {
             withAnimation(.easeInOut(duration: 0.3)) {

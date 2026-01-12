@@ -59,6 +59,100 @@ class AuthenticationManager: ObservableObject {
         
         print("✅ All authentication data cleared")
     }
+    
+    /// Clear all SwiftData models and relevant UserDefaults flags for a new user registration
+    func clearAllSwiftDataForNewUser(modelContext: ModelContext) {
+        print("🗑️ AuthenticationManager: Clearing all SwiftData for new user registration")
+        
+        do {
+            // Clear User models
+            let userDescriptor = FetchDescriptor<User>()
+            let users = try modelContext.fetch(userDescriptor)
+            for user in users {
+                modelContext.delete(user)
+            }
+            print("✅ Cleared \(users.count) User records")
+            
+            // Clear Horoscope models
+            let horoscopeDescriptor = FetchDescriptor<Horoscope>()
+            let horoscopes = try modelContext.fetch(horoscopeDescriptor)
+            for horoscope in horoscopes {
+                modelContext.delete(horoscope)
+            }
+            print("✅ Cleared \(horoscopes.count) Horoscope records")
+            
+            // Clear Stardust models
+            let stardustDescriptor = FetchDescriptor<Stardust>()
+            let stardustRecords = try modelContext.fetch(stardustDescriptor)
+            for stardust in stardustRecords {
+                modelContext.delete(stardust)
+            }
+            print("✅ Cleared \(stardustRecords.count) Stardust records")
+            
+            // Clear IntakeData models
+            let intakeDataDescriptor = FetchDescriptor<IntakeData>()
+            let intakeDataRecords = try modelContext.fetch(intakeDataDescriptor)
+            for intakeData in intakeDataRecords {
+                modelContext.delete(intakeData)
+            }
+            print("✅ Cleared \(intakeDataRecords.count) IntakeData records")
+            
+            // Clear DailyUpdate models (if they exist and are in the model container)
+            // Note: DailyUpdate may not be in the modelContainer, so we wrap in try-catch
+            do {
+                let dailyUpdateDescriptor = FetchDescriptor<DailyUpdate>()
+                let dailyUpdates = try modelContext.fetch(dailyUpdateDescriptor)
+                for dailyUpdate in dailyUpdates {
+                    modelContext.delete(dailyUpdate)
+                }
+                if !dailyUpdates.isEmpty {
+                    print("✅ Cleared \(dailyUpdates.count) DailyUpdate records")
+                }
+            } catch {
+                // DailyUpdate may not be in the modelContainer, which is fine
+                print("ℹ️ DailyUpdate not in modelContainer or already cleared: \(error.localizedDescription)")
+            }
+            
+            // Save all deletions
+            try modelContext.save()
+            print("✅ All SwiftData cleared and saved successfully")
+            
+        } catch {
+            print("❌ Error clearing SwiftData: \(error)")
+        }
+        
+        // Clear relevant UserDefaults flags
+        clearUserDefaultsForNewUser()
+    }
+    
+    /// Clear UserDefaults flags that should be reset for a new user
+    private func clearUserDefaultsForNewUser() {
+        print("🗑️ AuthenticationManager: Clearing UserDefaults flags for new user")
+        
+        // Clear onboarding completion flag
+        UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+        
+        // Clear conversation progress for all topics
+        let topics = ["wellness", "relationship", "importantPeople", "children", "employment"]
+        for topic in topics {
+            ConversationProgressManager.clearProgress(for: topic)
+        }
+        
+        // Clear onboarding responses
+        UserDefaults.standard.removeObject(forKey: "onboardingResponses")
+        
+        // Clear tutorial flags
+        UserDefaults.standard.removeObject(forKey: "hasShownUpdateTutorial")
+        UserDefaults.standard.removeObject(forKey: "hasShownStardustTutorial")
+        
+        // Clear consent flag (will be set again during onboarding)
+        UserDefaults.standard.removeObject(forKey: "hasAcceptedConsentPolicies")
+        
+        // Clear onboarding UUID if it exists
+        UserDefaults.standard.removeObject(forKey: "onboardingUUID")
+        
+        print("✅ UserDefaults flags cleared for new user")
+    }
 
     func signIn(email: String, password: String) async throws {
         isLoading = true
@@ -234,10 +328,29 @@ class AuthenticationManager: ObservableObject {
             return
         }
         
+        // #region agent log
+        debugLog(data: [
+            "hypothesisId": "C",
+            "function": "saveIntakeDataToSwiftData",
+            "userId": userId,
+            "location": "AuthenticationManager.swift:232"
+        ])
+        // #endregion
+        
         // Get onboarding responses from UserDefaults
         var responses: [String: Any] = [:]
         if let storedResponses = UserDefaults.standard.dictionary(forKey: "onboardingResponses") as? [String: String] {
             responses = storedResponses
+            
+            // #region agent log
+            debugLog(data: [
+                "hypothesisId": "C",
+                "source": "onboardingResponses UserDefaults",
+                "responseCount": responses.count,
+                "wellnessKeys": Array(responses.keys.filter { ["overallHealth", "physicalHealthDescription", "emotionalImbalances", "mentalHealthChallenges", "wellnessGoals", "goalsAndDreams", "areasToImprove", "stressSources", "joyAndSatisfaction", "familyValues", "sexualOrientation", "beliefSystem"].contains($0) }),
+                "location": "AuthenticationManager.swift:252"
+            ])
+            // #endregion
         } else {
             // Fallback: try to get individual keys
             let possibleKeys = ["intuition", "energy", "final", "overallHealth", "physicalHealthDescription", "emotionalImbalances", "mentalHealthChallenges", "wellnessGoals", "goalsAndDreams", "areasToImprove", "stressSources", "joyAndSatisfaction", "familyValues", "sexualOrientation", "beliefSystem", "relationshipStatus", "relationshipGoals", "communicationStyle", "loveLanguage", "relationshipChallenges", "pastRelationshipLessons", "importantPartnerQualities", "relationshipValues", "intimacyPreferences", "futureRelationshipVision", "familyRelationships", "closestFriends", "supportSystem", "mentorsAndRoleModels", "socialCircle", "peopleWhoInspire", "relationshipDynamics", "peopleToConnectWith", "impactOnOthers", "futureRelationships", "childrenStatus", "parentingExperience", "parentingStyle", "parentingChallenges", "parentingGoals", "familyDynamics", "valuesToPassOn", "parentingSupport", "futureFamilyVision", "employmentStatus", "jobSatisfaction", "careerField", "workEnvironment", "careerGoals", "workLifeBalance", "professionalChallenges", "professionalStrengths", "professionalDevelopment", "futureCareerVision"]
@@ -251,6 +364,14 @@ class AuthenticationManager: ObservableObject {
         
         // If no responses found, skip
         guard !responses.isEmpty else {
+            // #region agent log
+            debugLog(data: [
+                "hypothesisId": "C",
+                "result": "REJECTED - No responses in UserDefaults",
+                "userId": userId,
+                "location": "AuthenticationManager.swift:258"
+            ])
+            // #endregion
             print("⚠️ AuthenticationManager: No onboarding responses found in UserDefaults for IntakeData save")
             return
         }
@@ -365,6 +486,17 @@ class AuthenticationManager: ObservableObject {
             // Update IntakeData with topic data
             if !wellnessData.isEmpty {
                 intakeData.setData(wellnessData, for: "wellness")
+                
+                // #region agent log
+                debugLog(data: [
+                    "hypothesisId": "C",
+                    "action": "saving_wellness_data",
+                    "userId": userId,
+                    "wellnessDataCount": wellnessData.count,
+                    "wellnessKeys": Array(wellnessData.keys),
+                    "location": "AuthenticationManager.swift:366"
+                ])
+                // #endregion
             }
             if !relationshipData.isEmpty {
                 intakeData.setData(relationshipData, for: "relationship")
@@ -385,6 +517,18 @@ class AuthenticationManager: ObservableObject {
             }.value
             
             let totalAnswers = wellnessData.count + relationshipData.count + importantPeopleData.count + childrenData.count + employmentData.count
+            
+            // #region agent log
+            debugLog(data: [
+                "hypothesisId": "C",
+                "result": "CONFIRMED - IntakeData saved",
+                "userId": userId,
+                "totalAnswers": totalAnswers,
+                "wellnessCount": wellnessData.count,
+                "location": "AuthenticationManager.swift:388"
+            ])
+            // #endregion
+            
             print("✅ AuthenticationManager: Saved IntakeData to SwiftData from UserDefaults - Total answers: \(totalAnswers) (Wellness: \(wellnessData.count), Relationship: \(relationshipData.count), ImportantPeople: \(importantPeopleData.count), Children: \(childrenData.count), Employment: \(employmentData.count))")
             
         } catch {
@@ -643,6 +787,27 @@ class AuthenticationManager: ObservableObject {
     
     func signUp(email: String, password: String) async throws {
         print("🔄 AuthenticationManager: Starting sign up...")
+        
+        // #region agent log
+        debugLog(data: [
+            "hypothesisId": "D",
+            "function": "signUp",
+            "email": email,
+            "location": "AuthenticationManager.swift:644"
+        ])
+        
+        // Check UserDefaults conversation progress BEFORE signup
+        let wellnessProgressBefore = ConversationProgressManager.getProgress(for: "wellness")
+        let wellnessCompletedBefore = ConversationProgressManager.isTopicCompleted(for: "wellness")
+        debugLog(data: [
+            "hypothesisId": "A",
+            "check": "UserDefaults_before_signup",
+            "wellnessProgress": wellnessProgressBefore,
+            "wellnessCompleted": wellnessCompletedBefore,
+            "location": "AuthenticationManager.swift:653"
+        ])
+        // #endregion
+        
         isLoading = true
         error = nil
         horoscopeSavedToCoreData = false
@@ -653,6 +818,15 @@ class AuthenticationManager: ObservableObject {
         do {
             let result = try await auth.createUser(withEmail: email, password: password)
             user = result.user
+            
+            // #region agent log
+            debugLog(data: [
+                "hypothesisId": "D",
+                "userId": result.user.uid,
+                "location": "AuthenticationManager.swift:656"
+            ])
+            // #endregion
+            
             print("✅ AuthenticationManager: User created successfully, isAuthenticated = \(isAuthenticated)")
             
             // Get onboarding data from UserDefaults

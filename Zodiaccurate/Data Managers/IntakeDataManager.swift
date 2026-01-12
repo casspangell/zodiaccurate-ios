@@ -86,6 +86,25 @@ class IntakeDataManager: ObservableObject {
         
         do {
             let results = try modelContext.fetch(descriptor)
+            
+            // #region agent log
+            // Also check ALL IntakeData records to see if there are multiple users
+            let allDescriptor = FetchDescriptor<IntakeData>()
+            let allResults = try modelContext.fetch(allDescriptor)
+            let allUserIds = allResults.map { $0.userId }
+            let allWellnessData = allResults.map { ["id": $0.userId, "count": $0.wellnessData.count] }
+            
+            debugLog(data: [
+                "hypothesisId": "B",
+                "function": "getIntakeData",
+                "requestedUserId": userId,
+                "foundCount": results.count,
+                "allUserIdsInSwiftData": allUserIds,
+                "allWellnessDataCounts": allWellnessData,
+                "location": "IntakeDataManager.swift:115"
+            ])
+            // #endregion
+            
             return results.first
         } catch {
             print("❌ Error fetching IntakeData: \(error)")
@@ -106,11 +125,37 @@ class IntakeDataManager: ObservableObject {
     /// Check if a user has data for a specific topic
     func hasTopicData(userId: String, topic: String) -> Bool {
         guard let intakeData = getIntakeData(for: userId) else {
+            // #region agent log
+            debugLog(data: [
+                "hypothesisId": "B",
+                "function": "hasTopicData",
+                "userId": userId,
+                "topic": topic,
+                "result": false,
+                "reason": "no_intake_data_found",
+                "location": "IntakeDataManager.swift:151"
+            ])
+            // #endregion
             return false
         }
         
         let normalizedTopic = normalizeTopic(topic)
-        return intakeData.hasData(for: normalizedTopic)
+        let hasData = intakeData.hasData(for: normalizedTopic)
+        
+        // #region agent log
+        debugLog(data: [
+            "hypothesisId": "B",
+            "function": "hasTopicData",
+            "userId": userId,
+            "topic": topic,
+            "normalizedTopic": normalizedTopic,
+            "hasData": hasData,
+            "wellnessDataCount": intakeData.wellnessData.count,
+            "location": "IntakeDataManager.swift:175"
+        ])
+        // #endregion
+        
+        return hasData
     }
     
     /// Get all topics that have data for a user

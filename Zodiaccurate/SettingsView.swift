@@ -249,10 +249,6 @@ struct SettingsView: View {
                                             Text("Log Out")
                                                 .font(.system(size: 16, weight: .medium))
                                                 .foregroundColor(.white)
-                                            
-                                            Text("Your local data will be preserved")
-                                                .font(.system(size: 14, weight: .regular))
-                                                .foregroundColor(.white.opacity(0.7))
                                         }
                                         
                                         Spacer()

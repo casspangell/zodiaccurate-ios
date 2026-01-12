@@ -260,6 +260,10 @@ struct LoginView: View {
                                                     print("🌍 Timezone saved: \(selectedTimezone)")
                                                 }
                                                 
+                                                // Clear all SwiftData and flags before registration to ensure clean slate
+                                                print("🗑️ LoginView: Clearing all SwiftData and flags for new user registration")
+                                                authManager.clearAllSwiftDataForNewUser(modelContext: modelContext)
+                                                
                                                 print("🔘 LoginView: Calling signUp...")
                                                 try await authManager.signUp(email: email, password: password)
                                                 print("🔘 LoginView: signUp completed successfully")

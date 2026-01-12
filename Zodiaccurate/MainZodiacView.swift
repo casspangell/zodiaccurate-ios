@@ -295,10 +295,56 @@ struct MainZodiacView: View {
                     VStack(spacing: 0) {
                         // Progress bar above header
                         if hasAcceptedConsentPolicies {
-                            ConversationProgressBar()
-                                .padding(.horizontal, 16)
-                                .padding(.top, 24)
-                                .padding(.bottom, 8)
+                            ZStack(alignment: .topTrailing) {
+                                ConversationProgressBar()
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 24)
+                                    .padding(.bottom, 8)
+                                
+                                // Test button for completion animation
+                                Button(action: {
+                                    // #region agent log
+                                    let logPath = "/Users/casspangell/Documents/Tao Academy/PAUL/zodiaccurate-ios/.cursor/debug.log"
+                                    let logEntry: [String: Any] = [
+                                        "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+                                        "location": "MainZodiacView.swift:305",
+                                        "message": "Test button pressed",
+                                        "data": [:],
+                                        "sessionId": "debug-session",
+                                        "hypothesisId": "C"
+                                    ]
+                                    if let jsonData = try? JSONSerialization.data(withJSONObject: logEntry),
+                                       let jsonString = String(data: jsonData, encoding: .utf8) {
+                                        if let fileHandle = FileHandle(forWritingAtPath: logPath) {
+                                            fileHandle.seekToEndOfFile()
+                                            fileHandle.write((jsonString + "\n").data(using: .utf8)!)
+                                            fileHandle.closeFile()
+                                        } else {
+                                            try? jsonString.write(toFile: logPath, atomically: true, encoding: .utf8)
+                                        }
+                                    }
+                                    // #endregion
+                                    
+                                    // Notify that animation should show (ONLY trigger animation, don't save progress)
+                                    NotificationCenter.default.post(name: .progressBarShowCompletionAnimation, object: nil)
+                                }) {
+                                    Text("Test")
+                                        .font(.dmSansMedium(size: 10))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .fill(Color.orange.opacity(0.4))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 6)
+                                                        .stroke(Color.orange.opacity(0.7), lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                .padding(.top, 28)
+                                .padding(.trailing, 20)
+                            }
                         }
                         
                         // Header layer - pinned to top

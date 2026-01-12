@@ -83,20 +83,50 @@ struct QuestionMenu: View {
         print("🔄 QuestionMenu: Updated unfinished states - Wellness: \(isWellnessUnfinished), Relationship: \(isRelationshipUnfinished), Important People: \(isImportantPeopleUnfinished), Children: \(isChildrenUnfinished), Employment: \(isEmploymentUnfinished)")
         print("🔄 QuestionMenu: Updated completion states - Wellness: \(isWellnessCompleted), Relationship: \(isRelationshipCompleted), Important People: \(isImportantPeopleCompleted), Children: \(isChildrenCompleted), Employment: \(isEmploymentCompleted)")
         
-        // Reset fiery state for completed topics
-        if isWellnessCompleted { isWellnessFieryState = false }
-        if isRelationshipCompleted { isRelationshipFieryState = false }
-        if isImportantPeopleCompleted { isImportantPeopleFieryState = false }
-        if isChildrenCompleted { isChildrenFieryState = false }
-        if isEmploymentCompleted { isEmploymentFieryState = false }
+        // Set fiery state based on completion status
+        // Fiery state = true if form hasn't been completed (not started or in progress)
+        isWellnessFieryState = !isWellnessCompleted && !isWellnessUnfinished
+        isRelationshipFieryState = !isRelationshipCompleted && !isRelationshipUnfinished
+        isImportantPeopleFieryState = !isImportantPeopleCompleted && !isImportantPeopleUnfinished
+        isChildrenFieryState = !isChildrenCompleted && !isChildrenUnfinished
+        isEmploymentFieryState = !isEmploymentCompleted && !isEmploymentUnfinished
     }
     
     /// Check if a topic is completed by checking both ConversationProgressManager and IntakeData (SwiftData)
     private func checkTopicCompletion(topic: String, userId: String) -> Bool {
+        // #region agent log
+        debugLog(data: [
+            "topic": topic,
+            "userId": userId,
+            "location": "QuestionMenu.swift:96"
+        ])
+        // #endregion
+        
         // First check ConversationProgressManager (UserDefaults - tracks step progress)
+        let progress = ConversationProgressManager.getProgress(for: topic)
+        let totalSteps = ConversationProgressManager.getTotalStepsForTopic(topic)
         let progressCompleted = ConversationProgressManager.isTopicCompleted(for: topic)
         
+        // #region agent log
+        debugLog(data: [
+            "hypothesisId": "A",
+            "topic": topic,
+            "progress": progress,
+            "totalSteps": totalSteps,
+            "progressCompleted": progressCompleted,
+            "location": "QuestionMenu.swift:114"
+        ])
+        // #endregion
+        
         if progressCompleted {
+            // #region agent log
+            debugLog(data: [
+                "hypothesisId": "A",
+                "result": "CONFIRMED - UserDefaults shows completed",
+                "topic": topic,
+                "location": "QuestionMenu.swift:130"
+            ])
+            // #endregion
             return true
         }
         
@@ -104,11 +134,49 @@ struct QuestionMenu: View {
         do {
             let intakeDataManager = IntakeDataManager(modelContext: modelContext)
             let hasData = intakeDataManager.hasTopicData(userId: userId, topic: topic)
+            
+            // #region agent log
+            debugLog(data: [
+                "hypothesisId": "B",
+                "topic": topic,
+                "userId": userId,
+                "hasData": hasData,
+                "location": "QuestionMenu.swift:150"
+            ])
+            // #endregion
+            
             if hasData {
                 let topicData = intakeDataManager.getTopicData(userId: userId, topic: topic)
                 let totalSteps = ConversationProgressManager.getTotalStepsForTopic(topic)
+                let dataCount = topicData.count
+                let threshold = Int(Double(totalSteps) * 0.8)
+                let isAboveThreshold = dataCount >= threshold
+                
+                // #region agent log
+                debugLog(data: [
+                    "hypothesisId": "B",
+                    "topic": topic,
+                    "userId": userId,
+                    "dataCount": dataCount,
+                    "totalSteps": totalSteps,
+                    "threshold": threshold,
+                    "isAboveThreshold": isAboveThreshold,
+                    "location": "QuestionMenu.swift:172"
+                ])
+                // #endregion
+                
                 // If we have data for most steps (80% or more), consider it completed
-                if topicData.count >= Int(Double(totalSteps) * 0.8) {
+                if isAboveThreshold {
+                    // #region agent log
+                    debugLog(data: [
+                        "hypothesisId": "B",
+                        "result": "CONFIRMED - IntakeData shows completed",
+                        "topic": topic,
+                        "userId": userId,
+                        "dataCount": dataCount,
+                        "location": "QuestionMenu.swift:195"
+                    ])
+                    // #endregion
                     print("✅ QuestionMenu: Topic '\(topic)' considered completed based on IntakeData (has \(topicData.count)/\(totalSteps) answers)")
                     return true
                 }
@@ -116,6 +184,16 @@ struct QuestionMenu: View {
         } catch {
             print("⚠️ QuestionMenu: Error checking IntakeData for topic '\(topic)': \(error)")
         }
+        
+        // #region agent log
+        debugLog(data: [
+            "hypothesisId": "A,B",
+            "result": "REJECTED - Topic not completed",
+            "topic": topic,
+            "userId": userId,
+            "location": "QuestionMenu.swift:210"
+        ])
+        // #endregion
         
         return false
     }
@@ -164,12 +242,12 @@ struct QuestionMenu: View {
         self.highlightedButton = highlightedButton
         self.userId = userId
 
-        // Initialize local state from provided initial flags, but only if enabled
-        self._isWellnessFieryState = State(initialValue: isWellnessEnabled && isWellnessFiery)
-        self._isRelationshipFieryState = State(initialValue: isRelationshipEnabled && isRelationshipFiery)
-        self._isImportantPeopleFieryState = State(initialValue: isImportantPeopleEnabled && isImportantPeopleFiery)
-        self._isChildrenFieryState = State(initialValue: isChildrenEnabled && isChildrenFiery)
-        self._isEmploymentFieryState = State(initialValue: isEmploymentEnabled && isEmploymentFiery)
+        // Initialize local state - will be set based on completion status in updateUnfinishedStates
+        self._isWellnessFieryState = State(initialValue: false)
+        self._isRelationshipFieryState = State(initialValue: false)
+        self._isImportantPeopleFieryState = State(initialValue: false)
+        self._isChildrenFieryState = State(initialValue: false)
+        self._isEmploymentFieryState = State(initialValue: false)
     }
 
     var body: some View {
@@ -179,7 +257,7 @@ struct QuestionMenu: View {
                 systemName: "heart.fill",
                 accessibilityLabel: "Wellness Questions",
                 isEnabled: isWellnessEnabled,
-                isFiery: isWellnessCompleted ? false : (isWellnessUnfinished ? false : isWellnessFieryState),
+                isFiery: isWellnessFieryState,
                 isHighlighted: highlightedButton == .wellness,
                 isUnfinished: isWellnessUnfinished,
                 action: {
@@ -194,7 +272,7 @@ struct QuestionMenu: View {
                 systemName: "person.2.fill",
                 accessibilityLabel: "Relationship Questions",
                 isEnabled: isRelationshipEnabled,
-                isFiery: isRelationshipCompleted ? false : (isRelationshipUnfinished ? false : isRelationshipFieryState),
+                isFiery: isRelationshipFieryState,
                 isHighlighted: highlightedButton == .relationship,
                 isUnfinished: isRelationshipUnfinished,
                 action: {
@@ -209,7 +287,7 @@ struct QuestionMenu: View {
                 systemName: "star.fill",
                 accessibilityLabel: "Important People Questions",
                 isEnabled: isImportantPeopleEnabled,
-                isFiery: isImportantPeopleCompleted ? false : (isImportantPeopleUnfinished ? false : isImportantPeopleFieryState),
+                isFiery: isImportantPeopleFieryState,
                 isHighlighted: highlightedButton == .importantPeople,
                 isUnfinished: isImportantPeopleUnfinished,
                 action: {
@@ -226,7 +304,7 @@ struct QuestionMenu: View {
                 systemName: "gamecontroller.fill",
                 accessibilityLabel: "Children Questions",
                 isEnabled: isChildrenEnabled,
-                isFiery: isChildrenCompleted ? false : (isChildrenUnfinished ? false : isChildrenFieryState),
+                isFiery: isChildrenFieryState,
                 isHighlighted: highlightedButton == .children,
                 isUnfinished: isChildrenUnfinished,
                 action: {
@@ -241,7 +319,7 @@ struct QuestionMenu: View {
                 systemName: "briefcase.fill",
                 accessibilityLabel: "Employment Questions",
                 isEnabled: isEmploymentEnabled,
-                isFiery: isEmploymentCompleted ? false : (isEmploymentUnfinished ? false : isEmploymentFieryState),
+                isFiery: isEmploymentFieryState,
                 isHighlighted: highlightedButton == .employment,
                 isUnfinished: isEmploymentUnfinished,
                 action: {

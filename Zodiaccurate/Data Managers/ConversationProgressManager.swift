@@ -276,4 +276,5 @@ class ConversationProgressManager {
 extension Notification.Name {
     static let conversationProgressUpdated = Notification.Name("conversationProgressUpdated")
     static let updateCardShouldMinimize = Notification.Name("updateCardShouldMinimize")
+    static let progressBarShowCompletionAnimation = Notification.Name("progressBarShowCompletionAnimation")
 }

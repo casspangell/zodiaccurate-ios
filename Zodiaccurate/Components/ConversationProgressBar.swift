@@ -61,7 +61,17 @@ struct ConversationProgressBar: View {
                 .fill(Color.deepBlue.opacity(0.3))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.red, lineWidth: 2)
+                        .stroke(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.electricBlue.opacity(0.3),
+                                    Color.magenta.opacity(0.2)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
         )
         .onAppear {

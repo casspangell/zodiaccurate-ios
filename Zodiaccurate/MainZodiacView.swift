@@ -298,7 +298,7 @@ struct MainZodiacView: View {
                             ConversationProgressBar()
                                 .padding(.horizontal, 16)
                                 .padding(.top, 24)
-                                .padding(.bottom, 4)
+                                .padding(.bottom, 8)
                         }
                         
                         // Header layer - pinned to top
